@@ -1,5 +1,6 @@
 using Cbo.API.Data;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 
 namespace Cbo.API
 {
@@ -26,6 +27,7 @@ namespace Cbo.API
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
+                app.MapScalarApiReference();
                 app.MapOpenApi();
             }
 
