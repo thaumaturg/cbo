@@ -13,7 +13,7 @@ namespace Cbo.API
                 ?? throw new InvalidOperationException("Connection string" + "'CboDb' not found.");
 
             builder.Services.AddDbContext<CboDbContext>(options =>
-                options.UseNpgsql(connectionString));
+                options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention());
 
             // Add services to the container.
 
