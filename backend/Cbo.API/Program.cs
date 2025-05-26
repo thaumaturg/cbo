@@ -1,3 +1,5 @@
+using Cbo.API.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Cbo.API
 {
@@ -6,6 +8,12 @@ namespace Cbo.API
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            var connectionString = builder.Configuration.GetConnectionString("CboDb")
+                ?? throw new InvalidOperationException("Connection string" + "'CboDb' not found.");
+
+            builder.Services.AddDbContext<CboDbContext>(options =>
+                options.UseNpgsql(connectionString));
 
             // Add services to the container.
 
