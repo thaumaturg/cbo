@@ -36,6 +36,9 @@ public class CboDbContext : DbContext
         modelBuilder.Entity<Match>()
             .Property(e => e.Type)
             .HasConversion<string>();
+        modelBuilder.Entity<Tournament>()
+            .Property(e => e.CurrentStage)
+            .HasConversion<string>();
         modelBuilder.Entity<MatchParticipant>()
             .HasOne(mp => mp.SourceMatch)
             .WithMany(m => m.SourceForMatchParticipants)
