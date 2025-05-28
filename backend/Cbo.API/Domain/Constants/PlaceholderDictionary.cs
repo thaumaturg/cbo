@@ -13,10 +13,10 @@ namespace Cbo.API.Domain.Constants
             { "QuestionsCostMin", -100 },
             { "QuestionsPerTopicMax", 5 },
             { "QuestionsPerTopicMin", 5 },
-            { "RoundsPerMatch", 3 },
             { "TopicsAuthorsMax", 5 },
             { "TopicsPerParticipantMax", 10 },
-            { "TopicsPerParticipantMin", 6 }
+            { "TopicsPerParticipantMin", 6 },
+            { "TopicsPerMatch", 4 }
         };
     }
 }
