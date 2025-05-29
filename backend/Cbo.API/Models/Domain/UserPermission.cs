@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Cbo.API.Domain.Constants;
+using Cbo.API.Models.Constants;
 
-namespace Cbo.API.Domain.Models;
+namespace Cbo.API.Models.Domain;
 
 public class UserPermission
 {

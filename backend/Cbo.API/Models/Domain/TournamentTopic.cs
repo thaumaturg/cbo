@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Cbo.API.Domain.Models;
+namespace Cbo.API.Models.Domain;
 
 public class TournamentTopic
 {

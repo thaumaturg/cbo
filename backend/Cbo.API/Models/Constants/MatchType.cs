@@ -1,4 +1,4 @@
-﻿namespace Cbo.API.Domain.Constants;
+﻿namespace Cbo.API.Models.Constants;
 
 public enum MatchType
 {

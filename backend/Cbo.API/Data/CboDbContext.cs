@@ -1,4 +1,4 @@
-﻿using Cbo.API.Domain.Models;
+﻿using Cbo.API.Models.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cbo.API.Data;
