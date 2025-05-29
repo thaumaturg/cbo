@@ -31,9 +31,6 @@ public class Settings
     public int QuestionsPerTopicMin { get; set; }
 
     [Required]
-    public int RoundsPerMatch { get; set; }
-
-    [Required]
     public int TopicsAuthorsMax { get; set; }
 
     [Required]
@@ -41,7 +38,10 @@ public class Settings
 
     [Required]
     public int TopicsPerParticipantMin { get; set; }
-    
+
+    [Required]
+    public int TopicsPerMatch { get; set; }
+
     [Required]
     public int TournamentId { get; set; }
 
