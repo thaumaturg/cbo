@@ -2,6 +2,7 @@
 
 public enum TournamentStage
 {
+    Preparations,
     Qualifications,
     Stage1,
     Stage2,
