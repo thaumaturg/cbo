@@ -29,22 +29,8 @@ public class TournamentsController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         List<Tournament> tournamentsDomain = await _tournamentRepository.GetAllAsync();
-        var tournamentsDto = new List<TournamentDto>();
 
-        foreach (Tournament tournament in tournamentsDomain)
-        {
-            tournamentsDto.Add(new TournamentDto()
-            {
-                Id = tournament.Id,
-                Title = tournament.Title,
-                Description = tournament.Description,
-                CurrentStage = tournament.CurrentStage.ToString(),
-                PlannedStart = tournament.PlannedStart,
-                CreatedAt = tournament.CreatedAt,
-                StartedAt = tournament.StartedAt,
-                EndedAt = tournament.EndedAt,
-            });
-        }
+        List<TournamentDto> tournamentsDto = _mapper.Map<List<TournamentDto>>(tournamentsDomain);
 
         return Ok(tournamentsDto);
     }
@@ -58,17 +44,7 @@ public class TournamentsController : ControllerBase
         if (tournamentDomain == null)
             return NotFound();
 
-        var tournamentDto = new TournamentDto()
-        {
-            Id = id,
-            Title = tournamentDomain.Title,
-            Description = tournamentDomain.Description,
-            CurrentStage = tournamentDomain.CurrentStage.ToString(),
-            PlannedStart = tournamentDomain.PlannedStart,
-            CreatedAt = tournamentDomain.CreatedAt,
-            StartedAt = tournamentDomain.StartedAt,
-            EndedAt = tournamentDomain.EndedAt,
-        };
+        TournamentDto tournamentDto = _mapper.Map<TournamentDto>(tournamentDomain);
 
         return Ok(tournamentDto);
     }
@@ -77,13 +53,7 @@ public class TournamentsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] AddTournamentRequestDto addTournamentRequestDto)
     {
-        var tournamentDomain = new Tournament
-        {
-            Title = addTournamentRequestDto.Title,
-            Description = addTournamentRequestDto.Description,
-            CurrentStage = TournamentStage.Preparations,
-            PlannedStart = addTournamentRequestDto.PlannedStart,
-        };
+        Tournament tournamentDomain = _mapper.Map<Tournament>(addTournamentRequestDto);
 
         tournamentDomain = await _tournamentRepository.CreateAsync(tournamentDomain);
 
@@ -118,17 +88,7 @@ public class TournamentsController : ControllerBase
         await _dbContext.Settings.AddAsync(settings);
         await _dbContext.SaveChangesAsync();
 
-        var tournamentDto = new TournamentDto()
-        {
-            Id = tournamentDomain.Id,
-            Title = tournamentDomain.Title,
-            Description = tournamentDomain.Description,
-            CurrentStage = tournamentDomain.CurrentStage.ToString(),
-            PlannedStart = tournamentDomain.PlannedStart,
-            CreatedAt = tournamentDomain.CreatedAt,
-            StartedAt = tournamentDomain.StartedAt,
-            EndedAt = tournamentDomain.EndedAt
-        };
+        TournamentDto tournamentDto = _mapper.Map<TournamentDto>(tournamentDomain);
 
         return CreatedAtAction(nameof(GetById), new { id = tournamentDomain.Id }, tournamentDto);
     }
@@ -137,30 +97,14 @@ public class TournamentsController : ControllerBase
     [Route("{id:int}")]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateTournamentRequestDto updateTournamentRequestDto)
     {
-        var tournamentDomain = new Tournament()
-        {
-            Title = updateTournamentRequestDto.Title,
-            Description = updateTournamentRequestDto.Description,
-            PlannedStart = updateTournamentRequestDto.PlannedStart
-        };
+        Tournament? tournamentDomain = _mapper.Map<Tournament>(updateTournamentRequestDto);
 
         tournamentDomain = await _tournamentRepository.UpdateAsync(id, tournamentDomain);
-
 
         if (tournamentDomain == null)
             return NotFound();
 
-        var tournamentDto = new TournamentDto()
-        {
-            Id = tournamentDomain.Id,
-            Title = tournamentDomain.Title,
-            Description = tournamentDomain.Description,
-            CurrentStage = tournamentDomain.CurrentStage.ToString(),
-            PlannedStart = tournamentDomain.PlannedStart,
-            CreatedAt = tournamentDomain.CreatedAt,
-            StartedAt = tournamentDomain.StartedAt,
-            EndedAt = tournamentDomain.EndedAt
-        };
+        TournamentDto tournamentDto = _mapper.Map<TournamentDto>(tournamentDomain);
 
         return Ok(tournamentDto);
     }
@@ -174,17 +118,7 @@ public class TournamentsController : ControllerBase
         if (tournamentDomain == null)
             return NotFound();
 
-        var tournamentDto = new TournamentDto()
-        {
-            Id = tournamentDomain.Id,
-            Title = tournamentDomain.Title,
-            Description = tournamentDomain.Description,
-            CurrentStage = tournamentDomain.CurrentStage.ToString(),
-            PlannedStart = tournamentDomain.PlannedStart,
-            CreatedAt = tournamentDomain.CreatedAt,
-            StartedAt = tournamentDomain.StartedAt,
-            EndedAt = tournamentDomain.EndedAt
-        };
+        TournamentDto tournamentDto = _mapper.Map<TournamentDto>(tournamentDomain);
 
         return Ok(tournamentDto);
     }

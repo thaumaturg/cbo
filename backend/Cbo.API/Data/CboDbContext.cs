@@ -1,4 +1,5 @@
-﻿using Cbo.API.Models.Domain;
+﻿using Cbo.API.Models.Constants;
+using Cbo.API.Models.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cbo.API.Data;
@@ -42,6 +43,9 @@ public class CboDbContext : DbContext
         modelBuilder.Entity<Tournament>()
             .Property(e => e.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
+        modelBuilder.Entity<Tournament>()
+            .Property(e => e.CurrentStage)
+            .HasDefaultValueSql(TournamentStage.Preparations.ToString());
         modelBuilder.Entity<MatchParticipant>()
             .HasOne(mp => mp.SourceMatch)
             .WithMany(m => m.SourceForMatchParticipants)
