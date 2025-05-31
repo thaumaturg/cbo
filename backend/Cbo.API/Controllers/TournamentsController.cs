@@ -1,4 +1,5 @@
-﻿using Cbo.API.Data;
+﻿using AutoMapper;
+using Cbo.API.Data;
 using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
@@ -15,11 +16,13 @@ public class TournamentsController : ControllerBase
 {
     private readonly CboDbContext _dbContext;
     private readonly ITournamentRepository _tournamentRepository;
+    private readonly IMapper _mapper;
 
-    public TournamentsController(CboDbContext dbContext, ITournamentRepository tournamentRepository)
+    public TournamentsController(CboDbContext dbContext, ITournamentRepository tournamentRepository, IMapper mapper)
     {
         _dbContext = dbContext;
         _tournamentRepository = tournamentRepository;
+        _mapper = mapper;
     }
 
     [HttpGet]
