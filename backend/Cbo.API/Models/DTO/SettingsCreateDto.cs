@@ -2,9 +2,8 @@ namespace Cbo.API.Models.DTO;
 
 public class SettingsCreateDto
 {
-    public int? ParticipantsPerMatchMax { get; set; }
-    public int? ParticipantsPerTournamentMax { get; set; }
-    public int? ParticipantsPerTournamentMin { get; set; }
+    public int? ParticipantsPerMatch { get; set; }
+    public int? ParticipantsPerTournament { get; set; }
     public int? QuestionsCostMax { get; set; }
     public int? QuestionsCostMin { get; set; }
     public int? QuestionsPerTopicMax { get; set; }

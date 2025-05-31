@@ -10,13 +10,10 @@ public class Settings
     public int Id { get; set; }
 
     [Required]
-    public int ParticipantsPerMatchMax { get; set; }
+    public int ParticipantsPerMatch { get; set; }
 
     [Required]
-    public int ParticipantsPerTournamentMax { get; set; }
-
-    [Required]
-    public int ParticipantsPerTournamentMin { get; set; }
+    public int ParticipantsPerTournament { get; set; }
 
     [Required]
     public int QuestionsCostMax { get; set; }

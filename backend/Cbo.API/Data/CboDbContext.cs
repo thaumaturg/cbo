@@ -1,4 +1,5 @@
-﻿using Cbo.API.Models.Constants;
+﻿using System.Xml;
+using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Microsoft.EntityFrameworkCore;
 
@@ -40,7 +41,7 @@ public class CboDbContext : DbContext
         modelBuilder.Entity<Tournament>()
             .Property(e => e.CurrentStage)
             .HasConversion<string>()
-            .HasDefaultValueSql(TournamentStage.Preparations.ToString());
+            .HasDefaultValue(TournamentStage.Preparations);
         modelBuilder.Entity<Tournament>()
             .Property(e => e.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
@@ -54,5 +55,35 @@ public class CboDbContext : DbContext
             .WithOne(t => t.Settings)
             .HasForeignKey<Settings>(s => s.TournamentId)
             .IsRequired();
+        modelBuilder.Entity<Settings>()
+            .Property(e => e.ParticipantsPerMatch)
+            .HasDefaultValue(DefaultSettings.TournamentSettings["ParticipantsPerMatch"]);
+        modelBuilder.Entity<Settings>()
+            .Property(e => e.ParticipantsPerTournament)
+            .HasDefaultValue(DefaultSettings.TournamentSettings["ParticipantsPerTournament"]);
+        modelBuilder.Entity<Settings>()
+            .Property(e => e.QuestionsCostMax)
+            .HasDefaultValue(DefaultSettings.TournamentSettings["QuestionsCostMax"]);
+        modelBuilder.Entity<Settings>()
+            .Property(e => e.QuestionsCostMin)
+            .HasDefaultValue(DefaultSettings.TournamentSettings["QuestionsCostMin"]);
+        modelBuilder.Entity<Settings>()
+            .Property(e => e.QuestionsPerTopicMax)
+            .HasDefaultValue(DefaultSettings.TournamentSettings["QuestionsPerTopicMax"]);
+        modelBuilder.Entity<Settings>()
+            .Property(e => e.QuestionsPerTopicMin)
+            .HasDefaultValue(DefaultSettings.TournamentSettings["QuestionsPerTopicMin"]);
+        modelBuilder.Entity<Settings>()
+            .Property(e => e.TopicsAuthorsMax)
+            .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsAuthorsMax"]);
+        modelBuilder.Entity<Settings>()
+            .Property(e => e.TopicsPerParticipantMax)
+            .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerParticipantMax"]);
+        modelBuilder.Entity<Settings>()
+            .Property(e => e.TopicsPerParticipantMin)
+            .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerParticipantMin"]);
+            modelBuilder.Entity<Settings>()
+            .Property(e => e.TopicsPerMatch)
+            .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerMatch"]);
     }
 }

@@ -19,6 +19,7 @@ namespace Cbo.API
                 options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention());
 
             builder.Services.AddScoped<ITournamentRepository, PostgresTournamentRepository>();
+            builder.Services.AddScoped<ISettingsRepository, PostgresSettingsRepository>();
             builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
             // Add services to the container.

@@ -14,12 +14,14 @@ public class TournamentsController : ControllerBase
 {
     private readonly CboDbContext _dbContext;
     private readonly ITournamentRepository _tournamentRepository;
+    private readonly ISettingsRepository _settingsRepository;
     private readonly IMapper _mapper;
 
-    public TournamentsController(CboDbContext dbContext, ITournamentRepository tournamentRepository, IMapper mapper)
+    public TournamentsController(CboDbContext dbContext, ITournamentRepository tournamentRepository, ISettingsRepository settingsRepository, IMapper mapper)
     {
         _dbContext = dbContext;
         _tournamentRepository = tournamentRepository;
+        _settingsRepository = settingsRepository;
         _mapper = mapper;
     }
 
@@ -55,15 +57,12 @@ public class TournamentsController : ControllerBase
 
         tournamentDomain = await _tournamentRepository.CreateAsync(tournamentDomain);
 
-        // TODO: Move default settings somwhere else
-        var settings = new Settings
+        var settingsDomain = new Settings
         {
-            ParticipantsPerMatchMax = addTournamentRequestDto.Settings.ParticipantsPerMatchMax
-                ?? DefaultSettings.TournamentSettings["ParticipantsPerMatchMax"],
-            ParticipantsPerTournamentMax = addTournamentRequestDto.Settings.ParticipantsPerTournamentMax
-                ?? DefaultSettings.TournamentSettings["ParticipantsPerTournamentMax"],
-            ParticipantsPerTournamentMin = addTournamentRequestDto.Settings.ParticipantsPerTournamentMin
-                ?? DefaultSettings.TournamentSettings["ParticipantsPerTournamentMin"],
+            ParticipantsPerMatch = addTournamentRequestDto.Settings.ParticipantsPerMatch
+                ?? DefaultSettings.TournamentSettings["ParticipantsPerMatch"],
+            ParticipantsPerTournament = addTournamentRequestDto.Settings.ParticipantsPerTournament
+                ?? DefaultSettings.TournamentSettings["ParticipantsPerTournament"],
             QuestionsCostMax = addTournamentRequestDto.Settings.QuestionsCostMax
                 ?? DefaultSettings.TournamentSettings["QuestionsCostMax"],
             QuestionsCostMin = addTournamentRequestDto.Settings.QuestionsCostMin
@@ -83,11 +82,9 @@ public class TournamentsController : ControllerBase
             TournamentId = tournamentDomain.Id
         };
 
-        // UNDONE: Replace dbContext with repository
-        await _dbContext.Settings.AddAsync(settings);
-        await _dbContext.SaveChangesAsync();
+        settingsDomain = await _settingsRepository.CreateAsync(settingsDomain);
 
-        TournamentDto tournamentDto = _mapper.Map<TournamentDto>(tournamentDomain);
+        AddTournamentRequestDto tournamentDto = _mapper.Map<AddTournamentRequestDto>(tournamentDomain);
 
         return CreatedAtAction(nameof(GetById), new { id = tournamentDomain.Id }, tournamentDto);
     }
