@@ -4,9 +4,7 @@ using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Cbo.API.Controllers;
 
@@ -57,6 +55,7 @@ public class TournamentsController : ControllerBase
 
         tournamentDomain = await _tournamentRepository.CreateAsync(tournamentDomain);
 
+        // TODO: Move default settings somwhere else
         var settings = new Settings
         {
             ParticipantsPerMatchMax = addTournamentRequestDto.Settings.ParticipantsPerMatchMax

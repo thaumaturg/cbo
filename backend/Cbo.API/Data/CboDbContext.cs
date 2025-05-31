@@ -39,13 +39,11 @@ public class CboDbContext : DbContext
             .HasConversion<string>();
         modelBuilder.Entity<Tournament>()
             .Property(e => e.CurrentStage)
-            .HasConversion<string>();
+            .HasConversion<string>()
+            .HasDefaultValueSql(TournamentStage.Preparations.ToString());
         modelBuilder.Entity<Tournament>()
             .Property(e => e.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
-        modelBuilder.Entity<Tournament>()
-            .Property(e => e.CurrentStage)
-            .HasDefaultValueSql(TournamentStage.Preparations.ToString());
         modelBuilder.Entity<MatchParticipant>()
             .HasOne(mp => mp.SourceMatch)
             .WithMany(m => m.SourceForMatchParticipants)

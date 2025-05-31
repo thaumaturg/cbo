@@ -1,6 +1,5 @@
 ﻿using Cbo.API.Data;
 using Cbo.API.Models.Domain;
-using Cbo.API.Models.DTO;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cbo.API.Repositories;
@@ -33,7 +32,7 @@ public class PostgresTournamentRepository : ITournamentRepository
 
     public async Task<Tournament?> UpdateAsync(int id, Tournament updatedTournament)
     {
-        var existingTournament = await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
+        Tournament? existingTournament = await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
 
         if (existingTournament == null)
             return null;
@@ -49,7 +48,7 @@ public class PostgresTournamentRepository : ITournamentRepository
 
     public async Task<Tournament?> DeleteAsync(int id)
     {
-        var existingTournament = await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
+        Tournament? existingTournament = await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
 
         if (existingTournament == null)
             return null;
