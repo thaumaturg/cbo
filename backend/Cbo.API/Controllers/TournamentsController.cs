@@ -20,9 +20,9 @@ public class TournamentsController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetAll()
+    public async Task<IActionResult> GetAll()
     {
-        var tournamentsDomain = _dbContext.Tournaments.ToList();
+        var tournamentsDomain = await _dbContext.Tournaments.ToListAsync();
         var tournamentsDto = new List<TournamentDto>();
 
         foreach (var tournament in tournamentsDomain)
@@ -45,9 +45,9 @@ public class TournamentsController : ControllerBase
 
     [HttpGet]
     [Route("{id:int}")]
-    public IActionResult GetById([FromRoute] int id)
+    public async Task<IActionResult> GetById([FromRoute] int id)
     {
-        var tournamentDomain = _dbContext.Tournaments.FirstOrDefault(x => x.Id == id);
+        var tournamentDomain = await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
 
         if (tournamentDomain == null)
             return NotFound();
@@ -69,7 +69,7 @@ public class TournamentsController : ControllerBase
 
 
     [HttpPost]
-    public IActionResult Create([FromBody] AddTournamentRequestDto addTournamentRequestDto)
+    public async Task<IActionResult> Create([FromBody] AddTournamentRequestDto addTournamentRequestDto)
     {
         var tournamentDomain = new Tournament
         {
@@ -79,8 +79,8 @@ public class TournamentsController : ControllerBase
             PlannedStart = addTournamentRequestDto.PlannedStart,
         };
 
-        _dbContext.Tournaments.Add(tournamentDomain);
-        _dbContext.SaveChanges();
+        await _dbContext.Tournaments.AddAsync(tournamentDomain);
+        await _dbContext.SaveChangesAsync();
 
         var settings = new Settings
         {
@@ -109,8 +109,8 @@ public class TournamentsController : ControllerBase
             TournamentId = tournamentDomain.Id
         };
 
-        _dbContext.Settings.Add(settings);
-        _dbContext.SaveChanges();
+        await _dbContext.Settings.AddAsync(settings);
+        await _dbContext.SaveChangesAsync();
 
         var tournamentDto = new TournamentDto()
         {
@@ -129,9 +129,9 @@ public class TournamentsController : ControllerBase
 
     [HttpPut]
     [Route("{id:int}")]
-    public IActionResult Update([FromRoute] int id, [FromBody] UpdateTournamentRequestDto updateTournamentRequestDto)
+    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateTournamentRequestDto updateTournamentRequestDto)
     {
-        var tournamentDomain = _dbContext.Tournaments.FirstOrDefault(x => x.Id == id);
+        var tournamentDomain = await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
 
         if (tournamentDomain == null)
             return NotFound();
@@ -140,7 +140,7 @@ public class TournamentsController : ControllerBase
         tournamentDomain.Description = updateTournamentRequestDto.Description;
         tournamentDomain.PlannedStart = updateTournamentRequestDto.PlannedStart;
 
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         var tournamentDto = new TournamentDto()
         {
@@ -159,15 +159,15 @@ public class TournamentsController : ControllerBase
 
     [HttpDelete]
     [Route("{id:int}")]
-    public IActionResult Delete([FromRoute] int id)
+    public async Task<IActionResult> Delete([FromRoute] int id)
     {
-        var tournamentDomain = _dbContext.Tournaments.FirstOrDefault(x => x.Id == id);
+        var tournamentDomain = await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
 
         if (tournamentDomain == null)
             return NotFound();
 
         _dbContext.Tournaments.Remove(tournamentDomain);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         var tournamentDto = new TournamentDto()
         {
