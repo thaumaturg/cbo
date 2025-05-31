@@ -1,4 +1,5 @@
 using Cbo.API.Data;
+using Cbo.API.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
@@ -15,6 +16,8 @@ namespace Cbo.API
 
             builder.Services.AddDbContext<CboDbContext>(options =>
                 options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention());
+
+            builder.Services.AddScoped<ITournamentRepository, PostgresTournamentRepository>();
 
             // Add services to the container.
 

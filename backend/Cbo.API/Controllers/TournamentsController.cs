@@ -2,6 +2,7 @@
 using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
+using Cbo.API.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,19 +14,21 @@ namespace Cbo.API.Controllers;
 public class TournamentsController : ControllerBase
 {
     private readonly CboDbContext _dbContext;
+    private readonly ITournamentRepository _tournamentRepository;
 
-    public TournamentsController(CboDbContext dbContext)
+    public TournamentsController(CboDbContext dbContext, ITournamentRepository tournamentRepository)
     {
         _dbContext = dbContext;
+        _tournamentRepository = tournamentRepository;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var tournamentsDomain = await _dbContext.Tournaments.ToListAsync();
+        List<Tournament> tournamentsDomain = await _tournamentRepository.GetAllAsync();
         var tournamentsDto = new List<TournamentDto>();
 
-        foreach (var tournament in tournamentsDomain)
+        foreach (Tournament tournament in tournamentsDomain)
         {
             tournamentsDto.Add(new TournamentDto()
             {
@@ -47,7 +50,7 @@ public class TournamentsController : ControllerBase
     [Route("{id:int}")]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
-        var tournamentDomain = await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
+        Tournament? tournamentDomain = await _tournamentRepository.GetByIdAsync(id);
 
         if (tournamentDomain == null)
             return NotFound();
@@ -79,8 +82,7 @@ public class TournamentsController : ControllerBase
             PlannedStart = addTournamentRequestDto.PlannedStart,
         };
 
-        await _dbContext.Tournaments.AddAsync(tournamentDomain);
-        await _dbContext.SaveChangesAsync();
+        tournamentDomain = await _tournamentRepository.CreateAsync(tournamentDomain);
 
         var settings = new Settings
         {
@@ -109,6 +111,7 @@ public class TournamentsController : ControllerBase
             TournamentId = tournamentDomain.Id
         };
 
+        // UNDONE: Replace dbContext with repository
         await _dbContext.Settings.AddAsync(settings);
         await _dbContext.SaveChangesAsync();
 
@@ -131,16 +134,18 @@ public class TournamentsController : ControllerBase
     [Route("{id:int}")]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateTournamentRequestDto updateTournamentRequestDto)
     {
-        var tournamentDomain = await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
+        var tournamentDomain = new Tournament()
+        {
+            Title = updateTournamentRequestDto.Title,
+            Description = updateTournamentRequestDto.Description,
+            PlannedStart = updateTournamentRequestDto.PlannedStart
+        };
+
+        tournamentDomain = await _tournamentRepository.UpdateAsync(id, tournamentDomain);
+
 
         if (tournamentDomain == null)
             return NotFound();
-
-        tournamentDomain.Title = updateTournamentRequestDto.Title;
-        tournamentDomain.Description = updateTournamentRequestDto.Description;
-        tournamentDomain.PlannedStart = updateTournamentRequestDto.PlannedStart;
-
-        await _dbContext.SaveChangesAsync();
 
         var tournamentDto = new TournamentDto()
         {
@@ -161,13 +166,10 @@ public class TournamentsController : ControllerBase
     [Route("{id:int}")]
     public async Task<IActionResult> Delete([FromRoute] int id)
     {
-        var tournamentDomain = await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
+        Tournament? tournamentDomain = await _tournamentRepository.DeleteAsync(id);
 
         if (tournamentDomain == null)
             return NotFound();
-
-        _dbContext.Tournaments.Remove(tournamentDomain);
-        await _dbContext.SaveChangesAsync();
 
         var tournamentDto = new TournamentDto()
         {
