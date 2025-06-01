@@ -1,6 +1,6 @@
 namespace Cbo.API.Models.DTO;
 
-public class SettingsCreateDto
+public class CreateSettingsDto
 {
     public int? ParticipantsPerMatch { get; set; }
     public int? ParticipantsPerTournament { get; set; }
