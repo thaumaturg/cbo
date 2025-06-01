@@ -51,7 +51,7 @@ public class TournamentsController : ControllerBase
 
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] AddTournamentRequestDto addTournamentRequestDto)
+    public async Task<IActionResult> Create([FromBody] CreateTournamentDto addTournamentRequestDto)
     {
         Tournament tournamentDomain = _mapper.Map<Tournament>(addTournamentRequestDto);
 
@@ -84,7 +84,7 @@ public class TournamentsController : ControllerBase
 
         settingsDomain = await _settingsRepository.CreateAsync(settingsDomain);
 
-        AddTournamentRequestDto tournamentDto = _mapper.Map<AddTournamentRequestDto>(tournamentDomain);
+        CreateTournamentDto tournamentDto = _mapper.Map<CreateTournamentDto>(tournamentDomain);
 
         return CreatedAtAction(nameof(GetById), new { id = tournamentDomain.Id }, tournamentDto);
     }
