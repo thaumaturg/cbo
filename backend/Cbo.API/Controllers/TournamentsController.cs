@@ -91,7 +91,7 @@ public class TournamentsController : ControllerBase
 
     [HttpPut]
     [Route("{id:int}")]
-    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateTournamentRequestDto updateTournamentRequestDto)
+    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateTournamentDto updateTournamentRequestDto)
     {
         Tournament? tournamentDomain = _mapper.Map<Tournament>(updateTournamentRequestDto);
 

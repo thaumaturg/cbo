@@ -10,7 +10,7 @@ public class AutoMapperProfiles : Profile
     {
         CreateMap<Tournament, GetTournamentDto>().ReverseMap();
         CreateMap<Tournament, CreateTournamentDto>().ReverseMap();
-        CreateMap<Tournament, UpdateTournamentRequestDto>().ReverseMap();
+        CreateMap<Tournament, UpdateTournamentDto>().ReverseMap();
         CreateMap<Settings, CreateSettingsDto>().ReverseMap();
     }
 }
