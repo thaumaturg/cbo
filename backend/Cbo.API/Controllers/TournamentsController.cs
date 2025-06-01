@@ -51,33 +51,33 @@ public class TournamentsController : ControllerBase
 
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateTournamentDto addTournamentRequestDto)
+    public async Task<IActionResult> Create([FromBody] CreateTournamentDto createTournamentDto)
     {
-        Tournament tournamentDomain = _mapper.Map<Tournament>(addTournamentRequestDto);
+        Tournament tournamentDomain = _mapper.Map<Tournament>(createTournamentDto);
 
         tournamentDomain = await _tournamentRepository.CreateAsync(tournamentDomain);
 
         var settingsDomain = new Settings
         {
-            ParticipantsPerMatch = addTournamentRequestDto.Settings.ParticipantsPerMatch
+            ParticipantsPerMatch = createTournamentDto.Settings.ParticipantsPerMatch
                 ?? DefaultSettings.TournamentSettings["ParticipantsPerMatch"],
-            ParticipantsPerTournament = addTournamentRequestDto.Settings.ParticipantsPerTournament
+            ParticipantsPerTournament = createTournamentDto.Settings.ParticipantsPerTournament
                 ?? DefaultSettings.TournamentSettings["ParticipantsPerTournament"],
-            QuestionsCostMax = addTournamentRequestDto.Settings.QuestionsCostMax
+            QuestionsCostMax = createTournamentDto.Settings.QuestionsCostMax
                 ?? DefaultSettings.TournamentSettings["QuestionsCostMax"],
-            QuestionsCostMin = addTournamentRequestDto.Settings.QuestionsCostMin
+            QuestionsCostMin = createTournamentDto.Settings.QuestionsCostMin
                 ?? DefaultSettings.TournamentSettings["QuestionsCostMin"],
-            QuestionsPerTopicMax = addTournamentRequestDto.Settings.QuestionsPerTopicMax
+            QuestionsPerTopicMax = createTournamentDto.Settings.QuestionsPerTopicMax
                 ?? DefaultSettings.TournamentSettings["QuestionsPerTopicMax"],
-            QuestionsPerTopicMin = addTournamentRequestDto.Settings.QuestionsPerTopicMin
+            QuestionsPerTopicMin = createTournamentDto.Settings.QuestionsPerTopicMin
                 ?? DefaultSettings.TournamentSettings["QuestionsPerTopicMin"],
-            TopicsAuthorsMax = addTournamentRequestDto.Settings.TopicsAuthorsMax
+            TopicsAuthorsMax = createTournamentDto.Settings.TopicsAuthorsMax
                 ?? DefaultSettings.TournamentSettings["TopicsAuthorsMax"],
-            TopicsPerParticipantMax = addTournamentRequestDto.Settings.TopicsPerParticipantMax
+            TopicsPerParticipantMax = createTournamentDto.Settings.TopicsPerParticipantMax
                 ?? DefaultSettings.TournamentSettings["TopicsPerParticipantMax"],
-            TopicsPerParticipantMin = addTournamentRequestDto.Settings.TopicsPerParticipantMin
+            TopicsPerParticipantMin = createTournamentDto.Settings.TopicsPerParticipantMin
                 ?? DefaultSettings.TournamentSettings["TopicsPerParticipantMin"],
-            TopicsPerMatch = addTournamentRequestDto.Settings.TopicsPerMatch
+            TopicsPerMatch = createTournamentDto.Settings.TopicsPerMatch
                 ?? DefaultSettings.TournamentSettings["TopicsPerMatch"],
             TournamentId = tournamentDomain.Id
         };
@@ -91,9 +91,9 @@ public class TournamentsController : ControllerBase
 
     [HttpPut]
     [Route("{id:int}")]
-    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateTournamentDto updateTournamentRequestDto)
+    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateTournamentDto updateTournamentDto)
     {
-        Tournament? tournamentDomain = _mapper.Map<Tournament>(updateTournamentRequestDto);
+        Tournament? tournamentDomain = _mapper.Map<Tournament>(updateTournamentDto);
 
         tournamentDomain = await _tournamentRepository.UpdateAsync(id, tournamentDomain);
 
