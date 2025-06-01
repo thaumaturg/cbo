@@ -82,9 +82,14 @@ public class TournamentsController : ControllerBase
             TournamentId = tournamentDomain.Id
         };
 
-        settingsDomain = await _settingsRepository.CreateAsync(settingsDomain);
+        await _settingsRepository.CreateAsync(settingsDomain);
 
-        CreateTournamentDto tournamentDto = _mapper.Map<CreateTournamentDto>(tournamentDomain);
+        Tournament? tournamentIncludeSettings = await _tournamentRepository.GetByIdIncludeSettingsAsync(tournamentDomain.Id);
+
+        if (tournamentIncludeSettings == null)
+            return BadRequest();
+
+        GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentIncludeSettings);
 
         return CreatedAtAction(nameof(GetById), new { id = tournamentDomain.Id }, tournamentDto);
     }

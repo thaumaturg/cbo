@@ -23,6 +23,11 @@ public class PostgresTournamentRepository : ITournamentRepository
         return await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    public async Task<Tournament?> GetByIdIncludeSettingsAsync(int id)
+    {
+        return await _dbContext.Tournaments.Include(t => t.Settings).FirstOrDefaultAsync(x => x.Id == id);
+    }
+
     public async Task<Tournament> CreateAsync(Tournament tournament)
     {
         await _dbContext.Tournaments.AddAsync(tournament);
