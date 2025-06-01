@@ -8,7 +8,7 @@ public class AutoMapperProfiles : Profile
 {
     public AutoMapperProfiles()
     {
-        CreateMap<Tournament, TournamentDto>().ReverseMap();
+        CreateMap<Tournament, GetTournamentDto>().ReverseMap();
         CreateMap<Tournament, AddTournamentRequestDto>().ReverseMap();
         CreateMap<Tournament, UpdateTournamentRequestDto>().ReverseMap();
         CreateMap<Settings, SettingsCreateDto>().ReverseMap();

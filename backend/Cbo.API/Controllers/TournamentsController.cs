@@ -30,7 +30,7 @@ public class TournamentsController : ControllerBase
     {
         List<Tournament> tournamentsDomain = await _tournamentRepository.GetAllAsync();
 
-        List<TournamentDto> tournamentsDto = _mapper.Map<List<TournamentDto>>(tournamentsDomain);
+        List<GetTournamentDto> tournamentsDto = _mapper.Map<List<GetTournamentDto>>(tournamentsDomain);
 
         return Ok(tournamentsDto);
     }
@@ -44,7 +44,7 @@ public class TournamentsController : ControllerBase
         if (tournamentDomain == null)
             return NotFound();
 
-        TournamentDto tournamentDto = _mapper.Map<TournamentDto>(tournamentDomain);
+        GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentDomain);
 
         return Ok(tournamentDto);
     }
@@ -100,7 +100,7 @@ public class TournamentsController : ControllerBase
         if (tournamentDomain == null)
             return NotFound();
 
-        TournamentDto tournamentDto = _mapper.Map<TournamentDto>(tournamentDomain);
+        GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentDomain);
 
         return Ok(tournamentDto);
     }
@@ -114,7 +114,7 @@ public class TournamentsController : ControllerBase
         if (tournamentDomain == null)
             return NotFound();
 
-        TournamentDto tournamentDto = _mapper.Map<TournamentDto>(tournamentDomain);
+        GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentDomain);
 
         return Ok(tournamentDto);
     }
