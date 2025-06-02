@@ -20,9 +20,8 @@ public class Program
 
         builder.Services.AddScoped<ITournamentRepository, PostgresTournamentRepository>();
         builder.Services.AddScoped<ISettingsRepository, PostgresSettingsRepository>();
-        builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
-        // Add services to the container.
+        builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
         builder.Services.AddControllers();
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -40,7 +39,6 @@ public class Program
         app.UseHttpsRedirection();
 
         app.UseAuthorization();
-
 
         app.MapControllers();
 
