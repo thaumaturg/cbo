@@ -1,5 +1,4 @@
-﻿using System.Xml;
-using Cbo.API.Models.Constants;
+﻿using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Microsoft.EntityFrameworkCore;
 
