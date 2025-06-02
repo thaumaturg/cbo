@@ -15,7 +15,10 @@ public class TournamentsController : ControllerBase
     private readonly ISettingsRepository _settingsRepository;
     private readonly IMapper _mapper;
 
-    public TournamentsController(ITournamentRepository tournamentRepository, ISettingsRepository settingsRepository, IMapper mapper)
+    public TournamentsController(
+        ITournamentRepository tournamentRepository,
+        ISettingsRepository settingsRepository,
+        IMapper mapper)
     {
         _tournamentRepository = tournamentRepository;
         _settingsRepository = settingsRepository;

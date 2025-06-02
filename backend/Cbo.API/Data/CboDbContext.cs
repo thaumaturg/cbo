@@ -81,7 +81,7 @@ public class CboDbContext : DbContext
         modelBuilder.Entity<Settings>()
             .Property(e => e.TopicsPerParticipantMin)
             .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerParticipantMin"]);
-            modelBuilder.Entity<Settings>()
+        modelBuilder.Entity<Settings>()
             .Property(e => e.TopicsPerMatch)
             .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerMatch"]);
     }
