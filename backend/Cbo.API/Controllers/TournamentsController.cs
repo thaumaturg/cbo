@@ -38,7 +38,7 @@ public class TournamentsController : ControllerBase
     {
         Tournament? tournamentDomain = await _tournamentRepository.GetByIdAsync(id);
 
-        if (tournamentDomain == null)
+        if (tournamentDomain is null)
             return NotFound();
 
         GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentDomain);
@@ -83,7 +83,7 @@ public class TournamentsController : ControllerBase
 
         Tournament? tournamentIncludeSettings = await _tournamentRepository.GetByIdIncludeSettingsAsync(tournamentDomain.Id);
 
-        if (tournamentIncludeSettings == null)
+        if (tournamentIncludeSettings is null)
             return BadRequest();
 
         GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentIncludeSettings);
@@ -99,7 +99,7 @@ public class TournamentsController : ControllerBase
 
         tournamentDomain = await _tournamentRepository.UpdateAsync(id, tournamentDomain);
 
-        if (tournamentDomain == null)
+        if (tournamentDomain is null)
             return NotFound();
 
         GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentDomain);
@@ -113,7 +113,7 @@ public class TournamentsController : ControllerBase
     {
         Tournament? tournamentDomain = await _tournamentRepository.DeleteAsync(id);
 
-        if (tournamentDomain == null)
+        if (tournamentDomain is null)
             return NotFound();
 
         GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentDomain);

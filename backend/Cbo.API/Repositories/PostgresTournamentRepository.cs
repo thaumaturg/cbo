@@ -39,7 +39,7 @@ public class PostgresTournamentRepository : ITournamentRepository
     {
         Tournament? existingTournament = await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
 
-        if (existingTournament == null)
+        if (existingTournament is null)
             return null;
 
         existingTournament.Title = updatedTournament.Title;
@@ -55,7 +55,7 @@ public class PostgresTournamentRepository : ITournamentRepository
     {
         Tournament? existingTournament = await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
 
-        if (existingTournament == null)
+        if (existingTournament is null)
             return null;
 
         _dbContext.Tournaments.Remove(existingTournament);
