@@ -44,4 +44,4 @@ public class Settings
 
     [ForeignKey("TournamentId")]
     public Tournament Tournament { get; set; }
-} 
+}

@@ -18,4 +18,4 @@ public class UserPermission
 
     [Required]
     public UserPermissionName PermissionName { get; set; }
-} 
+}

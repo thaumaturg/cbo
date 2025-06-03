@@ -26,4 +26,4 @@ public class User
     public ICollection<TournamentParticipant> TournamentParticipants { get; set; }
 
     public ICollection<TopicAuthor> TopicAuthors { get; set; }
-} 
+}

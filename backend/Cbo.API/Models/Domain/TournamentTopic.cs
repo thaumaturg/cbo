@@ -20,4 +20,4 @@ public class TournamentTopic
 
     [ForeignKey("TopicId")]
     public Topic Topic { get; set; }
-} 
+}

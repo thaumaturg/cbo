@@ -29,4 +29,4 @@ public class TournamentParticipant
     public User User { get; set; }
 
     public ICollection<MatchParticipant> MatchParticipants { get; set; }
-} 
+}

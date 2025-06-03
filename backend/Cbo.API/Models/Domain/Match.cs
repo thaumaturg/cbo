@@ -33,4 +33,4 @@ public class Match
     public ICollection<MatchParticipant> MatchParticipants { get; set; }
 
     public ICollection<MatchParticipant> SourceForMatchParticipants { get; set; }
-} 
+}

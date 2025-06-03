@@ -23,4 +23,4 @@ public class TopicAuthor
 
     [ForeignKey("TopicId")]
     public Topic Topic { get; set; }
-} 
+}

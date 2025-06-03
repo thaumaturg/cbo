@@ -28,4 +28,4 @@ public class Topic
     public ICollection<TournamentTopic> TournamentTopics { get; set; }
 
     public ICollection<TopicAuthor> TopicAuthors { get; set; }
-} 
+}

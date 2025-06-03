@@ -25,4 +25,4 @@ public class Round
     public Match Match { get; set; }
 
     public ICollection<RoundAnswer> RoundAnswers { get; set; }
-} 
+}

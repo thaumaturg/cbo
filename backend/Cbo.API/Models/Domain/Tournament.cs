@@ -38,4 +38,4 @@ public class Tournament
     public ICollection<Match> Matches { get; set; }
 
     public Settings Settings { get; set; }
-} 
+}

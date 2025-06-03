@@ -28,4 +28,4 @@ public class MatchParticipant
     public Match SourceMatch { get; set; }
 
     public ICollection<RoundAnswer> RoundAnswers { get; set; }
-} 
+}
