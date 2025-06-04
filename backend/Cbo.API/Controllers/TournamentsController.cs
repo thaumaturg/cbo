@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
@@ -12,16 +11,13 @@ namespace Cbo.API.Controllers;
 public class TournamentsController : ControllerBase
 {
     private readonly ITournamentRepository _tournamentRepository;
-    private readonly ISettingsRepository _settingsRepository;
     private readonly IMapper _mapper;
 
     public TournamentsController(
         ITournamentRepository tournamentRepository,
-        ISettingsRepository settingsRepository,
         IMapper mapper)
     {
         _tournamentRepository = tournamentRepository;
-        _settingsRepository = settingsRepository;
         _mapper = mapper;
     }
 
@@ -56,33 +52,6 @@ public class TournamentsController : ControllerBase
         Tournament tournamentDomain = _mapper.Map<Tournament>(createTournamentDto);
 
         tournamentDomain = await _tournamentRepository.CreateAsync(tournamentDomain);
-
-        var settingsDomain = new Settings
-        {
-            ParticipantsPerMatch = createTournamentDto.Settings.ParticipantsPerMatch
-                ?? DefaultSettings.TournamentSettings["ParticipantsPerMatch"],
-            ParticipantsPerTournament = createTournamentDto.Settings.ParticipantsPerTournament
-                ?? DefaultSettings.TournamentSettings["ParticipantsPerTournament"],
-            QuestionsCostMax = createTournamentDto.Settings.QuestionsCostMax
-                ?? DefaultSettings.TournamentSettings["QuestionsCostMax"],
-            QuestionsCostMin = createTournamentDto.Settings.QuestionsCostMin
-                ?? DefaultSettings.TournamentSettings["QuestionsCostMin"],
-            QuestionsPerTopicMax = createTournamentDto.Settings.QuestionsPerTopicMax
-                ?? DefaultSettings.TournamentSettings["QuestionsPerTopicMax"],
-            QuestionsPerTopicMin = createTournamentDto.Settings.QuestionsPerTopicMin
-                ?? DefaultSettings.TournamentSettings["QuestionsPerTopicMin"],
-            TopicsAuthorsMax = createTournamentDto.Settings.TopicsAuthorsMax
-                ?? DefaultSettings.TournamentSettings["TopicsAuthorsMax"],
-            TopicsPerParticipantMax = createTournamentDto.Settings.TopicsPerParticipantMax
-                ?? DefaultSettings.TournamentSettings["TopicsPerParticipantMax"],
-            TopicsPerParticipantMin = createTournamentDto.Settings.TopicsPerParticipantMin
-                ?? DefaultSettings.TournamentSettings["TopicsPerParticipantMin"],
-            TopicsPerMatch = createTournamentDto.Settings.TopicsPerMatch
-                ?? DefaultSettings.TournamentSettings["TopicsPerMatch"],
-            TournamentId = tournamentDomain.Id
-        };
-
-        await _settingsRepository.CreateAsync(settingsDomain);
 
         Tournament? tournamentIncludeSettings = await _tournamentRepository.GetByIdIncludeSettingsAsync(tournamentDomain.Id);
 
