@@ -85,6 +85,49 @@ public class CboDbContext : DbContext
             .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerMatch"]);
 
         // Topic
+        modelBuilder.Entity<Topic>(entity =>
+        {
+            entity.HasKey(t => t.Id);
+
+            entity.Property(t => t.Id)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(t => t.Title)
+                .IsRequired();
+
+            entity.Property(t => t.PriorityIndex)
+                .IsRequired();
+
+            entity.Property(t => t.IsGuest)
+                .IsRequired();
+
+            entity.Property(t => t.IsPlayed)
+                .IsRequired();
+
+            // One-to-many: Topic -> Questions
+            entity.HasMany(t => t.Questions)
+                .WithOne(q => q.Topic)
+                .HasForeignKey(q => q.TopicId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-many: Topic -> TournamentTopics
+            // entity.HasMany(t => t.TournamentTopics)
+            //     .WithOne(tt => tt.Topic)
+            //     .HasForeignKey(tt => tt.TopicId)
+            //     .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-many: Topic -> TopicAuthors
+            // entity.HasMany(t => t.TopicAuthors)
+            //     .WithOne(ta => ta.Topic)
+            //     .HasForeignKey(ta => ta.TopicId)
+            //     .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-one: Topic <-> Round
+            // entity.HasOne(t => t.Round)
+            //     .WithOne(r => r.Topic)
+            //     .HasForeignKey<Round>(r => r.TopicId)
+            //     .OnDelete(DeleteBehavior.Cascade);
+        });
 
         // TopicAuthor
 
