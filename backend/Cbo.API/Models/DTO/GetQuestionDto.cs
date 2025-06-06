@@ -1,6 +1,6 @@
-namespace Cbo.API.Models.Domain;
+﻿namespace Cbo.API.Models.DTO;
 
-public class Question
+public class GetQuestionDto
 {
     public required int Id { get; set; }
     public required int QuestionNumber { get; set; }
@@ -10,6 +10,4 @@ public class Question
     public required string Answer { get; set; }
     public string? Comment { get; set; }
     public required int TopicId { get; set; }
-    public required Topic Topic { get; set; }
-    public ICollection<RoundAnswer> RoundAnswers { get; set; } = [];
 }
