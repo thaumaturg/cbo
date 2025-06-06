@@ -89,13 +89,59 @@ public class CboDbContext : DbContext
         // TopicAuthor
 
         // Tournament
-        modelBuilder.Entity<Tournament>()
-            .Property(e => e.CreatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP");
-        modelBuilder.Entity<Tournament>()
-            .Property(e => e.CurrentStage)
-            .HasConversion<string>()
-            .HasDefaultValue(TournamentStage.Preparations);
+        modelBuilder.Entity<Tournament>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.Title)
+                .IsRequired();
+
+            entity.Property(e => e.CurrentStage)
+                .IsRequired()
+                .HasConversion<string>()
+                .HasDefaultValue(TournamentStage.Preparations);
+
+            entity.Property(e => e.PlannedStart)
+                .IsRequired();
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.StartedAt)
+                .ValueGeneratedOnAddOrUpdate();
+
+            entity.Property(e => e.EndedAt)
+                .ValueGeneratedOnAddOrUpdate();
+
+            // One-to-one: Tournament <-> Settings
+            entity.HasOne(t => t.Settings)
+                .WithOne(s => s.Tournament)
+                .HasForeignKey<Settings>(s => s.TournamentId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+
+            // One-to-many: Tournament -> TournamentParticipants
+            // entity.HasMany(t => t.TournamentParticipants)
+            //     .WithOne(tp => tp.Tournament)
+            //     .HasForeignKey(tp => tp.TournamentId)
+            //     .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-many: Tournament -> TournamentTopics
+            // entity.HasMany(t => t.TournamentTopics)
+            //     .WithOne(tt => tt.Tournament)
+            //     .HasForeignKey(tt => tt.TournamentId)
+            //     .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-many: Tournament -> Matches
+            // entity.HasMany(t => t.Matches)
+            //     .WithOne(m => m.Tournament)
+            //     .HasForeignKey(m => m.TournamentId)
+            //     .OnDelete(DeleteBehavior.Cascade);
+        });
 
         // TournamentParticipant
         modelBuilder.Entity<TournamentParticipant>()

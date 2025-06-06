@@ -2,7 +2,7 @@
 
 public class UpdateTournamentDto
 {
-    public string Title { get; set; }
+    public required string Title { get; set; }
     public string? Description { get; set; }
-    public DateTime PlannedStart { get; set; }
+    public required DateTime PlannedStart { get; set; }
 }
