@@ -42,7 +42,6 @@ public class PostgresTopicRepository : ITopicRepository
             return null;
 
         existingTopic.Title = updatedTopic.Title;
-        existingTopic.PriorityIndex = updatedTopic.PriorityIndex;
         existingTopic.IsGuest = updatedTopic.IsGuest;
         existingTopic.IsPlayed = updatedTopic.IsPlayed;
 
