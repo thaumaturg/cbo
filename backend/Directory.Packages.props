@@ -10,6 +10,6 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.5" />
     <PackageVersion Include="Npgsql" Version="9.0.3" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.4.3" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.4.11" />
   </ItemGroup>
 </Project>
