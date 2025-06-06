@@ -48,41 +48,60 @@ public class CboDbContext : DbContext
         // RoundAnswer
 
         // Settings
-        modelBuilder.Entity<Settings>()
-            .HasOne(s => s.Tournament)
-            .WithOne(t => t.Settings)
-            .HasForeignKey<Settings>(s => s.TournamentId)
-            .IsRequired();
-        modelBuilder.Entity<Settings>()
-            .Property(e => e.ParticipantsPerMatch)
-            .HasDefaultValue(DefaultSettings.TournamentSettings["ParticipantsPerMatch"]);
-        modelBuilder.Entity<Settings>()
-            .Property(e => e.ParticipantsPerTournament)
-            .HasDefaultValue(DefaultSettings.TournamentSettings["ParticipantsPerTournament"]);
-        modelBuilder.Entity<Settings>()
-            .Property(e => e.QuestionsCostMax)
-            .HasDefaultValue(DefaultSettings.TournamentSettings["QuestionsCostMax"]);
-        modelBuilder.Entity<Settings>()
-            .Property(e => e.QuestionsCostMin)
-            .HasDefaultValue(DefaultSettings.TournamentSettings["QuestionsCostMin"]);
-        modelBuilder.Entity<Settings>()
-            .Property(e => e.QuestionsPerTopicMax)
-            .HasDefaultValue(DefaultSettings.TournamentSettings["QuestionsPerTopicMax"]);
-        modelBuilder.Entity<Settings>()
-            .Property(e => e.QuestionsPerTopicMin)
-            .HasDefaultValue(DefaultSettings.TournamentSettings["QuestionsPerTopicMin"]);
-        modelBuilder.Entity<Settings>()
-            .Property(e => e.TopicsAuthorsMax)
-            .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsAuthorsMax"]);
-        modelBuilder.Entity<Settings>()
-            .Property(e => e.TopicsPerParticipantMax)
-            .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerParticipantMax"]);
-        modelBuilder.Entity<Settings>()
-            .Property(e => e.TopicsPerParticipantMin)
-            .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerParticipantMin"]);
-        modelBuilder.Entity<Settings>()
-            .Property(e => e.TopicsPerMatch)
-            .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerMatch"]);
+        modelBuilder.Entity<Settings>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.ParticipantsPerMatch)
+                .HasDefaultValue(DefaultSettings.TournamentSettings["ParticipantsPerMatch"])
+                .IsRequired();
+
+            entity.Property(e => e.ParticipantsPerTournament)
+                .HasDefaultValue(DefaultSettings.TournamentSettings["ParticipantsPerTournament"])
+                .IsRequired();
+
+            entity.Property(e => e.QuestionsCostMax)
+                .HasDefaultValue(DefaultSettings.TournamentSettings["QuestionsCostMax"])
+                .IsRequired();
+
+            entity.Property(e => e.QuestionsCostMin)
+                .HasDefaultValue(DefaultSettings.TournamentSettings["QuestionsCostMin"])
+                .IsRequired();
+
+            entity.Property(e => e.QuestionsPerTopicMax)
+                .HasDefaultValue(DefaultSettings.TournamentSettings["QuestionsPerTopicMax"])
+                .IsRequired();
+
+            entity.Property(e => e.QuestionsPerTopicMin)
+                .HasDefaultValue(DefaultSettings.TournamentSettings["QuestionsPerTopicMin"])
+                .IsRequired();
+
+            entity.Property(e => e.TopicsAuthorsMax)
+                .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsAuthorsMax"])
+                .IsRequired();
+
+            entity.Property(e => e.TopicsPerParticipantMax)
+                .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerParticipantMax"])
+                .IsRequired();
+
+            entity.Property(e => e.TopicsPerParticipantMin)
+                .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerParticipantMin"])
+                .IsRequired();
+
+            entity.Property(e => e.TopicsPerMatch)
+                .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerMatch"])
+                .IsRequired();
+
+            // One-to-one: Settings <->Tournament
+             entity.HasOne(s => s.Tournament)
+                 .WithOne(t => t.Settings)
+                 .HasForeignKey<Settings>(s => s.TournamentId)
+                 .OnDelete(DeleteBehavior.Cascade)
+                 .IsRequired();
+        });
 
         // Topic
 

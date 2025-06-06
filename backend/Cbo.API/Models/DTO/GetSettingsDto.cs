@@ -2,16 +2,16 @@
 
 public class GetSettingsDto
 {
-    public int Id { get; set; }
-    public int ParticipantsPerMatch { get; set; }
-    public int ParticipantsPerTournament { get; set; }
-    public int QuestionsCostMax { get; set; }
-    public int QuestionsCostMin { get; set; }
-    public int QuestionsPerTopicMax { get; set; }
-    public int QuestionsPerTopicMin { get; set; }
-    public int TopicsAuthorsMax { get; set; }
-    public int TopicsPerParticipantMax { get; set; }
-    public int TopicsPerParticipantMin { get; set; }
-    public int TopicsPerMatch { get; set; }
-    public int TournamentId { get; set; }
+    public required int Id { get; set; }
+    public required int ParticipantsPerMatch { get; set; }
+    public required int ParticipantsPerTournament { get; set; }
+    public required int QuestionsCostMax { get; set; }
+    public required int QuestionsCostMin { get; set; }
+    public required int QuestionsPerTopicMax { get; set; }
+    public required int QuestionsPerTopicMin { get; set; }
+    public required int TopicsAuthorsMax { get; set; }
+    public required int TopicsPerParticipantMax { get; set; }
+    public required int TopicsPerParticipantMin { get; set; }
+    public required int TopicsPerMatch { get; set; }
+    public required int TournamentId { get; set; }
 }
