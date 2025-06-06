@@ -10,6 +10,9 @@ public class TournamentTopic
     public int Id { get; set; }
 
     [Required]
+    public int PriorityIndex { get; set; }
+
+    [Required]
     public int TournamentId { get; set; }
 
     [ForeignKey("TournamentId")]

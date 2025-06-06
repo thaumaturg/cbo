@@ -148,9 +148,6 @@ public class CboDbContext : DbContext
             entity.Property(t => t.Title)
                 .IsRequired();
 
-            entity.Property(t => t.PriorityIndex)
-                .IsRequired();
-
             entity.Property(t => t.IsGuest)
                 .IsRequired();
 
