@@ -20,7 +20,6 @@ public class TopicsController : ControllerBase
     {
         _topicRepository = topicRepository;
         _mapper = mapper;
-        
     }
 
     [HttpGet]
