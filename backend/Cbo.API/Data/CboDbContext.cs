@@ -42,6 +42,40 @@ public class CboDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
         // Question
+        modelBuilder.Entity<Question>(entity =>
+        {
+            entity.HasKey(q => q.Id);
+
+            entity.Property(q => q.Id)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(q => q.QuestionNumber)
+                .IsRequired();
+
+            entity.Property(q => q.CostPositive)
+                .IsRequired();
+
+            entity.Property(q => q.CostNegative)
+                .IsRequired();
+
+            entity.Property(q => q.Text)
+                .IsRequired();
+
+            entity.Property(q => q.Answer)
+                .IsRequired();
+
+            entity.Property(q => q.TopicId)
+                .IsRequired();
+
+            entity.HasOne(q => q.Topic)
+                .WithMany(t => t.Questions)
+                .HasForeignKey(q => q.TopicId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // entity.HasMany(q => q.RoundAnswers)
+            //     .WithOne(ra => ra.Question)
+            //     .HasForeignKey(ra => ra.QuestionId);
+        });
 
         // Round
 
