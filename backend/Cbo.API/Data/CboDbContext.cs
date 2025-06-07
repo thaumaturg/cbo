@@ -35,11 +35,11 @@ public class CboDbContext : DbContext
             .HasConversion<string>();
 
         // MatchParticipant
-        modelBuilder.Entity<MatchParticipant>()
-            .HasOne(mp => mp.SourceMatch)
-            .WithMany(m => m.SourceForMatchParticipants)
-            .HasForeignKey(mp => mp.SourceMatchId)
-            .OnDelete(DeleteBehavior.Restrict);
+        //modelBuilder.Entity<MatchParticipant>()
+        //    .HasOne(mp => mp.SourceMatch)
+        //    .WithMany(m => m.SourceForMatchParticipants)
+        //    .HasForeignKey(mp => mp.SourceMatchId)
+        //    .OnDelete(DeleteBehavior.Restrict);
 
         // Question
         modelBuilder.Entity<Question>(entity =>

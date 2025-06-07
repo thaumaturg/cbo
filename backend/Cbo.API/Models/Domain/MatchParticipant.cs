@@ -22,10 +22,12 @@ public class MatchParticipant
     public Match Match { get; set; }
 
     [Required]
-    public int SourceMatchId { get; set; }
+    public int? PromotedFromId { get; set; }
 
-    [ForeignKey("SourceMatchId")]
-    public Match SourceMatch { get; set; }
+    [ForeignKey("SourceId")]
+    public MatchParticipant? PromotedFrom { get; set; }
+
+    public MatchParticipant? PromotedTo { get; set; }
 
     public ICollection<RoundAnswer> RoundAnswers { get; set; }
 }
