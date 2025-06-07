@@ -11,7 +11,10 @@ public class Match
     public int Id { get; set; }
 
     [Required]
-    public int MatchInSeries { get; set; }
+    public int NumberInTournament { get; set; }
+
+    [Required]
+    public int NumberInStage { get; set; }
 
     [Required]
     public TournamentStage CreatedOnStage { get; set; }
