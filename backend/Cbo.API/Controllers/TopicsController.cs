@@ -12,7 +12,6 @@ public class TopicsController : ControllerBase
 {
     private readonly ITopicRepository _topicRepository;
     private readonly IMapper _mapper;
-    
 
     public TopicsController(
         ITopicRepository topicRepository,
