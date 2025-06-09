@@ -30,16 +30,58 @@ public class CboDbContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         // Match
-        modelBuilder.Entity<Match>()
-            .Property(e => e.Type)
-            .HasConversion<string>();
+        modelBuilder.Entity<Match>(entity =>
+        {
+            entity.HasKey(m => m.Id);
+
+            entity.Property(m => m.Id)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(m => m.NumberInTournament)
+                .IsRequired();
+
+            entity.Property(m => m.NumberInStage)
+                .IsRequired();
+
+            entity.Property(m => m.CreatedOnStage)
+                .IsRequired()
+                .HasConversion<string>();
+
+            entity.Property(m => m.Type)
+                .IsRequired()
+                .HasConversion<string>();
+
+            entity.Property(m => m.IsFinished)
+                .IsRequired();
+
+            entity.Property(m => m.TournamentId)
+                .IsRequired();
+
+            // Many-to-one: Match -> Tournament
+            entity.HasOne(m => m.Tournament)
+                .WithMany(t => t.Matches)
+                .HasForeignKey(m => m.TournamentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-many: Match -> Rounds
+            // entity.HasMany(m => m.Rounds)
+            //     .WithOne(r => r.Match)
+            //     .HasForeignKey(r => r.MatchId)
+            //     .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-many: Match -> MatchParticipants
+            // entity.HasMany(m => m.MatchParticipants)
+            //     .WithOne(mp => mp.Match)
+            //     .HasForeignKey(mp => mp.MatchId)
+            //     .OnDelete(DeleteBehavior.Cascade);
+        });
 
         // MatchParticipant
-        modelBuilder.Entity<MatchParticipant>()
-            .HasOne(mp => mp.SourceMatch)
-            .WithMany(m => m.SourceForMatchParticipants)
-            .HasForeignKey(mp => mp.SourceMatchId)
-            .OnDelete(DeleteBehavior.Restrict);
+        //modelBuilder.Entity<MatchParticipant>()
+        //    .HasOne(mp => mp.SourceMatch)
+        //    .WithMany(m => m.SourceForMatchParticipants)
+        //    .HasForeignKey(mp => mp.SourceMatchId)
+        //    .OnDelete(DeleteBehavior.Restrict);
 
         // Question
         modelBuilder.Entity<Question>(entity =>
