@@ -127,7 +127,7 @@ public class CboDbContext : DbContext
             entity.Property(r => r.Id)
                 .ValueGeneratedOnAdd();
 
-            entity.Property(r => r.RoundInSeries)
+            entity.Property(r => r.NumberInMatch)
                 .IsRequired();
 
             entity.Property(r => r.TopicId)

@@ -3,7 +3,7 @@ namespace Cbo.API.Models.Domain;
 public class Round
 {
     public required int Id { get; set; }
-    public required int RoundInSeries { get; set; }
+    public required int NumberInMatch { get; set; }
     public required int TopicId { get; set; }
     public required Topic Topic { get; set; }
     public required int MatchId { get; set; }
