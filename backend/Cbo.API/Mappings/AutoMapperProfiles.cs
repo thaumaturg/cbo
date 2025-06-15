@@ -18,5 +18,8 @@ public class AutoMapperProfiles : Profile
         CreateMap<Topic, UpdateTopicDto>().ReverseMap();
         CreateMap<Question, GetQuestionDto>().ReverseMap();
         CreateMap<Question, CreateQuestionDto>().ReverseMap();
+        CreateMap<Round, GetRoundDto>().ReverseMap();
+        CreateMap<Round, CreateRoundDto>().ReverseMap();
+        CreateMap<Round, UpdateRoundDto>().ReverseMap();
     }
 }

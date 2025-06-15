@@ -37,6 +37,7 @@ public class PostgresRoundRepository : IRoundRepository
         if (existingRound is null)
             return null;
 
+        existingRound.NumberInMatch = updatedRound.NumberInMatch;
         existingRound.TopicId = updatedRound.TopicId;
         existingRound.MatchId = updatedRound.MatchId;
 
