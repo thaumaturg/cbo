@@ -120,6 +120,40 @@ public class CboDbContext : DbContext
         });
 
         // Round
+        modelBuilder.Entity<Round>(entity =>
+        {
+            entity.HasKey(r => r.Id);
+
+            entity.Property(r => r.Id)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(r => r.NumberInMatch)
+                .IsRequired();
+
+            entity.Property(r => r.TopicId)
+                .IsRequired();
+
+            entity.Property(r => r.MatchId)
+                .IsRequired();
+
+            // Many-to-one: Round -> Match
+            entity.HasOne(r => r.Match)
+                .WithMany(m => m.Rounds)
+                .HasForeignKey(r => r.MatchId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Many-to-one: Round -> Topic
+            entity.HasOne(r => r.Topic)
+                .WithOne(t => t.Round)
+                .HasForeignKey<Round>(r => r.TopicId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-many: Round -> RoundAnswers
+            // entity.HasMany(r => r.RoundAnswers)
+            //     .WithOne(ra => ra.Round)
+            //     .HasForeignKey(ra => ra.RoundId)
+            //     .OnDelete(DeleteBehavior.Cascade);
+        });
 
         // RoundAnswer
 
