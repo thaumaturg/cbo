@@ -23,6 +23,15 @@ public class PostgresRoundAnswerRepository : IRoundAnswerRepository
         return await _dbContext.RoundAnswers.FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    public async Task<RoundAnswer?> GetByIdIncludeAsync(int id)
+    {
+        return await _dbContext.RoundAnswers
+            .Include(ra => ra.Round)
+            .Include(ra => ra.Question)
+            .Include(ra => ra.MatchParticipant)
+            .FirstOrDefaultAsync(x => x.Id == id);
+    }
+
     public async Task<RoundAnswer> CreateAsync(RoundAnswer roundAnswer)
     {
         await _dbContext.RoundAnswers.AddAsync(roundAnswer);
@@ -37,9 +46,10 @@ public class PostgresRoundAnswerRepository : IRoundAnswerRepository
         if (existingRoundAnswer is null)
             return null;
 
-        // TODO
-        //existingRound.TopicId = updatedRound.TopicId;
-        //existingRound.MatchId = updatedRound.MatchId;
+        existingRoundAnswer.IsAnswerAccepted = updatedRoundAnswer.IsAnswerAccepted;
+        existingRoundAnswer.RoundId = updatedRoundAnswer.RoundId;
+        existingRoundAnswer.QuestionId = updatedRoundAnswer.QuestionId;
+        existingRoundAnswer.MatchParticipantId = updatedRoundAnswer.MatchParticipantId;
 
         await _dbContext.SaveChangesAsync();
 
