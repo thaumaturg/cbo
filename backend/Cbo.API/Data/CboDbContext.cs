@@ -156,6 +156,47 @@ public class CboDbContext : DbContext
         });
 
         // RoundAnswer
+        modelBuilder.Entity<RoundAnswer>(entity =>
+        {
+            entity.HasKey(ra => ra.Id);
+
+            entity.Property(ra => ra.Id)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(ra => ra.IsAnswerAccepted)
+                .IsRequired();
+
+            entity.Property(ra => ra.AnsweredAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(ra => ra.RoundId)
+                .IsRequired();
+
+            entity.Property(ra => ra.QuestionId)
+                .IsRequired();
+
+            entity.Property(ra => ra.MatchParticipantId)
+                .IsRequired();
+
+            // Many-to-one: RoundAnswer -> Round
+            entity.HasOne(ra => ra.Round)
+                .WithMany(r => r.RoundAnswers)
+                .HasForeignKey(ra => ra.RoundId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Many-to-one: RoundAnswer -> Question
+            entity.HasOne(ra => ra.Question)
+                .WithMany(q => q.RoundAnswers)
+                .HasForeignKey(ra => ra.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Many-to-one: RoundAnswer -> MatchParticipant
+            entity.HasOne(ra => ra.MatchParticipant)
+                .WithMany(mp => mp.RoundAnswers)
+                .HasForeignKey(ra => ra.MatchParticipantId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         // Settings
         modelBuilder.Entity<Settings>(entity =>

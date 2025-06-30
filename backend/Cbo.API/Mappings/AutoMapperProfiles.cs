@@ -21,5 +21,8 @@ public class AutoMapperProfiles : Profile
         CreateMap<Round, GetRoundDto>().ReverseMap();
         CreateMap<Round, CreateRoundDto>().ReverseMap();
         CreateMap<Round, UpdateRoundDto>().ReverseMap();
+        CreateMap<RoundAnswer, GetRoundAnswerDto>().ReverseMap();
+        CreateMap<RoundAnswer, CreateRoundAnswerDto>().ReverseMap();
+        CreateMap<RoundAnswer, UpdateRoundAnswerDto>().ReverseMap();
     }
 }
