@@ -52,12 +52,12 @@ public class RoundsController : ControllerBase
 
         roundDomain = await _roundRepository.CreateAsync(roundDomain);
 
-        Round? roundIncludeQuestions = await _roundRepository.GetByIdAsync(roundDomain.Id);
+        Round? round = await _roundRepository.GetByIdAsync(roundDomain.Id);
 
-        if (roundIncludeQuestions is null)
+        if (round is null)
             return BadRequest();
 
-        GetRoundDto getRoundDto = _mapper.Map<GetRoundDto>(roundIncludeQuestions);
+        GetRoundDto getRoundDto = _mapper.Map<GetRoundDto>(round);
 
         return CreatedAtAction(nameof(GetById), new { id = roundDomain.Id }, getRoundDto);
     }
