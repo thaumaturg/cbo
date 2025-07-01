@@ -20,6 +20,9 @@ public class Program
 
         builder.Services.AddScoped<ITournamentRepository, PostgresTournamentRepository>();
         builder.Services.AddScoped<ITopicRepository, PostgresTopicRepository>();
+        builder.Services.AddScoped<IMatchRepository, PostgresMatchRepository>();
+        builder.Services.AddScoped<IRoundRepository, PostgresRoundRepository>();
+        builder.Services.AddScoped<IRoundAnswerRepository, PostgresRoundAnswerRepository>();
 
         builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
