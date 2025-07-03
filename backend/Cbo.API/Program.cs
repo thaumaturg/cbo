@@ -1,7 +1,10 @@
+using System.Text;
 using Cbo.API.Data;
 using Cbo.API.Mappings;
 using Cbo.API.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 
 namespace Cbo.API;
@@ -30,6 +33,20 @@ public class Program
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
 
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+                });
+
         WebApplication app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -40,6 +57,8 @@ public class Program
         }
 
         app.UseHttpsRedirection();
+
+        app.UseAuthentication();
 
         app.UseAuthorization();
 
