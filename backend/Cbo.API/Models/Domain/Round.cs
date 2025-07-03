@@ -8,5 +8,5 @@ public class Round
     public required Topic Topic { get; set; }
     public required int MatchId { get; set; }
     public required Match Match { get; set; }
-    public ICollection<RoundAnswer> RoundAnswers { get; set; }
+    public ICollection<RoundAnswer> RoundAnswers { get; set; } = [];
 }

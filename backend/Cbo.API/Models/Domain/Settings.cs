@@ -14,5 +14,5 @@ public class Settings
     public int TopicsPerParticipantMin { get; set; }
     public int TopicsPerMatch { get; set; }
     public int TournamentId { get; set; }
-    public Tournament Tournament { get; set; }
+    public required Tournament Tournament { get; set; }
 }
