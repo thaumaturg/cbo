@@ -64,16 +64,16 @@ public class CboDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             // One-to-many: Match -> Rounds
-            // entity.HasMany(m => m.Rounds)
-            //     .WithOne(r => r.Match)
-            //     .HasForeignKey(r => r.MatchId)
-            //     .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(m => m.Rounds)
+                .WithOne(r => r.Match)
+                .HasForeignKey(r => r.MatchId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // One-to-many: Match -> MatchParticipants
-            // entity.HasMany(m => m.MatchParticipants)
-            //     .WithOne(mp => mp.Match)
-            //     .HasForeignKey(mp => mp.MatchId)
-            //     .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(m => m.MatchParticipants)
+                .WithOne(mp => mp.Match)
+                .HasForeignKey(mp => mp.MatchId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // MatchParticipant
@@ -109,14 +109,16 @@ public class CboDbContext : DbContext
             entity.Property(q => q.TopicId)
                 .IsRequired();
 
+            // Many-to-one: Question -> Topic
             entity.HasOne(q => q.Topic)
                 .WithMany(t => t.Questions)
                 .HasForeignKey(q => q.TopicId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // entity.HasMany(q => q.RoundAnswers)
-            //     .WithOne(ra => ra.Question)
-            //     .HasForeignKey(ra => ra.QuestionId);
+            // One-to-many: Question -> RoundAnswers
+            entity.HasMany(q => q.RoundAnswers)
+                .WithOne(ra => ra.Question)
+                .HasForeignKey(ra => ra.QuestionId);
         });
 
         // Round
@@ -149,10 +151,10 @@ public class CboDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             // One-to-many: Round -> RoundAnswers
-            // entity.HasMany(r => r.RoundAnswers)
-            //     .WithOne(ra => ra.Round)
-            //     .HasForeignKey(ra => ra.RoundId)
-            //     .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(r => r.RoundAnswers)
+                .WithOne(ra => ra.Round)
+                .HasForeignKey(ra => ra.RoundId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // RoundAnswer
@@ -246,7 +248,7 @@ public class CboDbContext : DbContext
                 .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerMatch"])
                 .IsRequired();
 
-            // One-to-one: Settings <->Tournament
+            // One-to-one: Settings <-> Tournament
              entity.HasOne(s => s.Tournament)
                  .WithOne(t => t.Settings)
                  .HasForeignKey<Settings>(s => s.TournamentId)
@@ -278,22 +280,22 @@ public class CboDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             // One-to-many: Topic -> TournamentTopics
-            // entity.HasMany(t => t.TournamentTopics)
-            //     .WithOne(tt => tt.Topic)
-            //     .HasForeignKey(tt => tt.TopicId)
-            //     .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(t => t.TournamentTopics)
+                .WithOne(tt => tt.Topic)
+                .HasForeignKey(tt => tt.TopicId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // One-to-many: Topic -> TopicAuthors
-            // entity.HasMany(t => t.TopicAuthors)
-            //     .WithOne(ta => ta.Topic)
-            //     .HasForeignKey(ta => ta.TopicId)
-            //     .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(t => t.TopicAuthors)
+                .WithOne(ta => ta.Topic)
+                .HasForeignKey(ta => ta.TopicId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // One-to-one: Topic <-> Round
-            // entity.HasOne(t => t.Round)
-            //     .WithOne(r => r.Topic)
-            //     .HasForeignKey<Round>(r => r.TopicId)
-            //     .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(t => t.Round)
+                .WithOne(r => r.Topic)
+                .HasForeignKey<Round>(r => r.TopicId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // TopicAuthor
@@ -335,22 +337,22 @@ public class CboDbContext : DbContext
                 .IsRequired();
 
             // One-to-many: Tournament -> TournamentParticipants
-            // entity.HasMany(t => t.TournamentParticipants)
-            //     .WithOne(tp => tp.Tournament)
-            //     .HasForeignKey(tp => tp.TournamentId)
-            //     .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(t => t.TournamentParticipants)
+                .WithOne(tp => tp.Tournament)
+                .HasForeignKey(tp => tp.TournamentId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // One-to-many: Tournament -> TournamentTopics
-            // entity.HasMany(t => t.TournamentTopics)
-            //     .WithOne(tt => tt.Tournament)
-            //     .HasForeignKey(tt => tt.TournamentId)
-            //     .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(t => t.TournamentTopics)
+                .WithOne(tt => tt.Tournament)
+                .HasForeignKey(tt => tt.TournamentId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // One-to-many: Tournament -> Matches
-            // entity.HasMany(t => t.Matches)
-            //     .WithOne(m => m.Tournament)
-            //     .HasForeignKey(m => m.TournamentId)
-            //     .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(t => t.Matches)
+                .WithOne(m => m.Tournament)
+                .HasForeignKey(m => m.TournamentId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // TournamentParticipant
