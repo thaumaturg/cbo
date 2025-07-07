@@ -21,6 +21,12 @@ public class Program
         builder.Services.AddDbContext<CboDbContext>(options =>
             options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention());
 
+        string connectionStringAuth = builder.Configuration.GetConnectionString("CboAuthDb")
+            ?? throw new InvalidOperationException("Connection string" + "'CboAuthDb' not found.");
+
+        builder.Services.AddDbContext<CboDbContext>(options =>
+            options.UseNpgsql(connectionStringAuth).UseSnakeCaseNamingConvention());
+
         builder.Services.AddScoped<ITournamentRepository, PostgresTournamentRepository>();
         builder.Services.AddScoped<ITopicRepository, PostgresTopicRepository>();
         builder.Services.AddScoped<IMatchRepository, PostgresMatchRepository>();

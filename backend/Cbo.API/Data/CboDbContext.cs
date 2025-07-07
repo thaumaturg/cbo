@@ -6,9 +6,8 @@ namespace Cbo.API.Data;
 
 public class CboDbContext : DbContext
 {
-    public CboDbContext(DbContextOptions dbContextOptions) : base(dbContextOptions)
+    public CboDbContext(DbContextOptions<CboDbContext> dbContextOptions) : base(dbContextOptions)
     {
-        
     }
 
     public DbSet<Match> Matches { get; set; }
