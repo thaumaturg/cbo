@@ -3,6 +3,7 @@ using Cbo.API.Data;
 using Cbo.API.Mappings;
 using Cbo.API.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -24,7 +25,7 @@ public class Program
         string connectionStringAuth = builder.Configuration.GetConnectionString("CboAuthDb")
             ?? throw new InvalidOperationException("Connection string" + "'CboAuthDb' not found.");
 
-        builder.Services.AddDbContext<CboDbContext>(options =>
+        builder.Services.AddDbContext<CboAuthDbContext>(options =>
             options.UseNpgsql(connectionStringAuth).UseSnakeCaseNamingConvention());
 
         builder.Services.AddScoped<ITournamentRepository, PostgresTournamentRepository>();
@@ -38,6 +39,22 @@ public class Program
         builder.Services.AddControllers();
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
+
+        builder.Services.AddIdentityCore<IdentityUser>()
+            .AddRoles<IdentityRole>()
+            .AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>("Cbo")
+            .AddEntityFrameworkStores<CboAuthDbContext>()
+            .AddDefaultTokenProviders();
+
+        builder.Services.Configure<IdentityOptions>(options =>
+        {
+            options.Password.RequireDigit = false;
+            options.Password.RequireLowercase = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequiredLength = 8;
+            options.Password.RequiredUniqueChars = 1;
+        });
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
