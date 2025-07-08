@@ -17,7 +17,7 @@ public class AuthController : ControllerBase
 
     [HttpPost]
     [Route("Register")]
-    public async Task<IActionResult> Register([FromBody] CreateUserDto createUserDto)
+    public async Task<IActionResult> Register([FromBody] RegisterUserDto createUserDto)
     {
         var identityUser = new IdentityUser
         {
