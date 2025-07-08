@@ -17,11 +17,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" />
     <PackageReference Include="Npgsql" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Scalar.AspNetCore" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
   </ItemGroup>
 
 </Project>
