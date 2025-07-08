@@ -1,4 +1,5 @@
 ﻿using Cbo.API.Models.DTO;
+using Cbo.API.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,10 +10,14 @@ namespace Cbo.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly UserManager<IdentityUser> _userManager;
+    private readonly ITokenRepository _tokenRepository;
 
-    public AuthController(UserManager<IdentityUser> userManager)
+    public AuthController(
+        UserManager<IdentityUser> userManager,
+        ITokenRepository tokenRepository)
     {
         _userManager = userManager;
+        _tokenRepository = tokenRepository;
     }
 
     [HttpPost]
@@ -29,7 +34,6 @@ public class AuthController : ControllerBase
 
         if (identityResult.Succeeded)
         {
-            // Add roles to this User
             if (createUserDto.Roles is not null && createUserDto.Roles.Length != 0)
             {
                 identityResult = await _userManager.AddToRolesAsync(identityUser, createUserDto.Roles);
@@ -56,9 +60,16 @@ public class AuthController : ControllerBase
 
             if (checkPasswordResult)
             {
-                // TODO: Create Token
+                var roles = await _userManager.GetRolesAsync(user);
 
-                return Ok();
+                if (roles is not null)
+                {
+                    var jwtToken = _tokenRepository.CreateJWTToken(user, roles.ToList());
+
+                    var response = new LoginResponseDto { JwtToken = jwtToken };
+
+                    return Ok(response);
+                }
             }
         }
 
