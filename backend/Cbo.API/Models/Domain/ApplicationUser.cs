@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Cbo.API.Models.Domain;
 
-public class User
+public class ApplicationUser
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

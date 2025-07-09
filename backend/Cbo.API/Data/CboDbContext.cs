@@ -10,6 +10,7 @@ public class CboDbContext : DbContext
     {
     }
 
+    public DbSet<ApplicationUser> ApplicationUsers { get; set; }
     public DbSet<Match> Matches { get; set; }
     public DbSet<MatchParticipant> MatchParticipants { get; set; }
     public DbSet<Question> Questions { get; set; }
@@ -21,11 +22,12 @@ public class CboDbContext : DbContext
     public DbSet<Tournament> Tournaments { get; set; }
     public DbSet<TournamentParticipant> TournamentParticipants { get; set; }
     public DbSet<TournamentTopic> TournamentTopics { get; set; }
-    public DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Application User
 
         // Match
         modelBuilder.Entity<Match>(entity =>
@@ -394,7 +396,5 @@ public class CboDbContext : DbContext
             .HasConversion<string>();
 
         // TournamentTopic
-
-        // User
     }
 }
