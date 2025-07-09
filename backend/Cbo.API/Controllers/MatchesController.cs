@@ -2,6 +2,7 @@
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cbo.API.Controllers;
@@ -22,6 +23,7 @@ public class MatchesController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetAll()
     {
         List<Match> matchesDomain = await _matchRepository.GetAllAsync();
@@ -33,6 +35,7 @@ public class MatchesController : ControllerBase
 
     [HttpGet]
     [Route("{id:int}")]
+    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
         Match? matchDomain = await _matchRepository.GetByIdAsync(id);

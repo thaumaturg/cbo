@@ -2,6 +2,7 @@
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cbo.API.Controllers;
@@ -22,6 +23,7 @@ public class TopicsController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetAll()
     {
         List<Topic> topicsDomain = await _topicRepository.GetAllAsync();
@@ -33,6 +35,7 @@ public class TopicsController : ControllerBase
 
     [HttpGet]
     [Route("{id:int}")]
+    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
         Topic? topicDomain = await _topicRepository.GetByIdAsync(id);
@@ -46,6 +49,7 @@ public class TopicsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Create([FromBody] CreateTopicDto createTopicDto)
     {
         int questionNumber = 1;
@@ -73,6 +77,7 @@ public class TopicsController : ControllerBase
 
     [HttpPut]
     [Route("{id:int}")]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateTopicDto updateTopicDto)
     {
         Topic? topicDomain = _mapper.Map<Topic>(updateTopicDto);
@@ -89,6 +94,7 @@ public class TopicsController : ControllerBase
 
     [HttpDelete]
     [Route("{id:int}")]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Delete([FromRoute] int id)
     {
         Topic? topicDomain = await _topicRepository.DeleteAsync(id);

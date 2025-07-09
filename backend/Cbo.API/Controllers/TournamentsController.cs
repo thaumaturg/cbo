@@ -2,6 +2,7 @@
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cbo.API.Controllers;
@@ -22,6 +23,7 @@ public class TournamentsController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetAll()
     {
         List<Tournament> tournamentsDomain = await _tournamentRepository.GetAllAsync();
@@ -33,6 +35,7 @@ public class TournamentsController : ControllerBase
 
     [HttpGet]
     [Route("{id:int}")]
+    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
         Tournament? tournamentDomain = await _tournamentRepository.GetByIdAsync(id);
@@ -47,6 +50,7 @@ public class TournamentsController : ControllerBase
 
 
     [HttpPost]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Create([FromBody] CreateTournamentDto createTournamentDto)
     {
         Tournament tournamentDomain = _mapper.Map<Tournament>(createTournamentDto);
@@ -65,6 +69,7 @@ public class TournamentsController : ControllerBase
 
     [HttpPut]
     [Route("{id:int}")]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateTournamentDto updateTournamentDto)
     {
         Tournament? tournamentDomain = _mapper.Map<Tournament>(updateTournamentDto);
@@ -81,6 +86,7 @@ public class TournamentsController : ControllerBase
 
     [HttpDelete]
     [Route("{id:int}")]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Delete([FromRoute] int id)
     {
         Tournament? tournamentDomain = await _tournamentRepository.DeleteAsync(id);
