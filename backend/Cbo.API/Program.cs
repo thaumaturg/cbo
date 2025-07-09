@@ -39,7 +39,10 @@ public class Program
 
         builder.Services.AddControllers();
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-        builder.Services.AddOpenApi();
+        builder.Services.AddOpenApi("v1", options =>
+        {
+            options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+        });
 
         builder.Services.AddIdentityCore<IdentityUser>()
             .AddRoles<IdentityRole>()
