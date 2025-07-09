@@ -1,7 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.AspNetCore.Identity;
+using Cbo.API.Models.Domain;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Cbo.API.Repositories;
@@ -15,7 +15,7 @@ public class TokenRepository : ITokenRepository
         _configuration = configuration;
     }
 
-    public string CreateJWTToken(IdentityUser user, List<string> roles)
+    public string CreateJWTToken(ApplicationUser user, List<string> roles)
     {
         var claims = new List<Claim>();
 

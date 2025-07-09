@@ -1,6 +1,7 @@
 using System.Text;
 using Cbo.API.Data;
 using Cbo.API.Mappings;
+using Cbo.API.Models.Domain;
 using Cbo.API.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -44,9 +45,9 @@ public class Program
             options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
         });
 
-        builder.Services.AddIdentityCore<IdentityUser>()
+        builder.Services.AddIdentityCore<ApplicationUser>()
             .AddRoles<IdentityRole>()
-            .AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>("Cbo")
+            .AddTokenProvider<DataProtectorTokenProvider<ApplicationUser>>("Cbo")
             .AddEntityFrameworkStores<CboAuthDbContext>()
             .AddDefaultTokenProviders();
 

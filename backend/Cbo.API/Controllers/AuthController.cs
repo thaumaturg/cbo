@@ -1,4 +1,5 @@
-﻿using Cbo.API.Models.DTO;
+﻿using Cbo.API.Models.Domain;
+using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,11 +10,11 @@ namespace Cbo.API.Controllers;
 [ApiController]
 public class AuthController : ControllerBase
 {
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly ITokenRepository _tokenRepository;
 
     public AuthController(
-        UserManager<IdentityUser> userManager,
+        UserManager<ApplicationUser> userManager,
         ITokenRepository tokenRepository)
     {
         _userManager = userManager;
@@ -24,19 +25,19 @@ public class AuthController : ControllerBase
     [Route("Register")]
     public async Task<IActionResult> Register([FromBody] RegisterUserDto createUserDto)
     {
-        var identityUser = new IdentityUser
+        var applicationUser = new ApplicationUser
         {
             UserName = createUserDto.Username,
             Email = createUserDto.Email,
         };
 
-        IdentityResult identityResult = await _userManager.CreateAsync(identityUser, createUserDto.Password);
+        IdentityResult identityResult = await _userManager.CreateAsync(applicationUser, createUserDto.Password);
 
         if (identityResult.Succeeded)
         {
             if (createUserDto.Roles is not null && createUserDto.Roles.Length != 0)
             {
-                identityResult = await _userManager.AddToRolesAsync(identityUser, createUserDto.Roles);
+                identityResult = await _userManager.AddToRolesAsync(applicationUser, createUserDto.Roles);
 
                 if (identityResult.Succeeded)
                 {
@@ -52,7 +53,7 @@ public class AuthController : ControllerBase
     [Route("Login")]
     public async Task<IActionResult> Login([FromBody] LoginUserDto loginUserDto)
     {
-        IdentityUser? user = await _userManager.FindByEmailAsync(loginUserDto.Email);
+        ApplicationUser? user = await _userManager.FindByEmailAsync(loginUserDto.Email);
 
         if (user != null)
         {

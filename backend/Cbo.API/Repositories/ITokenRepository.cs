@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Cbo.API.Models.Domain;
 
 namespace Cbo.API.Repositories;
 
 public interface ITokenRepository
 {
-    string CreateJWTToken(IdentityUser user, List<string> roles);
+    string CreateJWTToken(ApplicationUser user, List<string> roles);
 }
