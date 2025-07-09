@@ -21,8 +21,6 @@ public class User
     [Required]
     public bool EmailValidated { get; set; }
 
-    public ICollection<UserPermission> UserPermissions { get; set; }
-
     public ICollection<TournamentParticipant> TournamentParticipants { get; set; }
 
     public ICollection<TopicAuthor> TopicAuthors { get; set; }

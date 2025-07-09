@@ -22,7 +22,6 @@ public class CboDbContext : DbContext
     public DbSet<TournamentParticipant> TournamentParticipants { get; set; }
     public DbSet<TournamentTopic> TournamentTopics { get; set; }
     public DbSet<User> Users { get; set; }
-    public DbSet<UserPermission> UserPermissions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -397,10 +396,5 @@ public class CboDbContext : DbContext
         // TournamentTopic
 
         // User
-
-        // UserPermission
-        modelBuilder.Entity<UserPermission>()
-            .Property(e => e.PermissionName)
-            .HasConversion<string>();
     }
 }
