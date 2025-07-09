@@ -23,9 +23,9 @@ public class TournamentParticipant
     public Tournament Tournament { get; set; }
 
     [Required]
-    public int UserId { get; set; }
+    public int ApplicationUserId { get; set; }
 
-    [ForeignKey("UserId")]
+    [ForeignKey("ApplicationUserId")]
     public ApplicationUser ApplicationUser { get; set; }
 
     public ICollection<MatchParticipant> MatchParticipants { get; set; }
