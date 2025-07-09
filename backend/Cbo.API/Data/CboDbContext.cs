@@ -28,6 +28,23 @@ public class CboDbContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         // Application User
+        modelBuilder.Entity<ApplicationUser>(entity =>
+        {
+            entity.Property(au => au.Name)
+                .HasMaxLength(32);
+
+            // One-to-many: ApplicationUser -> TournamentParticipants
+            entity.HasMany(au => au.TournamentParticipants)
+                .WithOne(tp => tp.ApplicationUser)
+                .HasForeignKey(tp => tp.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-many: ApplicationUser -> TopicAuthors
+            entity.HasMany(au => au.TopicAuthors)
+                .WithOne(ta => ta.ApplicationUser)
+                .HasForeignKey(ta => ta.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         // Match
         modelBuilder.Entity<Match>(entity =>
