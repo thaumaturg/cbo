@@ -2,6 +2,7 @@
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cbo.API.Controllers;
@@ -22,6 +23,7 @@ public class RoundAnswersController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetAll()
     {
         List<RoundAnswer> roundAnswersDomain = await _roundAnswerRepository.GetAllAsync();
@@ -33,6 +35,7 @@ public class RoundAnswersController : ControllerBase
 
     [HttpGet]
     [Route("{id:int}")]
+    [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
         RoundAnswer? roundAnswerDomain = await _roundAnswerRepository.GetByIdAsync(id);
@@ -46,6 +49,7 @@ public class RoundAnswersController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Create([FromBody] CreateRoundAnswerDto createRoundAnswerDto)
     {
         RoundAnswer roundAnswerDomain = _mapper.Map<RoundAnswer>(createRoundAnswerDto);
@@ -64,6 +68,7 @@ public class RoundAnswersController : ControllerBase
 
     [HttpPut]
     [Route("{id:int}")]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateRoundAnswerDto updateRoundAnswerDto)
     {
         RoundAnswer? roundAnswerDomain = _mapper.Map<RoundAnswer>(updateRoundAnswerDto);
@@ -80,6 +85,7 @@ public class RoundAnswersController : ControllerBase
 
     [HttpDelete]
     [Route("{id:int}")]
+    [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Delete([FromRoute] int id)
     {
         RoundAnswer? roundAnswerDomain = await _roundAnswerRepository.DeleteAsync(id);

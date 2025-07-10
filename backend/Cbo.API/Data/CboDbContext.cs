@@ -1,16 +1,18 @@
 ﻿using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cbo.API.Data;
 
-public class CboDbContext : DbContext
+public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>, int>
 {
-    public CboDbContext(DbContextOptions dbContextOptions) : base(dbContextOptions)
+    public CboDbContext(DbContextOptions<CboDbContext> dbContextOptions) : base(dbContextOptions)
     {
-        
     }
 
+    public DbSet<ApplicationUser> ApplicationUsers { get; set; }
     public DbSet<Match> Matches { get; set; }
     public DbSet<MatchParticipant> MatchParticipants { get; set; }
     public DbSet<Question> Questions { get; set; }
@@ -22,12 +24,29 @@ public class CboDbContext : DbContext
     public DbSet<Tournament> Tournaments { get; set; }
     public DbSet<TournamentParticipant> TournamentParticipants { get; set; }
     public DbSet<TournamentTopic> TournamentTopics { get; set; }
-    public DbSet<User> Users { get; set; }
-    public DbSet<UserPermission> UserPermissions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Application User
+        modelBuilder.Entity<ApplicationUser>(entity =>
+        {
+            entity.Property(au => au.Name)
+                .HasMaxLength(32);
+
+            // One-to-many: ApplicationUser -> TournamentParticipants
+            entity.HasMany(au => au.TournamentParticipants)
+                .WithOne(tp => tp.ApplicationUser)
+                .HasForeignKey(tp => tp.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-many: ApplicationUser -> TopicAuthors
+            entity.HasMany(au => au.TopicAuthors)
+                .WithOne(ta => ta.ApplicationUser)
+                .HasForeignKey(ta => ta.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         // Match
         modelBuilder.Entity<Match>(entity =>
@@ -397,11 +416,27 @@ public class CboDbContext : DbContext
 
         // TournamentTopic
 
-        // User
+        // Identity Role
+        string readerGuid = "ad040ba3-7725-44e8-b7e0-0d9272be1792";
+        string writerGuid = "8994bf38-e92b-4fee-a86f-067f012b02f0";
 
-        // UserPermission
-        modelBuilder.Entity<UserPermission>()
-            .Property(e => e.PermissionName)
-            .HasConversion<string>();
+        var roles = new List<IdentityRole<int>>
+        {
+            new IdentityRole<int>
+            {
+                Id = 1,
+                ConcurrencyStamp = readerGuid,
+                Name = "Reader",
+                NormalizedName = "READER"
+            },
+            new IdentityRole<int>
+            {
+                Id = 2,
+                ConcurrencyStamp = writerGuid,
+                Name = "Writer",
+                NormalizedName = "WRITER"
+            },
+        };
+        modelBuilder.Entity<IdentityRole<int>>().HasData(roles);
     }
 }

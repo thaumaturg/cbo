@@ -13,10 +13,10 @@ public class TopicAuthor
     public bool IsOwner { get; set; }
 
     [Required]
-    public int UserId { get; set; }
+    public int ApplicationUserId { get; set; }
 
-    [ForeignKey("UserId")]
-    public User User { get; set; }
+    [ForeignKey("ApplicationUserId")]
+    public ApplicationUser ApplicationUser { get; set; }
 
     [Required]
     public int TopicId { get; set; }
