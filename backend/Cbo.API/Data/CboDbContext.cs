@@ -1,10 +1,12 @@
 ﻿using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cbo.API.Data;
 
-public class CboDbContext : DbContext
+public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>, int>
 {
     public CboDbContext(DbContextOptions<CboDbContext> dbContextOptions) : base(dbContextOptions)
     {
@@ -413,5 +415,28 @@ public class CboDbContext : DbContext
             .HasConversion<string>();
 
         // TournamentTopic
+
+        // Identity Role
+        string readerGuid = "ad040ba3-7725-44e8-b7e0-0d9272be1792";
+        string writerGuid = "8994bf38-e92b-4fee-a86f-067f012b02f0";
+
+        var roles = new List<IdentityRole<int>>
+        {
+            new IdentityRole<int>
+            {
+                Id = 1,
+                ConcurrencyStamp = readerGuid,
+                Name = "Reader",
+                NormalizedName = "READER"
+            },
+            new IdentityRole<int>
+            {
+                Id = 2,
+                ConcurrencyStamp = writerGuid,
+                Name = "Writer",
+                NormalizedName = "WRITER"
+            },
+        };
+        modelBuilder.Entity<IdentityRole<int>>().HasData(roles);
     }
 }

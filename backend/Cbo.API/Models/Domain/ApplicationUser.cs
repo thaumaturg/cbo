@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Cbo.API.Models.Domain;
 
-public class ApplicationUser : IdentityUser
+public class ApplicationUser : IdentityUser<int>
 {
     public string? Name { get; set; }
     public ICollection<TournamentParticipant> TournamentParticipants { get; set; } = [];

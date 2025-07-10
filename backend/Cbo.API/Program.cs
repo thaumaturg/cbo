@@ -23,12 +23,6 @@ public class Program
         builder.Services.AddDbContext<CboDbContext>(options =>
             options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention());
 
-        string connectionStringAuth = builder.Configuration.GetConnectionString("CboAuthDb")
-            ?? throw new InvalidOperationException("Connection string" + "'CboAuthDb' not found.");
-
-        builder.Services.AddDbContext<CboAuthDbContext>(options =>
-            options.UseNpgsql(connectionStringAuth).UseSnakeCaseNamingConvention());
-
         builder.Services.AddScoped<ITournamentRepository, PostgresTournamentRepository>();
         builder.Services.AddScoped<ITopicRepository, PostgresTopicRepository>();
         builder.Services.AddScoped<IMatchRepository, PostgresMatchRepository>();
@@ -46,9 +40,9 @@ public class Program
         });
 
         builder.Services.AddIdentityCore<ApplicationUser>()
-            .AddRoles<IdentityRole>()
+            .AddRoles<IdentityRole<int>>()
             .AddTokenProvider<DataProtectorTokenProvider<ApplicationUser>>("Cbo")
-            .AddEntityFrameworkStores<CboAuthDbContext>()
+            .AddEntityFrameworkStores<CboDbContext>()
             .AddDefaultTokenProviders();
 
         builder.Services.Configure<IdentityOptions>(options =>
