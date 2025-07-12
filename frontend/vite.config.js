@@ -4,15 +4,26 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
+import fs from 'node:fs'
+
+const developmentCertificateName = 'localhost.pfx'
+
+const httpsSettings = fs.existsSync(developmentCertificateName)
+  ? {
+      pfx: fs.readFileSync(developmentCertificateName),
+      passphrase: 'YOUR_ACTUAL_PASSPHRASE_HERE',
+    }
+  : {}
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [
-    vue(),
-    vueDevTools(),
-  ],
+  plugins: [vue(), vueDevTools()],
+  server: {
+    https: httpsSettings,
+  },
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
 })

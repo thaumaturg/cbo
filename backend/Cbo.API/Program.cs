@@ -71,20 +71,34 @@ public class Program
 
         WebApplication app = builder.Build();
 
-        // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
-            app.MapScalarApiReference();
-            app.MapOpenApi();
-        }
-
         app.UseHttpsRedirection();
+
+        app.UseRouting();
 
         app.UseAuthentication();
 
         app.UseAuthorization();
 
         app.MapControllers();
+
+        // Configure the HTTP request pipeline.
+        if (app.Environment.IsDevelopment())
+        {
+            app.MapScalarApiReference();
+            app.MapOpenApi();
+
+            app.MapWhen(context => !context.Request.Path.StartsWithSegments("/api"), builder =>
+            {
+                builder.UseSpa(spa =>
+                {
+                    spa.UseProxyToSpaDevelopmentServer("https://localhost:5173");
+                });
+            });
+        }
+        else
+        {
+            app.MapFallbackToFile("index.html");
+        }
 
         app.Run();
     }
