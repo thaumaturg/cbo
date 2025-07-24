@@ -58,8 +58,8 @@ configure({
     }
   },
   validateOnBlur: true,
-  validateOnChange: false,
-  validateOnInput: true,
+  validateOnChange: true,
+  validateOnInput: false,
   validateOnModelUpdate: false,
 });
 
