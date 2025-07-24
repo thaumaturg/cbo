@@ -203,7 +203,7 @@ const onRegisterSubmit = (values) => {
                 <VeeField
                   name="registerRepeatPassword"
                   label="Repeat password"
-                  :rules="'required|password_chars|confirmed:registerPassword'"
+                  :rules="'required|password_chars|confirmed:@registerPassword'"
                   v-slot="{ field }"
                 >
                   <Password
