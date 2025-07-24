@@ -14,6 +14,7 @@ import TabPanel from "primevue/tabpanel";
 
 import { Form as VeeForm, Field as VeeField, ErrorMessage, defineRule, configure } from "vee-validate";
 import { required, email, min, max, regex, confirmed } from "@vee-validate/rules";
+import { ref } from "vue";
 
 defineRule("required", required);
 defineRule("email", email);
@@ -69,14 +70,33 @@ const toggleAuthModal = () => {
   authModalStore.toggle();
 };
 
+const loginStatus = ref("idle");
+const registerStatus = ref("idle");
+
 const onLoginSubmit = (values) => {
   console.log("Login submit", values);
-  toggleAuthModal();
+  loginStatus.value = "loading";
+  // simulate async processing
+  setTimeout(() => {
+    loginStatus.value = "success";
+    setTimeout(() => {
+      loginStatus.value = "idle";
+      toggleAuthModal();
+    }, 1000);
+  }, 1500);
 };
 
 const onRegisterSubmit = (values) => {
   console.log("Register submit", values);
-  toggleAuthModal();
+  registerStatus.value = "loading";
+  // simulate async processing
+  setTimeout(() => {
+    registerStatus.value = "success";
+    setTimeout(() => {
+      registerStatus.value = "idle";
+      toggleAuthModal();
+    }, 1000);
+  }, 1500);
 };
 </script>
 
@@ -124,8 +144,14 @@ const onRegisterSubmit = (values) => {
                 <Message severity="error">{{ message }}</Message>
               </ErrorMessage>
             </div>
+            <div class="mb-4" v-if="loginStatus === 'loading'">
+              <Message severity="info">Logging in, please wait...</Message>
+            </div>
+            <div class="mb-4" v-if="loginStatus === 'success'">
+              <Message severity="success">Login successful!</Message>
+            </div>
             <div class="flex justify-end gap-2">
-              <Button type="submit" label="Login"></Button>
+              <Button type="submit" label="Login" :disabled="loginStatus !== 'idle'"></Button>
             </div>
           </VeeForm>
         </TabPanel>
@@ -220,8 +246,14 @@ const onRegisterSubmit = (values) => {
                 <Message severity="error">{{ message }}</Message>
               </ErrorMessage>
             </div>
+            <div class="mb-4" v-if="registerStatus === 'loading'">
+              <Message severity="info">Registering account, please wait...</Message>
+            </div>
+            <div class="mb-4" v-if="registerStatus === 'success'">
+              <Message severity="success">Registration successful!</Message>
+            </div>
             <div class="flex justify-end gap-2">
-              <Button type="submit" label="Register"></Button>
+              <Button type="submit" label="Register" :disabled="registerStatus !== 'idle'"></Button>
             </div>
           </VeeForm>
         </TabPanel>
