@@ -113,7 +113,13 @@ const onRegisterSubmit = (values) => {
             <div class="flex flex-col gap-1 mb-4">
               <div class="flex items-center gap-4">
                 <label for="loginEmail" class="font-semibold w-24">Email</label>
-                <VeeField name="loginEmail" label="Email" :rules="'required|email|min:6|max:254'" v-slot="{ field }">
+                <VeeField
+                  name="loginEmail"
+                  id="loginEmail"
+                  label="Email"
+                  :rules="'required|email|min:6|max:254'"
+                  v-slot="{ field }"
+                >
                   <InputText v-bind="field" id="loginEmail" class="flex-auto" autocomplete="off" />
                 </VeeField>
               </div>
@@ -126,6 +132,7 @@ const onRegisterSubmit = (values) => {
                 <label for="loginPassword" class="font-semibold w-24">Password</label>
                 <VeeField
                   name="loginPassword"
+                  id="loginPassword"
                   label="Password"
                   :rules="'required|password_chars|min:8|max:64'"
                   v-slot="{ field }"
@@ -160,7 +167,13 @@ const onRegisterSubmit = (values) => {
             <div class="flex flex-col gap-1 mb-4">
               <div class="flex items-center gap-4">
                 <label for="registerEmail" class="font-semibold w-24">Email</label>
-                <VeeField name="registerEmail" label="Email" :rules="'required|email|min:6|max:254'" v-slot="{ field }">
+                <VeeField
+                  name="registerEmail"
+                  id="registerEmail"
+                  label="Email"
+                  :rules="'required|email|min:6|max:254'"
+                  v-slot="{ field }"
+                >
                   <InputText v-bind="field" id="registerEmail" class="flex-auto" autocomplete="off" />
                 </VeeField>
               </div>
@@ -173,6 +186,7 @@ const onRegisterSubmit = (values) => {
                 <label for="registerUsername" class="font-semibold w-24">Username</label>
                 <VeeField
                   name="registerUsername"
+                  id="registerUsername"
                   label="Username"
                   :rules="'required|username_chars|min:6|max:16'"
                   v-slot="{ field }"
@@ -189,6 +203,7 @@ const onRegisterSubmit = (values) => {
                 <label for="registerFullName" class="font-semibold w-24">Full Name</label>
                 <VeeField
                   name="registerFullName"
+                  id="registerFullName"
                   label="Full Name"
                   :rules="'latin_cyrillic_latvian|min:2|max:64'"
                   v-slot="{ field }"
@@ -205,6 +220,7 @@ const onRegisterSubmit = (values) => {
                 <label for="registerPassword" class="font-semibold w-24">Password</label>
                 <VeeField
                   name="registerPassword"
+                  id="registerPassword"
                   label="Password"
                   :rules="'required|password_chars|min:8|max:64'"
                   v-slot="{ field }"
@@ -228,6 +244,7 @@ const onRegisterSubmit = (values) => {
                 <label for="registerRepeatPassword" class="font-semibold w-24">Repeat password</label>
                 <VeeField
                   name="registerRepeatPassword"
+                  id="registerRepeatPassword"
                   label="Repeat password"
                   :rules="'required|password_chars|confirmed:@registerPassword'"
                   v-slot="{ field }"
