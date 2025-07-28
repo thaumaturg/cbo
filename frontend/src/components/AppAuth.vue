@@ -1,5 +1,6 @@
 <script setup>
 import { useAuthModalStore } from "@/stores/auth-modal.js";
+import { useAuthStore } from "@/stores/auth.js";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Button from "primevue/button";
@@ -14,7 +15,7 @@ import TabPanel from "primevue/tabpanel";
 
 import { Form as VeeForm, Field as VeeField, ErrorMessage, defineRule, configure } from "vee-validate";
 import { required, email, min, max, regex, confirmed } from "@vee-validate/rules";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
 defineRule("required", required);
 defineRule("email", email);
@@ -65,38 +66,82 @@ configure({
 });
 
 const authModalStore = useAuthModalStore();
+const authStore = useAuthStore();
 
 const toggleAuthModal = () => {
   authModalStore.toggle();
+  authStore.clearError();
 };
 
-const loginStatus = ref("idle");
-const registerStatus = ref("idle");
+const formStatus = ref("idle");
+const generalError = ref(null);
 
-const onLoginSubmit = (values) => {
-  console.log("Login submit", values);
-  loginStatus.value = "loading";
-  // simulate async processing
-  setTimeout(() => {
-    loginStatus.value = "success";
+const isFormProcessing = computed(() => formStatus.value === "loading" || authStore.isLoading);
+
+const onLoginSubmit = async (values) => {
+  formStatus.value = "loading";
+  generalError.value = null;
+
+  try {
+    const result = await authStore.login({
+      email: values.loginEmail,
+      password: values.loginPassword,
+    });
+
+    if (result.success) {
+      formStatus.value = "success";
+      setTimeout(() => {
+        formStatus.value = "idle";
+        toggleAuthModal();
+      }, 2000);
+    } else {
+      formStatus.value = "error";
+      generalError.value = result.error;
+      setTimeout(() => {
+        formStatus.value = "idle";
+      }, 5000);
+    }
+  } catch {
+    formStatus.value = "error";
+    generalError.value = "An unexpected error occurred. Please try again.";
     setTimeout(() => {
-      loginStatus.value = "idle";
-      toggleAuthModal();
-    }, 1000);
-  }, 1500);
+      formStatus.value = "idle";
+      generalError.value = null;
+    }, 5000);
+  }
 };
 
-const onRegisterSubmit = (values) => {
-  console.log("Register submit", values);
-  registerStatus.value = "loading";
-  // simulate async processing
-  setTimeout(() => {
-    registerStatus.value = "success";
+const onRegisterSubmit = async (values) => {
+  formStatus.value = "loading";
+  generalError.value = null;
+
+  try {
+    const result = await authStore.register({
+      email: values.registerEmail,
+      username: values.registerUsername,
+      password: values.registerPassword,
+      fullName: values.registerFullName,
+    });
+
+    if (result.success) {
+      formStatus.value = "success";
+      setTimeout(() => {
+        formStatus.value = "idle";
+      }, 2000);
+    } else {
+      formStatus.value = "error";
+      generalError.value = result.error;
+      setTimeout(() => {
+        formStatus.value = "idle";
+      }, 5000);
+    }
+  } catch {
+    formStatus.value = "error";
+    generalError.value = "An unexpected error occurred. Please try again.";
     setTimeout(() => {
-      registerStatus.value = "idle";
-      toggleAuthModal();
-    }, 1000);
-  }, 1500);
+      formStatus.value = "idle";
+    }, 5000);
+  }
 };
 </script>
 
@@ -151,14 +196,17 @@ const onRegisterSubmit = (values) => {
                 <Message severity="error">{{ message }}</Message>
               </ErrorMessage>
             </div>
-            <div class="mb-4" v-if="loginStatus === 'loading'">
+            <div class="mb-4" v-if="formStatus === 'loading'">
               <Message severity="info">Logging in, please wait...</Message>
             </div>
-            <div class="mb-4" v-if="loginStatus === 'success'">
+            <div class="mb-4" v-if="formStatus === 'success'">
               <Message severity="success">Login successful!</Message>
             </div>
+            <div class="mb-4" v-if="formStatus === 'error' && generalError">
+              <Message severity="error">{{ generalError }}</Message>
+            </div>
             <div class="flex justify-end gap-2">
-              <Button type="submit" label="Login" :disabled="loginStatus !== 'idle'"></Button>
+              <Button type="submit" label="Login" :disabled="isFormProcessing"></Button>
             </div>
           </VeeForm>
         </TabPanel>
@@ -263,14 +311,17 @@ const onRegisterSubmit = (values) => {
                 <Message severity="error">{{ message }}</Message>
               </ErrorMessage>
             </div>
-            <div class="mb-4" v-if="registerStatus === 'loading'">
+            <div class="mb-4" v-if="formStatus === 'loading'">
               <Message severity="info">Registering account, please wait...</Message>
             </div>
-            <div class="mb-4" v-if="registerStatus === 'success'">
+            <div class="mb-4" v-if="formStatus === 'success'">
               <Message severity="success">Registration successful!</Message>
             </div>
+            <div class="mb-4" v-if="formStatus === 'error' && generalError">
+              <Message severity="error">{{ generalError }}</Message>
+            </div>
             <div class="flex justify-end gap-2">
-              <Button type="submit" label="Register" :disabled="registerStatus !== 'idle'"></Button>
+              <Button type="submit" label="Register" :disabled="isFormProcessing"></Button>
             </div>
           </VeeForm>
         </TabPanel>
