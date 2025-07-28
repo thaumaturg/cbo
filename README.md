@@ -25,14 +25,13 @@
 If you add or change models, you may need to create and apply Entity Framework Core migrations:
 
 ```bash
-cd backend/Cbo.API
 # Install EF Core CLI tools if not already installed
 dotnet tool install --global dotnet-ef
+```
 
-# Add a new migration
+```bash
+cd backend/Cbo.API
 dotnet ef migrations add YourMigrationName
-
-# Apply migrations to the database
 dotnet ef database update
 ```
 
