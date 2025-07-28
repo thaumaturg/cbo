@@ -17,9 +17,10 @@ public class TokenRepository : ITokenRepository
 
     public string CreateJWTToken(ApplicationUser user, List<string> roles)
     {
-        var claims = new List<Claim>();
-
-        claims.Add(new Claim(ClaimTypes.Email, user.Email));
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Email, user.Email)
+        };
 
         foreach (string role in roles)
         {

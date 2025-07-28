@@ -61,11 +61,11 @@ public class AuthController : ControllerBase
 
             if (checkPasswordResult)
             {
-                var roles = await _userManager.GetRolesAsync(user);
+                IList<string>? roles = await _userManager.GetRolesAsync(user);
 
                 if (roles is not null)
                 {
-                    var jwtToken = _tokenRepository.CreateJWTToken(user, roles.ToList());
+                    string jwtToken = _tokenRepository.CreateJWTToken(user, roles.ToList());
 
                     var response = new LoginResponseDto { JwtToken = jwtToken };
 
