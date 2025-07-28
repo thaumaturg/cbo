@@ -1,5 +1,5 @@
 <script setup>
-import useAuthModalStore from "@/stores/auth-modal.js";
+import { useAuthModalStore } from "@/stores/auth-modal.js";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Button from "primevue/button";

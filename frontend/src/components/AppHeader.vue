@@ -2,7 +2,7 @@
 import Menubar from "primevue/menubar";
 import Button from "primevue/button";
 import { useRouter } from "vue-router";
-import useAuthModalStore from "@/stores/auth-modal";
+import { useAuthModalStore } from "@/stores/auth-modal";
 
 const router = useRouter();
 const authModalStore = useAuthModalStore();
