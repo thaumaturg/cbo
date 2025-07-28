@@ -36,14 +36,13 @@ public class AuthController : ControllerBase
 
         if (identityResult.Succeeded)
         {
-            if (createUserDto.Roles is not null && createUserDto.Roles.Length != 0)
-            {
-                identityResult = await _userManager.AddToRolesAsync(applicationUser, createUserDto.Roles);
+            string[] roles = new string[] { "Reader" };
 
-                if (identityResult.Succeeded)
-                {
-                    return Ok("Success! You are now able to log in.");
-                }
+            identityResult = await _userManager.AddToRolesAsync(applicationUser, roles);
+
+            if (identityResult.Succeeded)
+            {
+                return Ok("Success! You are now able to log in.");
             }
         }
 
