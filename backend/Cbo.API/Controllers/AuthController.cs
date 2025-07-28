@@ -43,11 +43,11 @@ public class AuthController : ControllerBase
 
             if (identityResult.Succeeded)
             {
-                return Ok("Success! You are now able to log in.");
+                return Ok("Account created. You can now log in.");
             }
         }
 
-        return BadRequest("Something went wrong");
+        return BadRequest("Registration failed. Please check that your data.");
     }
 
     [HttpPost]
@@ -75,6 +75,6 @@ public class AuthController : ControllerBase
             }
         }
 
-        return BadRequest("Username or password incorrect");
+        return BadRequest("Login failed. Please check your credentials.");
     }
 }
