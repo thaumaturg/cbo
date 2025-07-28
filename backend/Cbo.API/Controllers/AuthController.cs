@@ -29,6 +29,7 @@ public class AuthController : ControllerBase
         {
             UserName = createUserDto.Username,
             Email = createUserDto.Email,
+            FullName = createUserDto.FullName
         };
 
         IdentityResult identityResult = await _userManager.CreateAsync(applicationUser, createUserDto.Password);
