@@ -38,7 +38,7 @@ const handleLogout = () => {
         <Button label="Login/Register" severity="primary" outlined @click="toggleAuthModal" />
       </div>
       <div v-else class="flex items-center gap-3">
-        <span class="text-sm text-gray-600">Welcome, {{ authStore.userEmail }}</span>
+        <span class="text-sm text-gray-600">Welcome, {{ authStore.userName }}</span>
         <Button label="Logout" severity="secondary" outlined rounded @click="handleLogout" class="p-2" />
       </div>
     </template>
