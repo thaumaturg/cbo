@@ -20,13 +20,6 @@ export default defineConfig({
   plugins: [vue(), tailwindcss()],
   server: {
     https: httpsSettings,
-    proxy: {
-      "/api": {
-        target: "https://localhost:7053",
-        changeOrigin: true,
-        secure: false,
-      },
-    },
   },
   resolve: {
     alias: {

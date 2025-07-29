@@ -87,7 +87,11 @@ public class Program
             app.MapScalarApiReference();
             app.MapOpenApi();
 
-            app.MapWhen(context => !context.Request.Path.StartsWithSegments("/api"), builder =>
+            app.MapWhen(context =>
+                !context.Request.Path.StartsWithSegments("/api") &&
+                !context.Request.Path.StartsWithSegments("/scalar") &&
+                !context.Request.Path.StartsWithSegments("/openapi"),
+            builder =>
             {
                 builder.UseSpa(spa =>
                 {
