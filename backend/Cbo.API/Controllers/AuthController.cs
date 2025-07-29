@@ -25,7 +25,7 @@ public class AuthController : ControllerBase
     [Route("Register")]
     public async Task<IActionResult> Register([FromBody] RegisterUserDto createUserDto)
     {
-        // TODO: Implement errors: email-already-in-use, invalid-email, weak password
+        // TODO: Implement errors: email-already-in-use, username-already-in-use, invalid-email, weak password,
         var applicationUser = new ApplicationUser
         {
             UserName = createUserDto.Username,
