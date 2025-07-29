@@ -28,7 +28,8 @@ public class TokenRepository : ITokenRepository
 
             // Application-specific claims
             new Claim(ClaimTypes.Name, user.UserName),
-            new Claim(ClaimTypes.Email, user.Email)
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim("fullName", user.FullName ?? string.Empty)
         };
 
         foreach (string role in roles)

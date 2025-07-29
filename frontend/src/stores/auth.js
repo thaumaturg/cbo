@@ -25,6 +25,7 @@ export const useAuthStore = defineStore("auth", () => {
           user.value = {
             email: userData["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"],
             username: userData["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"],
+            fullName: userData["fullName"] || "",
             roles: userData["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || [],
           };
         }
@@ -80,6 +81,7 @@ export const useAuthStore = defineStore("auth", () => {
         user.value = {
           email: userData["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"],
           username: userData["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"],
+          fullName: userData["fullName"] || "",
           roles: userData["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || [],
         };
       }
