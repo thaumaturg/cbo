@@ -17,9 +17,20 @@ public class TokenRepository : ITokenRepository
 
     public string CreateJWTToken(ApplicationUser user, List<string> roles)
     {
-        var claims = new List<Claim>();
+        var issuedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-        claims.Add(new Claim(ClaimTypes.Email, user.Email));
+        var claims = new List<Claim>
+        {
+            // Standard JWT claims
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(JwtRegisteredClaimNames.Iat, issuedAt.ToString(), ClaimValueTypes.Integer64),
+
+            // Application-specific claims
+            new Claim(ClaimTypes.Name, user.UserName),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim("fullName", user.FullName ?? string.Empty)
+        };
 
         foreach (string role in roles)
         {

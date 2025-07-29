@@ -25,28 +25,29 @@ public class AuthController : ControllerBase
     [Route("Register")]
     public async Task<IActionResult> Register([FromBody] RegisterUserDto createUserDto)
     {
+        // TODO: Implement errors: email-already-in-use, username-already-in-use, invalid-email, weak password,
         var applicationUser = new ApplicationUser
         {
             UserName = createUserDto.Username,
             Email = createUserDto.Email,
+            FullName = createUserDto.FullName
         };
 
         IdentityResult identityResult = await _userManager.CreateAsync(applicationUser, createUserDto.Password);
 
         if (identityResult.Succeeded)
         {
-            if (createUserDto.Roles is not null && createUserDto.Roles.Length != 0)
-            {
-                identityResult = await _userManager.AddToRolesAsync(applicationUser, createUserDto.Roles);
+            string[] roles = new string[] { "Reader" };
 
-                if (identityResult.Succeeded)
-                {
-                    return Ok("Success! You are now able to log in.");
-                }
+            identityResult = await _userManager.AddToRolesAsync(applicationUser, roles);
+
+            if (identityResult.Succeeded)
+            {
+                return Ok("Account created. You can now log in.");
             }
         }
 
-        return BadRequest("Something went wrong");
+        return BadRequest("Registration failed. Please check that your data.");
     }
 
     [HttpPost]
@@ -61,11 +62,11 @@ public class AuthController : ControllerBase
 
             if (checkPasswordResult)
             {
-                var roles = await _userManager.GetRolesAsync(user);
+                IList<string>? roles = await _userManager.GetRolesAsync(user);
 
                 if (roles is not null)
                 {
-                    var jwtToken = _tokenRepository.CreateJWTToken(user, roles.ToList());
+                    string jwtToken = _tokenRepository.CreateJWTToken(user, roles.ToList());
 
                     var response = new LoginResponseDto { JwtToken = jwtToken };
 
@@ -74,6 +75,6 @@ public class AuthController : ControllerBase
             }
         }
 
-        return BadRequest("Username or password incorrect");
+        return BadRequest("Login failed. Please check your credentials.");
     }
 }

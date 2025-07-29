@@ -32,8 +32,8 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
         // Application User
         modelBuilder.Entity<ApplicationUser>(entity =>
         {
-            entity.Property(au => au.Name)
-                .HasMaxLength(32);
+            entity.Property(au => au.FullName)
+                .HasMaxLength(64);
 
             // One-to-many: ApplicationUser -> TournamentParticipants
             entity.HasMany(au => au.TournamentParticipants)
