@@ -16,6 +16,7 @@
     "@vee-validate/rules": "^4.15.1",
     "axios": "^1.13.1",
     "pinia": "^3.0.3",
+    "primeicons": "^7.0.0",
     "primevue": "^4.4.1",
     "tailwindcss": "^4.1.16",
     "vee-validate": "^4.15.1",
