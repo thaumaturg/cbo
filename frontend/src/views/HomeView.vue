@@ -1,6 +1,7 @@
 <script setup>
 import TournamentCard from "@/components/TournamentCard.vue";
 import TopicCard from "@/components/TopicCard.vue";
+import CreateNewButton from "@/components/CreateNewButton.vue";
 import { ref } from "vue";
 
 const tournaments = ref([
@@ -110,6 +111,16 @@ const handleTopicDelete = (topic) => {
     }
   }
 };
+
+const handleCreateTournament = () => {
+  console.log("Create new tournament");
+  // open tournament creation modal
+};
+
+const handleCreateTopic = () => {
+  console.log("Create new topic");
+  // open topic creation modal
+};
 </script>
 
 <template>
@@ -119,6 +130,7 @@ const handleTopicDelete = (topic) => {
       <div>
         <div class="mb-6">
           <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Tournaments</h1>
+          <CreateNewButton entityType="Tournament" @create="handleCreateTournament" />
         </div>
 
         <div class="space-y-4">
@@ -147,6 +159,7 @@ const handleTopicDelete = (topic) => {
       <div>
         <div class="mb-6">
           <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Topics</h1>
+          <CreateNewButton entityType="Topic" @create="handleCreateTopic" />
         </div>
 
         <div class="space-y-4">
