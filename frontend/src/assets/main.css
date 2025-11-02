@@ -1,8 +1,7 @@
 @import "tailwindcss";
+@import "primeicons/primeicons.css";
 
-*,
-*::before,
-*::after {
+body {
   font-family:
     "Inter",
     system-ui,

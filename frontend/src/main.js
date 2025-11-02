@@ -7,6 +7,7 @@ import App from "./App.vue";
 import router from "./router";
 import PrimeVue from "primevue/config";
 import Aura from "@primeuix/themes/aura";
+import Tooltip from "primevue/tooltip";
 
 import { useAuthStore } from "@/stores/auth";
 
@@ -25,6 +26,8 @@ app.use(PrimeVue, {
     },
   },
 });
+
+app.directive("tooltip", Tooltip);
 
 const authStore = useAuthStore();
 authStore.initializeAuth();
