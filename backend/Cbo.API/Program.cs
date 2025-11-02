@@ -3,6 +3,7 @@ using Cbo.API.Data;
 using Cbo.API.Mappings;
 using Cbo.API.Models.Domain;
 using Cbo.API.Repositories;
+using Cbo.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -29,8 +30,11 @@ public class Program
         builder.Services.AddScoped<IRoundRepository, PostgresRoundRepository>();
         builder.Services.AddScoped<IRoundAnswerRepository, PostgresRoundAnswerRepository>();
         builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+        builder.Services.AddScoped<ITournamentParticipantsRepository, PostgresTournamentParticipantsRepository>();
+        builder.Services.AddScoped(typeof(TournamentService));
 
         builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
+
 
         builder.Services.AddControllers();
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

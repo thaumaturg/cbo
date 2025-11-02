@@ -6,4 +6,5 @@ public class CreateTournamentDto
     public string? Description { get; set; }
     public required DateTime PlannedStart { get; set; }
     public required CreateSettingsDto Settings { get; set; }
+    public required ICollection<string> UserNames { get; set; }
 }

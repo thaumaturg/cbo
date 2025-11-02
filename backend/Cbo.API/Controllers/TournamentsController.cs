@@ -2,6 +2,7 @@
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
+using Cbo.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,11 +15,15 @@ public class TournamentsController : ControllerBase
     private readonly ITournamentRepository _tournamentRepository;
     private readonly IMapper _mapper;
 
+    private TournamentService _tournamentService;
+
     public TournamentsController(
         ITournamentRepository tournamentRepository,
+        TournamentService tournamentService,
         IMapper mapper)
     {
         _tournamentRepository = tournamentRepository;
+        _tournamentService = tournamentService;
         _mapper = mapper;
     }
 
@@ -53,18 +58,16 @@ public class TournamentsController : ControllerBase
     [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Create([FromBody] CreateTournamentDto createTournamentDto)
     {
-        Tournament tournamentDomain = _mapper.Map<Tournament>(createTournamentDto);
+        int tid = await _tournamentService.createTournamentWithParticipants(createTournamentDto);
 
-        tournamentDomain = await _tournamentRepository.CreateAsync(tournamentDomain);
-
-        Tournament? tournamentIncludeSettings = await _tournamentRepository.GetByIdIncludeSettingsAsync(tournamentDomain.Id);
+        Tournament? tournamentIncludeSettings = await _tournamentRepository.GetByIdIncludeSettingsAsync(tid);
 
         if (tournamentIncludeSettings is null)
             return BadRequest();
 
         GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentIncludeSettings);
 
-        return CreatedAtAction(nameof(GetById), new { id = tournamentDomain.Id }, tournamentDto);
+        return CreatedAtAction(nameof(GetById), new { id = tid }, tournamentDto);
     }
 
     [HttpPut]
