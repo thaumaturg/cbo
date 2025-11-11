@@ -1,5 +1,12 @@
 # 🚧 Under Construction 🚧
 
+## TODO
+
+- .NET 10, VS18
+- slnx
+- convert dtos to records
+- AsNoTracking()
+
 # Competitive Bracket Organizer
 
 ## Setup
