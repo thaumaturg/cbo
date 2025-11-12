@@ -1,32 +1,15 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Cbo.API.Models.Constants;
 
 namespace Cbo.API.Models.Domain;
 
 public class TournamentParticipant
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int Id { get; set; }
-
-    [Required]
-    public TournamentParticipantRole Role { get; set; }
-
-    [Required]
-    public int PointsSum { get; set; }
-
-    [Required]
-    public int TournamentId { get; set; }
-
-    [ForeignKey("TournamentId")]
-    public Tournament Tournament { get; set; }
-
-    [Required]
-    public int ApplicationUserId { get; set; }
-
-    [ForeignKey("ApplicationUserId")]
-    public ApplicationUser ApplicationUser { get; set; }
-
-    public ICollection<MatchParticipant> MatchParticipants { get; set; }
+    public required int Id { get; set; }
+    public required TournamentParticipantRole Role { get; set; }
+    public required int PointsSum { get; set; }
+    public required int TournamentId { get; set; }
+    public required Tournament Tournament { get; set; }
+    public required int ApplicationUserId { get; set; }
+    public required ApplicationUser ApplicationUser { get; set; }
+    public ICollection<MatchParticipant> MatchParticipants { get; set; } = [];
 }
