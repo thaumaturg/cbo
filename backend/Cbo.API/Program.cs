@@ -24,6 +24,7 @@ public class Program
             options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention());
 
         builder.Services.AddScoped<ITournamentRepository, PostgresTournamentRepository>();
+        builder.Services.AddScoped<ITournamentParticipantsRepository, PostgresTournamentParticipantsRepository>();
         builder.Services.AddScoped<ITopicRepository, PostgresTopicRepository>();
         builder.Services.AddScoped<IMatchRepository, PostgresMatchRepository>();
         builder.Services.AddScoped<IRoundRepository, PostgresRoundRepository>();
