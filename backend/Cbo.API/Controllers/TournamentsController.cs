@@ -3,6 +3,7 @@ using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cbo.API.Controllers;
@@ -12,13 +13,19 @@ namespace Cbo.API.Controllers;
 public class TournamentsController : ControllerBase
 {
     private readonly ITournamentRepository _tournamentRepository;
+    private readonly ITournamentParticipantsRepository _participantsRepository;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly IMapper _mapper;
 
     public TournamentsController(
         ITournamentRepository tournamentRepository,
+        ITournamentParticipantsRepository participantsRepository,
+        UserManager<ApplicationUser> userManager,
         IMapper mapper)
     {
         _tournamentRepository = tournamentRepository;
+        _participantsRepository = participantsRepository;
+        _userManager = userManager;
         _mapper = mapper;
     }
 
@@ -98,4 +105,118 @@ public class TournamentsController : ControllerBase
 
         return Ok(tournamentDto);
     }
+
+    #region TournamentParticipants
+
+    [HttpGet]
+    [Route("{tournamentId:int}/participants")]
+    [Authorize(Roles = "Reader")]
+    public async Task<IActionResult> GetAllParticipants([FromRoute] int tournamentId)
+    {
+        Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
+        if (tournament is null)
+            return NotFound($"Tournament with ID {tournamentId} not found.");
+
+        List<TournamentParticipant> participantsDomain = await _participantsRepository.GetAllByTournamentIdAsync(tournamentId);
+        List<GetTournamentParticipantDto> participantsDto = _mapper.Map<List<GetTournamentParticipantDto>>(participantsDomain);
+
+        return Ok(participantsDto);
+    }
+
+    [HttpGet]
+    [Route("{tournamentId:int}/participants/{id:int}")]
+    [Authorize(Roles = "Reader")]
+    public async Task<IActionResult> GetParticipantById([FromRoute] int tournamentId, [FromRoute] int id)
+    {
+        Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
+        if (tournament is null)
+            return NotFound($"Tournament with ID {tournamentId} not found.");
+
+        TournamentParticipant? participantDomain = await _participantsRepository.GetByParticipantIdAndTournamentIdAsync(id, tournamentId);
+
+        if (participantDomain is null)
+            return NotFound();
+
+        GetTournamentParticipantDto participantDto = _mapper.Map<GetTournamentParticipantDto>(participantDomain);
+
+        return Ok(participantDto);
+    }
+
+    [HttpPost]
+    [Route("{tournamentId:int}/participants")]
+    [Authorize(Roles = "Writer")]
+    public async Task<IActionResult> CreateParticipant([FromRoute] int tournamentId, [FromBody] CreateTournamentParticipantDto createParticipantDto)
+    {
+        Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
+        if (tournament is null)
+            return NotFound($"Tournament with ID {tournamentId} not found.");
+
+        ApplicationUser? user = await _userManager.FindByNameAsync(createParticipantDto.Username);
+        if (user is null)
+            return NotFound($"User with username '{createParticipantDto.Username}' not found.");
+
+        TournamentParticipant? existingParticipant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(user.Id, tournamentId);
+        if (existingParticipant is not null)
+            return Conflict($"User '{createParticipantDto.Username}' is already a participant in this tournament.");
+
+        TournamentParticipant participantDomain = _mapper.Map<TournamentParticipant>(createParticipantDto);
+
+        participantDomain.TournamentId = tournamentId;
+        participantDomain.ApplicationUserId = user.Id;
+
+        participantDomain = await _participantsRepository.CreateAsync(participantDomain);
+
+        GetTournamentParticipantDto participantDto = _mapper.Map<GetTournamentParticipantDto>(participantDomain);
+
+        return CreatedAtAction(nameof(GetParticipantById), new { tournamentId, id = participantDomain.Id }, participantDto);
+    }
+
+    [HttpPut]
+    [Route("{tournamentId:int}/participants/{id:int}")]
+    [Authorize(Roles = "Writer")]
+    public async Task<IActionResult> UpdateParticipant([FromRoute] int tournamentId, [FromRoute] int id, [FromBody] UpdateTournamentParticipantDto updateParticipantDto)
+    {
+        Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
+        if (tournament is null)
+            return NotFound($"Tournament with ID {tournamentId} not found.");
+
+        TournamentParticipant? existingParticipant = await _participantsRepository.GetByParticipantIdAndTournamentIdAsync(id, tournamentId);
+        if (existingParticipant is null)
+            return NotFound();
+
+        TournamentParticipant? participantDomain = _mapper.Map<TournamentParticipant>(updateParticipantDto);
+        participantDomain = await _participantsRepository.UpdateAsync(id, participantDomain!);
+
+        if (participantDomain is null)
+            return NotFound();
+
+        GetTournamentParticipantDto participantDto = _mapper.Map<GetTournamentParticipantDto>(participantDomain);
+
+        return Ok(participantDto);
+    }
+
+    [HttpDelete]
+    [Route("{tournamentId:int}/participants/{id:int}")]
+    [Authorize(Roles = "Writer")]
+    public async Task<IActionResult> DeleteParticipant([FromRoute] int tournamentId, [FromRoute] int id)
+    {
+        Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
+        if (tournament is null)
+            return NotFound($"Tournament with ID {tournamentId} not found.");
+
+        TournamentParticipant? existingParticipant = await _participantsRepository.GetByParticipantIdAndTournamentIdAsync(id, tournamentId);
+        if (existingParticipant is null)
+            return NotFound();
+
+        TournamentParticipant? participantDomain = await _participantsRepository.DeleteAsync(id);
+
+        if (participantDomain is null)
+            return NotFound();
+
+        GetTournamentParticipantDto participantDto = _mapper.Map<GetTournamentParticipantDto>(participantDomain);
+
+        return Ok(participantDto);
+    }
+
+    #endregion
 }
