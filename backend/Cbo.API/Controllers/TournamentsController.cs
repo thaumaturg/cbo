@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
@@ -63,6 +64,28 @@ public class TournamentsController : ControllerBase
         Tournament tournamentDomain = _mapper.Map<Tournament>(createTournamentDto);
 
         tournamentDomain = await _tournamentRepository.CreateAsync(tournamentDomain);
+
+        // Automatically add the tournament creator as an organizer
+        string? username = User.Identity?.Name;
+        if (!string.IsNullOrEmpty(username))
+        {
+            ApplicationUser? creator = await _userManager.FindByNameAsync(username);
+            if (creator is not null)
+            {
+                TournamentParticipant organizerParticipant = new TournamentParticipant
+                {
+                    Id = 0, // Will be assigned by database
+                    Role = TournamentParticipantRole.Organiser,
+                    PointsSum = 0,
+                    TournamentId = tournamentDomain.Id,
+                    ApplicationUserId = creator.Id,
+                    Tournament = null!, // Navigation property, not needed for creation
+                    ApplicationUser = null! // Navigation property, not needed for creation
+                };
+
+                await _participantsRepository.CreateAsync(organizerParticipant);
+            }
+        }
 
         Tournament? tournamentIncludeSettings = await _tournamentRepository.GetByIdIncludeSettingsAsync(tournamentDomain.Id);
 
