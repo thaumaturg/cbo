@@ -61,36 +61,40 @@ public class TournamentsController : ControllerBase
     [Authorize(Roles = "Writer")]
     public async Task<IActionResult> Create([FromBody] CreateTournamentDto createTournamentDto)
     {
-        Tournament tournamentDomain = _mapper.Map<Tournament>(createTournamentDto);
+        string? username = User.Identity?.Name;
+        if (string.IsNullOrEmpty(username))
+        {
+            return Unauthorized("Unable to identify the current user.");
+        }
 
+        ApplicationUser? creator = await _userManager.FindByNameAsync(username);
+        if (creator is null)
+        {
+            return Unauthorized("User not found in the system.");
+        }
+
+        Tournament tournamentDomain = _mapper.Map<Tournament>(createTournamentDto);
         tournamentDomain = await _tournamentRepository.CreateAsync(tournamentDomain);
 
-        // Automatically add the tournament creator as an organizer
-        string? username = User.Identity?.Name;
-        if (!string.IsNullOrEmpty(username))
+        TournamentParticipant organizerParticipant = new TournamentParticipant
         {
-            ApplicationUser? creator = await _userManager.FindByNameAsync(username);
-            if (creator is not null)
-            {
-                TournamentParticipant organizerParticipant = new TournamentParticipant
-                {
-                    Id = 0, // Will be assigned by database
-                    Role = TournamentParticipantRole.Organiser,
-                    PointsSum = 0,
-                    TournamentId = tournamentDomain.Id,
-                    ApplicationUserId = creator.Id,
-                    Tournament = null!, // Navigation property, not needed for creation
-                    ApplicationUser = null! // Navigation property, not needed for creation
-                };
+            Id = 0, // Will be assigned by database
+            Role = TournamentParticipantRole.Organiser,
+            PointsSum = 0,
+            TournamentId = tournamentDomain.Id,
+            ApplicationUserId = creator.Id,
+            Tournament = null!, // Navigation property, not needed for creation
+            ApplicationUser = null! // Navigation property, not needed for creation
+        };
 
-                await _participantsRepository.CreateAsync(organizerParticipant);
-            }
-        }
+        await _participantsRepository.CreateAsync(organizerParticipant);
 
         Tournament? tournamentIncludeSettings = await _tournamentRepository.GetByIdIncludeSettingsAsync(tournamentDomain.Id);
 
         if (tournamentIncludeSettings is null)
-            return BadRequest();
+        {
+            return StatusCode(500, "Tournament created but could not be retrieved.");
+        }
 
         GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentIncludeSettings);
 
