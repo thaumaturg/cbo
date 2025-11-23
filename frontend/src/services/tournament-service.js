@@ -23,7 +23,7 @@ export const tournamentService = {
    */
   async getAllTournaments() {
     try {
-      const response = await api.get("/Tournament");
+      const response = await api.get("/Tournaments");
       return { success: true, data: response.data };
     } catch (error) {
       return {
