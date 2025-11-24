@@ -34,7 +34,19 @@ public class TournamentsController : ControllerBase
     [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetAll()
     {
-        List<Tournament> tournamentsDomain = await _tournamentRepository.GetAllAsync();
+        string? username = User.Identity?.Name;
+        if (string.IsNullOrEmpty(username))
+        {
+            return Unauthorized("Unable to identify the current user.");
+        }
+
+        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
+        if (currentUser is null)
+        {
+            return Unauthorized("User not found in the system.");
+        }
+
+        List<Tournament> tournamentsDomain = await _tournamentRepository.GetAllByUserIdAsync(currentUser.Id);
 
         List<GetTournamentDto> tournamentsDto = _mapper.Map<List<GetTournamentDto>>(tournamentsDomain);
 

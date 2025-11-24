@@ -13,9 +13,11 @@ public class PostgresTournamentRepository : ITournamentRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<Tournament>> GetAllAsync()
+    public async Task<List<Tournament>> GetAllByUserIdAsync(int userId)
     {
-        return await _dbContext.Tournaments.ToListAsync();
+        return await _dbContext.Tournaments
+            .Where(t => t.TournamentParticipants.Any(tp => tp.ApplicationUserId == userId))
+            .ToListAsync();
     }
 
     public async Task<Tournament?> GetByIdAsync(int id)
