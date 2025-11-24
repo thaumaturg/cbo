@@ -23,11 +23,6 @@ public class PostgresTournamentRepository : ITournamentRepository
         return await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
     }
 
-    public async Task<Tournament?> GetByIdIncludeSettingsAsync(int id)
-    {
-        return await _dbContext.Tournaments.Include(t => t.Settings).FirstOrDefaultAsync(x => x.Id == id);
-    }
-
     public async Task<Tournament> CreateAsync(Tournament tournament)
     {
         await _dbContext.Tournaments.AddAsync(tournament);
@@ -45,6 +40,16 @@ public class PostgresTournamentRepository : ITournamentRepository
         existingTournament.Title = updatedTournament.Title;
         existingTournament.Description = updatedTournament.Description;
         existingTournament.PlannedStart = updatedTournament.PlannedStart;
+        existingTournament.ParticipantsPerMatch = updatedTournament.ParticipantsPerMatch;
+        existingTournament.ParticipantsPerTournament = updatedTournament.ParticipantsPerTournament;
+        existingTournament.QuestionsCostMax = updatedTournament.QuestionsCostMax;
+        existingTournament.QuestionsCostMin = updatedTournament.QuestionsCostMin;
+        existingTournament.QuestionsPerTopicMax = updatedTournament.QuestionsPerTopicMax;
+        existingTournament.QuestionsPerTopicMin = updatedTournament.QuestionsPerTopicMin;
+        existingTournament.TopicsAuthorsMax = updatedTournament.TopicsAuthorsMax;
+        existingTournament.TopicsPerParticipantMax = updatedTournament.TopicsPerParticipantMax;
+        existingTournament.TopicsPerParticipantMin = updatedTournament.TopicsPerParticipantMin;
+        existingTournament.TopicsPerMatch = updatedTournament.TopicsPerMatch;
 
         await _dbContext.SaveChangesAsync();
 

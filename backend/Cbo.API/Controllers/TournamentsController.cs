@@ -89,14 +89,14 @@ public class TournamentsController : ControllerBase
 
         await _participantsRepository.CreateAsync(organizerParticipant);
 
-        Tournament? tournamentIncludeSettings = await _tournamentRepository.GetByIdIncludeSettingsAsync(tournamentDomain.Id);
+        Tournament? createdTournament = await _tournamentRepository.GetByIdAsync(tournamentDomain.Id);
 
-        if (tournamentIncludeSettings is null)
+        if (createdTournament is null)
         {
             return StatusCode(500, "Tournament created but could not be retrieved.");
         }
 
-        GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentIncludeSettings);
+        GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(createdTournament);
 
         return CreatedAtAction(nameof(GetById), new { id = tournamentDomain.Id }, tournamentDto);
     }
