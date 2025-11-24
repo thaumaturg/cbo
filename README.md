@@ -5,7 +5,10 @@
 - .NET 10, VS18
 - slnx
 - convert dtos to records
-- AsNoTracking()
+- AsNoTracking() for RO ops
+- ditch AutoMapper
+- backend validation
+- pagination and filtering
 
 # Competitive Bracket Organizer
 
