@@ -91,7 +91,7 @@ public class TournamentsController : ControllerBase
         TournamentParticipant organizerParticipant = new TournamentParticipant
         {
             Id = 0, // Will be assigned by database
-            Role = TournamentParticipantRole.Organiser,
+            Role = TournamentParticipantRole.Creator,
             PointsSum = null,
             TournamentId = tournamentDomain.Id,
             ApplicationUserId = creator.Id,
@@ -215,6 +215,9 @@ public class TournamentsController : ControllerBase
     [Authorize(Roles = "Writer")]
     public async Task<IActionResult> UpdateParticipant([FromRoute] int tournamentId, [FromRoute] int id, [FromBody] UpdateTournamentParticipantDto updateParticipantDto)
     {
+        if (updateParticipantDto.Role == TournamentParticipantRole.Creator)
+            return BadRequest($"Cannot promote to a creator role.");
+
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
             return NotFound($"Tournament with ID {tournamentId} not found.");
