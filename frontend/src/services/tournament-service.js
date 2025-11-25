@@ -184,7 +184,7 @@ export const tournamentService = {
    * @param {number} tournamentId - Tournament ID
    * @param {Object} participantData - Participant data
    * @param {string} participantData.username - Username of the participant
-   * @param {string} participantData.role - Participant role: "Player" or "Organiser"
+   * @param {string} participantData.role - Participant role
    * @returns {Promise} - API response with created participant
    */
   async createParticipant(tournamentId, participantData) {
@@ -207,7 +207,7 @@ export const tournamentService = {
    * @param {number} tournamentId - Tournament ID
    * @param {number} participantId - Participant ID
    * @param {Object} participantData - Updated participant data
-   * @param {string} participantData.role - Participant role: "Player" or "Organiser"
+   * @param {string} participantData.role - Participant role
    * @returns {Promise} - API response with updated participant
    */
   async updateParticipant(tournamentId, participantId, participantData) {
