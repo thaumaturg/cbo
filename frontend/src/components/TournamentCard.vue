@@ -92,6 +92,7 @@ const handleDelete = () => {
           />
 
           <Button
+            v-if="tournament.currentUserRole === 'Creator'"
             icon="pi pi-trash"
             severity="danger"
             outlined

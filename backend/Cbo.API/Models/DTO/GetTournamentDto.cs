@@ -1,3 +1,5 @@
+using Cbo.API.Models.Constants;
+
 namespace Cbo.API.Models.DTO;
 
 public record GetTournamentDto
@@ -20,4 +22,5 @@ public record GetTournamentDto
     public required int TopicsPerParticipantMax { get; set; }
     public required int TopicsPerParticipantMin { get; set; }
     public required int TopicsPerMatch { get; set; }
+    public TournamentParticipantRole? CurrentUserRole { get; set; }
 }

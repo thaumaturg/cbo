@@ -36,19 +36,21 @@ public class TournamentsController : ControllerBase
     {
         string? username = User.Identity?.Name;
         if (string.IsNullOrEmpty(username))
-        {
             return Unauthorized("Unable to identify the current user.");
-        }
 
         ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
         if (currentUser is null)
-        {
             return Unauthorized("User not found in the system.");
-        }
 
         List<Tournament> tournamentsDomain = await _tournamentRepository.GetAllByUserIdAsync(currentUser.Id);
 
         List<GetTournamentDto> tournamentsDto = _mapper.Map<List<GetTournamentDto>>(tournamentsDomain);
+
+        foreach (GetTournamentDto tournamentDto in tournamentsDto)
+        {
+            TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUser.Id, tournamentDto.Id);
+            tournamentDto.CurrentUserRole = participant?.Role;
+        }
 
         return Ok(tournamentsDto);
     }
@@ -58,12 +60,23 @@ public class TournamentsController : ControllerBase
     [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
+        string? username = User.Identity?.Name;
+        if (string.IsNullOrEmpty(username))
+            return Unauthorized("Unable to identify the current user.");
+
+        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
+        if (currentUser is null)
+            return Unauthorized("User not found in the system.");
+
         Tournament? tournamentDomain = await _tournamentRepository.GetByIdAsync(id);
 
         if (tournamentDomain is null)
             return NotFound();
 
         GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentDomain);
+
+        TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUser.Id, id);
+        tournamentDto.CurrentUserRole = participant?.Role;
 
         return Ok(tournamentDto);
     }
@@ -75,15 +88,11 @@ public class TournamentsController : ControllerBase
     {
         string? username = User.Identity?.Name;
         if (string.IsNullOrEmpty(username))
-        {
             return Unauthorized("Unable to identify the current user.");
-        }
 
         ApplicationUser? creator = await _userManager.FindByNameAsync(username);
         if (creator is null)
-        {
             return Unauthorized("User not found in the system.");
-        }
 
         Tournament tournamentDomain = _mapper.Map<Tournament>(createTournamentDto);
         tournamentDomain = await _tournamentRepository.CreateAsync(tournamentDomain);
