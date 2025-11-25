@@ -3,6 +3,7 @@ import TournamentCard from "@/components/TournamentCard.vue";
 import TopicCard from "@/components/TopicCard.vue";
 import CreateNewButton from "@/components/CreateNewButton.vue";
 import CreateTournamentDialog from "@/components/CreateTournamentDialog.vue";
+import TournamentParticipantsDialog from "@/components/TournamentParticipantsDialog.vue";
 import Toast from "primevue/toast";
 import { tournamentService } from "@/services/tournament-service.js";
 import { ref, onMounted } from "vue";
@@ -13,6 +14,8 @@ const toast = useToast();
 const authStore = useAuthStore();
 
 const showCreateTournamentDialog = ref(false);
+const showParticipantsDialog = ref(false);
+const selectedTournament = ref(null);
 const tournaments = ref([]);
 const isLoadingTournaments = ref(false);
 
@@ -82,8 +85,8 @@ const handleTournamentSettings = (tournament) => {
 };
 
 const handleTournamentParticipants = (tournament) => {
-  console.log("Participants for:", tournament.title);
-  // show participants list or navigate to participants page
+  selectedTournament.value = tournament;
+  showParticipantsDialog.value = true;
 };
 
 const handleTournamentStart = (tournament) => {
@@ -199,6 +202,7 @@ const handleCreateTopic = () => {
 <template>
   <Toast />
   <CreateTournamentDialog v-model:visible="showCreateTournamentDialog" @tournament-created="handleTournamentCreated" />
+  <TournamentParticipantsDialog v-model:visible="showParticipantsDialog" :tournament="selectedTournament" />
 
   <main class="container mx-auto px-4 py-8">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
