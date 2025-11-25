@@ -6,7 +6,7 @@ import CreateTournamentDialog from "@/components/CreateTournamentDialog.vue";
 import TournamentParticipantsDialog from "@/components/TournamentParticipantsDialog.vue";
 import Toast from "primevue/toast";
 import { tournamentService } from "@/services/tournament-service.js";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useToast } from "primevue/usetoast";
 import { useAuthStore } from "@/stores/auth.js";
 
@@ -78,6 +78,17 @@ const fetchTournaments = async () => {
 onMounted(() => {
   fetchTournaments();
 });
+
+watch(
+  () => authStore.isAuthenticated,
+  (isAuthenticated) => {
+    if (isAuthenticated) {
+      fetchTournaments();
+    } else {
+      tournaments.value = [];
+    }
+  }
+);
 
 const handleTournamentSettings = (tournament) => {
   console.log("Settings for:", tournament.title);
