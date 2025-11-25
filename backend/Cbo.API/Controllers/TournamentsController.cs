@@ -92,7 +92,7 @@ public class TournamentsController : ControllerBase
         {
             Id = 0, // Will be assigned by database
             Role = TournamentParticipantRole.Organiser,
-            PointsSum = 0,
+            PointsSum = null,
             TournamentId = tournamentDomain.Id,
             ApplicationUserId = creator.Id,
             Tournament = null!, // Navigation property, not needed for creation

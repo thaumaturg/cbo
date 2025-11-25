@@ -399,10 +399,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .HasConversion<string>()
                 .HasDefaultValue(TournamentParticipantRole.Player);
 
-            entity.Property(tp => tp.PointsSum)
-                .IsRequired()
-                .HasDefaultValue(0);
-
             entity.Property(tp => tp.TournamentId)
                 .IsRequired();
 
