@@ -2,11 +2,11 @@
 import Menubar from "primevue/menubar";
 import Button from "primevue/button";
 import { useRouter } from "vue-router";
-import { useAuthModalStore } from "@/stores/auth-modal";
+import { useAuthDialogStore } from "@/stores/auth-dialog";
 import { useAuthStore } from "@/stores/auth";
 
 const router = useRouter();
-const authModalStore = useAuthModalStore();
+const authDialogStore = useAuthDialogStore();
 const authStore = useAuthStore();
 
 const items = [
@@ -18,7 +18,7 @@ const navigateHome = () => {
 };
 
 const toggleAuthModal = () => {
-  authModalStore.toggle();
+  authDialogStore.toggle();
 };
 
 const handleLogout = () => {

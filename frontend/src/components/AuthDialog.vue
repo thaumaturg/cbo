@@ -1,5 +1,5 @@
 <script setup>
-import { useAuthModalStore } from "@/stores/auth-modal.js";
+import { useAuthDialogStore } from "@/stores/auth-dialog.js";
 import { useAuthStore } from "@/stores/auth.js";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
@@ -65,11 +65,11 @@ configure({
   validateOnModelUpdate: false,
 });
 
-const authModalStore = useAuthModalStore();
+const authDialogStore = useAuthDialogStore();
 const authStore = useAuthStore();
 
 const toggleAuthModal = () => {
-  authModalStore.toggle();
+  authDialogStore.toggle();
   authStore.clearError();
 };
 
@@ -79,7 +79,7 @@ const generalError = ref(null);
 const isFormProcessing = computed(() => formStatus.value === "loading" || authStore.isLoading);
 
 watch(
-  () => authModalStore.isOpen,
+  () => authDialogStore.isOpen,
   (isOpen) => {
     if (!isOpen) {
       formStatus.value = "idle";
@@ -144,7 +144,7 @@ const onRegisterSubmit = async (values) => {
 </script>
 
 <template>
-  <Dialog v-model:visible="authModalStore.isOpen" modal header="Authentication" :draggable="false">
+  <Dialog v-model:visible="authDialogStore.isOpen" modal header="Authentication" :draggable="false">
     <Tabs value="0">
       <TabList>
         <Tab value="0">Login</Tab>
