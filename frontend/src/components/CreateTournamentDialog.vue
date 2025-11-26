@@ -94,33 +94,41 @@ const veeFormRef = ref(null);
 
 const isFormProcessing = computed(() => formStatus.value === "loading");
 
+const populateForm = async (tournament = null) => {
+  const values = {
+    title: tournament?.title || "",
+    description: tournament?.description || "",
+    plannedStart: tournament?.plannedStart ? new Date(tournament.plannedStart) : null,
+    participantsPerMatch: tournament?.participantsPerMatch ?? DEFAULT_VALUES.participantsPerMatch,
+    participantsPerTournament: tournament?.participantsPerTournament ?? DEFAULT_VALUES.participantsPerTournament,
+    questionsCostMax: tournament?.questionsCostMax ?? DEFAULT_VALUES.questionsCostMax,
+    questionsCostMin: tournament?.questionsCostMin ?? DEFAULT_VALUES.questionsCostMin,
+    questionsPerTopicMax: tournament?.questionsPerTopicMax ?? DEFAULT_VALUES.questionsPerTopicMax,
+    questionsPerTopicMin: tournament?.questionsPerTopicMin ?? DEFAULT_VALUES.questionsPerTopicMin,
+    topicsAuthorsMax: tournament?.topicsAuthorsMax ?? DEFAULT_VALUES.topicsAuthorsMax,
+    topicsPerParticipantMax: tournament?.topicsPerParticipantMax ?? DEFAULT_VALUES.topicsPerParticipantMax,
+    topicsPerParticipantMin: tournament?.topicsPerParticipantMin ?? DEFAULT_VALUES.topicsPerParticipantMin,
+    topicsPerMatch: tournament?.topicsPerMatch ?? DEFAULT_VALUES.topicsPerMatch,
+  };
+
+  formData.value = values;
+
+  await nextTick();
+
+  if (veeFormRef.value) {
+    if (tournament) {
+      veeFormRef.value.setValues(values);
+    } else {
+      veeFormRef.value.resetForm({ values });
+    }
+  }
+};
+
 watch(
   () => [props.visible, props.mode, props.tournament],
-  async ([visible, mode, tournament]) => {
+  ([visible, mode, tournament]) => {
     if (visible && mode === "edit" && tournament) {
-      const values = {
-        title: tournament.title || "",
-        description: tournament.description || "",
-        plannedStart: tournament.plannedStart ? new Date(tournament.plannedStart) : null,
-        participantsPerMatch: tournament.participantsPerMatch ?? DEFAULT_VALUES.participantsPerMatch,
-        participantsPerTournament: tournament.participantsPerTournament ?? DEFAULT_VALUES.participantsPerTournament,
-        questionsCostMax: tournament.questionsCostMax ?? DEFAULT_VALUES.questionsCostMax,
-        questionsCostMin: tournament.questionsCostMin ?? DEFAULT_VALUES.questionsCostMin,
-        questionsPerTopicMax: tournament.questionsPerTopicMax ?? DEFAULT_VALUES.questionsPerTopicMax,
-        questionsPerTopicMin: tournament.questionsPerTopicMin ?? DEFAULT_VALUES.questionsPerTopicMin,
-        topicsAuthorsMax: tournament.topicsAuthorsMax ?? DEFAULT_VALUES.topicsAuthorsMax,
-        topicsPerParticipantMax: tournament.topicsPerParticipantMax ?? DEFAULT_VALUES.topicsPerParticipantMax,
-        topicsPerParticipantMin: tournament.topicsPerParticipantMin ?? DEFAULT_VALUES.topicsPerParticipantMin,
-        topicsPerMatch: tournament.topicsPerMatch ?? DEFAULT_VALUES.topicsPerMatch,
-      };
-
-      formData.value = values;
-
-      await nextTick();
-
-      if (veeFormRef.value) {
-        veeFormRef.value.setValues(values);
-      }
+      populateForm(tournament);
     }
   },
   { immediate: true }
@@ -131,29 +139,9 @@ const closeDialog = () => {
 };
 
 const resetForm = () => {
-  const defaultValues = {
-    title: "",
-    description: "",
-    plannedStart: null,
-    participantsPerMatch: DEFAULT_VALUES.participantsPerMatch,
-    participantsPerTournament: DEFAULT_VALUES.participantsPerTournament,
-    questionsCostMax: DEFAULT_VALUES.questionsCostMax,
-    questionsCostMin: DEFAULT_VALUES.questionsCostMin,
-    questionsPerTopicMax: DEFAULT_VALUES.questionsPerTopicMax,
-    questionsPerTopicMin: DEFAULT_VALUES.questionsPerTopicMin,
-    topicsAuthorsMax: DEFAULT_VALUES.topicsAuthorsMax,
-    topicsPerParticipantMax: DEFAULT_VALUES.topicsPerParticipantMax,
-    topicsPerParticipantMin: DEFAULT_VALUES.topicsPerParticipantMin,
-    topicsPerMatch: DEFAULT_VALUES.topicsPerMatch,
-  };
-
-  formData.value = defaultValues;
+  populateForm();
   formStatus.value = "idle";
   generalError.value = null;
-
-  if (veeFormRef.value) {
-    veeFormRef.value.resetForm({ values: defaultValues });
-  }
 };
 
 const onSubmit = async (values) => {
