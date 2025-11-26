@@ -18,6 +18,8 @@ const showParticipantsDialog = ref(false);
 const selectedTournament = ref(null);
 const tournaments = ref([]);
 const isLoadingTournaments = ref(false);
+const tournamentDialogMode = ref("create");
+const tournamentToEdit = ref(null);
 
 const topics = ref([
   {
@@ -91,8 +93,9 @@ watch(
 );
 
 const handleTournamentSettings = (tournament) => {
-  console.log("Settings for:", tournament.title);
-  // open a settings modal or navigate to settings page
+  tournamentToEdit.value = tournament;
+  tournamentDialogMode.value = "edit";
+  showCreateTournamentDialog.value = true;
 };
 
 const handleTournamentParticipants = (tournament) => {
@@ -165,6 +168,8 @@ const handleTopicDelete = (topic) => {
 };
 
 const handleCreateTournament = () => {
+  tournamentToEdit.value = null;
+  tournamentDialogMode.value = "create";
   showCreateTournamentDialog.value = true;
 };
 
@@ -204,6 +209,45 @@ const handleTournamentCreated = async (newTournament) => {
   }
 };
 
+const handleTournamentUpdated = async (updatedTournament) => {
+  if (!authStore.isAuthenticated) {
+    return;
+  }
+
+  // Step 1: OPTIMISTIC UPDATE - immediately update in UI for instant feedback
+  const index = tournaments.value.findIndex((t) => t.id === updatedTournament.id);
+  if (index > -1) {
+    tournaments.value[index] = updatedTournament;
+  }
+
+  toast.add({
+    severity: "success",
+    summary: "Tournament Updated",
+    detail: `"${updatedTournament.title}" has been updated successfully!`,
+    life: 3000,
+  });
+
+  setTimeout(() => {
+    showCreateTournamentDialog.value = false;
+  }, 500);
+
+  // Step 2: BACKGROUND VALIDATION - fetch from backend to ensure data consistency
+  try {
+    const result = await tournamentService.getAllTournaments();
+    if (result.success) {
+      tournaments.value = result.data;
+    }
+  } catch (error) {
+    console.error("Failed to sync tournaments after update:", error);
+    toast.add({
+      severity: "warn",
+      summary: "Sync Warning",
+      detail: "Tournament updated but failed to sync with server. Please refresh the page.",
+      life: 5000,
+    });
+  }
+};
+
 const handleCreateTopic = () => {
   console.log("Create new topic");
   // open topic creation modal
@@ -212,7 +256,13 @@ const handleCreateTopic = () => {
 
 <template>
   <Toast />
-  <CreateTournamentDialog v-model:visible="showCreateTournamentDialog" @tournament-created="handleTournamentCreated" />
+  <CreateTournamentDialog
+    v-model:visible="showCreateTournamentDialog"
+    :mode="tournamentDialogMode"
+    :tournament="tournamentToEdit"
+    @tournament-created="handleTournamentCreated"
+    @tournament-updated="handleTournamentUpdated"
+  />
   <TournamentParticipantsDialog v-model:visible="showParticipantsDialog" :tournament="selectedTournament" />
 
   <main class="container mx-auto px-4 py-8">

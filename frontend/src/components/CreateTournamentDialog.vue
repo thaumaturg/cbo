@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch, nextTick } from "vue";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Textarea from "primevue/textarea";
@@ -41,14 +41,23 @@ configure({
   validateOnModelUpdate: false,
 });
 
-defineProps({
+const props = defineProps({
   visible: {
     type: Boolean,
     required: true,
   },
+  mode: {
+    type: String,
+    default: "create",
+    validator: (val) => ["create", "edit"].includes(val),
+  },
+  tournament: {
+    type: Object,
+    default: null,
+  },
 });
 
-const emit = defineEmits(["update:visible", "tournament-created"]);
+const emit = defineEmits(["update:visible", "tournament-created", "tournament-updated"]);
 
 const DEFAULT_VALUES = {
   participantsPerMatch: 4,
@@ -81,16 +90,48 @@ const formData = ref({
 
 const formStatus = ref("idle"); // idle | loading | success | error
 const generalError = ref(null);
+const veeFormRef = ref(null);
 
 const isFormProcessing = computed(() => formStatus.value === "loading");
 
+watch(
+  () => [props.visible, props.mode, props.tournament],
+  async ([visible, mode, tournament]) => {
+    if (visible && mode === "edit" && tournament) {
+      const values = {
+        title: tournament.title || "",
+        description: tournament.description || "",
+        plannedStart: tournament.plannedStart ? new Date(tournament.plannedStart) : null,
+        participantsPerMatch: tournament.participantsPerMatch ?? DEFAULT_VALUES.participantsPerMatch,
+        participantsPerTournament: tournament.participantsPerTournament ?? DEFAULT_VALUES.participantsPerTournament,
+        questionsCostMax: tournament.questionsCostMax ?? DEFAULT_VALUES.questionsCostMax,
+        questionsCostMin: tournament.questionsCostMin ?? DEFAULT_VALUES.questionsCostMin,
+        questionsPerTopicMax: tournament.questionsPerTopicMax ?? DEFAULT_VALUES.questionsPerTopicMax,
+        questionsPerTopicMin: tournament.questionsPerTopicMin ?? DEFAULT_VALUES.questionsPerTopicMin,
+        topicsAuthorsMax: tournament.topicsAuthorsMax ?? DEFAULT_VALUES.topicsAuthorsMax,
+        topicsPerParticipantMax: tournament.topicsPerParticipantMax ?? DEFAULT_VALUES.topicsPerParticipantMax,
+        topicsPerParticipantMin: tournament.topicsPerParticipantMin ?? DEFAULT_VALUES.topicsPerParticipantMin,
+        topicsPerMatch: tournament.topicsPerMatch ?? DEFAULT_VALUES.topicsPerMatch,
+      };
+
+      formData.value = values;
+
+      await nextTick();
+
+      if (veeFormRef.value) {
+        veeFormRef.value.setValues(values);
+      }
+    }
+  },
+  { immediate: true }
+);
+
 const closeDialog = () => {
   emit("update:visible", false);
-  resetForm();
 };
 
 const resetForm = () => {
-  formData.value = {
+  const defaultValues = {
     title: "",
     description: "",
     plannedStart: null,
@@ -105,19 +146,25 @@ const resetForm = () => {
     topicsPerParticipantMin: DEFAULT_VALUES.topicsPerParticipantMin,
     topicsPerMatch: DEFAULT_VALUES.topicsPerMatch,
   };
+
+  formData.value = defaultValues;
   formStatus.value = "idle";
   generalError.value = null;
+
+  if (veeFormRef.value) {
+    veeFormRef.value.resetForm({ values: defaultValues });
+  }
 };
 
-const onSubmit = async () => {
+const onSubmit = async (values) => {
   formStatus.value = "loading";
   generalError.value = null;
 
   try {
     const tournamentData = {
-      title: formData.value.title,
-      description: formData.value.description || null,
-      plannedStart: formData.value.plannedStart.toISOString(),
+      title: values.title,
+      description: values.description || null,
+      plannedStart: values.plannedStart.toISOString(),
       participantsPerMatch: formData.value.participantsPerMatch,
       participantsPerTournament: formData.value.participantsPerTournament,
       questionsCostMax: formData.value.questionsCostMax,
@@ -130,11 +177,19 @@ const onSubmit = async () => {
       topicsPerMatch: formData.value.topicsPerMatch,
     };
 
-    const result = await tournamentService.createTournament(tournamentData);
+    const result =
+      props.mode === "create"
+        ? await tournamentService.createTournament(tournamentData)
+        : await tournamentService.updateTournament(props.tournament.id, tournamentData);
 
     if (result.success) {
       formStatus.value = "success";
-      emit("tournament-created", result.data);
+
+      if (props.mode === "create") {
+        emit("tournament-created", result.data);
+      } else {
+        emit("tournament-updated", result.data);
+      }
 
       setTimeout(() => {
         resetForm();
@@ -162,11 +217,11 @@ const onSubmit = async () => {
     :visible="visible"
     @update:visible="closeDialog"
     modal
-    header="Create New Tournament"
+    :header="mode === 'create' ? 'Create New Tournament' : 'Edit Tournament'"
     :draggable="false"
     :style="{ width: '50rem' }"
   >
-    <VeeForm @submit="onSubmit">
+    <VeeForm ref="veeFormRef" @submit="onSubmit">
       <!-- Basic Information -->
       <div class="mb-6">
         <h3 class="text-lg font-semibold mb-4">Basic Information</h3>
@@ -176,7 +231,7 @@ const onSubmit = async () => {
           <div class="flex items-center gap-4">
             <label for="title" class="font-semibold w-40">Title *</label>
             <VeeField name="title" :rules="'required|min:3|max:100'" v-slot="{ field }">
-              <InputText v-bind="field" v-model="formData.title" id="title" class="flex-auto" />
+              <InputText v-bind="field" id="title" class="flex-auto" />
             </VeeField>
           </div>
           <ErrorMessage name="title" v-slot="{ message }">
@@ -189,7 +244,7 @@ const onSubmit = async () => {
           <div class="flex items-start gap-4">
             <label for="description" class="font-semibold w-40 pt-2">Description</label>
             <VeeField name="description" :rules="'max:500'" v-slot="{ field }">
-              <Textarea v-bind="field" v-model="formData.description" id="description" class="flex-auto" rows="3" />
+              <Textarea v-bind="field" id="description" class="flex-auto" rows="3" />
             </VeeField>
           </div>
           <ErrorMessage name="description" v-slot="{ message }">
@@ -201,10 +256,10 @@ const onSubmit = async () => {
         <div class="flex flex-col gap-1 mb-4">
           <div class="flex items-center gap-4">
             <label for="plannedStart" class="font-semibold w-40">Planned Start *</label>
-            <VeeField name="plannedStart" :rules="'required'" v-slot="{ field }">
+            <VeeField name="plannedStart" :rules="'required'" v-slot="{ field, handleChange }">
               <DatePicker
-                v-bind="field"
-                v-model="formData.plannedStart"
+                :modelValue="field.value"
+                @update:modelValue="handleChange"
                 inputId="plannedStart"
                 showTime
                 hourFormat="24"
@@ -342,10 +397,10 @@ const onSubmit = async () => {
 
       <!-- Status Messages -->
       <div class="mb-4" v-if="formStatus === 'loading'">
-        <Message severity="info">Creating tournament, please wait...</Message>
+        <Message severity="info">{{ mode === "create" ? "Creating" : "Updating" }} tournament, please wait...</Message>
       </div>
       <div class="mb-4" v-if="formStatus === 'success'">
-        <Message severity="success">Tournament created successfully!</Message>
+        <Message severity="success">Tournament {{ mode === "create" ? "created" : "updated" }} successfully!</Message>
       </div>
       <div class="mb-4" v-if="formStatus === 'error' && generalError">
         <Message severity="error">{{ generalError }}</Message>
@@ -354,7 +409,7 @@ const onSubmit = async () => {
       <!-- Action Buttons -->
       <div class="flex justify-end gap-2">
         <Button type="button" label="Cancel" severity="secondary" @click="closeDialog" :disabled="isFormProcessing" />
-        <Button type="submit" label="Create Tournament" :disabled="isFormProcessing" />
+        <Button type="submit" :label="mode === 'create' ? 'Create Tournament' : 'Save Changes'" :disabled="isFormProcessing" />
       </div>
     </VeeForm>
   </Dialog>
