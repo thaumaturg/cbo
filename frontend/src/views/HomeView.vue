@@ -2,7 +2,7 @@
 import TournamentCard from "@/components/TournamentCard.vue";
 import TopicCard from "@/components/TopicCard.vue";
 import CreateNewButton from "@/components/CreateNewButton.vue";
-import CreateTournamentDialog from "@/components/CreateTournamentDialog.vue";
+import TournamentDialog from "@/components/TournamentDialog.vue";
 import TournamentParticipantsDialog from "@/components/TournamentParticipantsDialog.vue";
 import Toast from "primevue/toast";
 import { tournamentService } from "@/services/tournament-service.js";
@@ -13,7 +13,7 @@ import { useAuthStore } from "@/stores/auth.js";
 const toast = useToast();
 const authStore = useAuthStore();
 
-const showCreateTournamentDialog = ref(false);
+const showTournamentDialog = ref(false);
 const showParticipantsDialog = ref(false);
 const selectedTournament = ref(null);
 const tournaments = ref([]);
@@ -95,7 +95,7 @@ watch(
 const handleTournamentSettings = (tournament) => {
   tournamentToEdit.value = tournament;
   tournamentDialogMode.value = "edit";
-  showCreateTournamentDialog.value = true;
+  showTournamentDialog.value = true;
 };
 
 const handleTournamentParticipants = (tournament) => {
@@ -170,7 +170,7 @@ const handleTopicDelete = (topic) => {
 const handleCreateTournament = () => {
   tournamentToEdit.value = null;
   tournamentDialogMode.value = "create";
-  showCreateTournamentDialog.value = true;
+  showTournamentDialog.value = true;
 };
 
 const handleTournamentCreated = async (newTournament) => {
@@ -189,7 +189,7 @@ const handleTournamentCreated = async (newTournament) => {
   });
 
   setTimeout(() => {
-    showCreateTournamentDialog.value = false;
+    showTournamentDialog.value = false;
   }, 1000);
 
   // Step 2: BACKGROUND VALIDATION - fetch from backend to ensure data consistency
@@ -228,7 +228,7 @@ const handleTournamentUpdated = async (updatedTournament) => {
   });
 
   setTimeout(() => {
-    showCreateTournamentDialog.value = false;
+    showTournamentDialog.value = false;
   }, 1000);
 
   // Step 2: BACKGROUND VALIDATION - fetch from backend to ensure data consistency
@@ -256,8 +256,8 @@ const handleCreateTopic = () => {
 
 <template>
   <Toast />
-  <CreateTournamentDialog
-    v-model:visible="showCreateTournamentDialog"
+  <TournamentDialog
+    v-model:visible="showTournamentDialog"
     :mode="tournamentDialogMode"
     :tournament="tournamentToEdit"
     @tournament-created="handleTournamentCreated"
