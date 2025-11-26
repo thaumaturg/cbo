@@ -130,6 +130,11 @@ watch(
     if (visible && mode === "edit" && tournament) {
       populateForm(tournament);
     }
+
+    if (!visible) {
+      formStatus.value = "idle";
+      generalError.value = null;
+    }
   },
   { immediate: true }
 );
@@ -138,11 +143,6 @@ const closeDialog = () => {
   emit("update:visible", false);
 };
 
-const resetForm = () => {
-  populateForm();
-  formStatus.value = "idle";
-  generalError.value = null;
-};
 
 const onSubmit = async (values) => {
   formStatus.value = "loading";
@@ -178,24 +178,13 @@ const onSubmit = async (values) => {
       } else {
         emit("tournament-updated", result.data);
       }
-
-      setTimeout(() => {
-        resetForm();
-      }, 500);
     } else {
       formStatus.value = "error";
       generalError.value = result.error;
-
-      setTimeout(() => {
-        formStatus.value = "idle";
-      }, 5000);
     }
   } catch {
     formStatus.value = "error";
     generalError.value = "An unexpected error occurred. Please try again.";
-    setTimeout(() => {
-      formStatus.value = "idle";
-    }, 5000);
   }
 };
 </script>

@@ -15,7 +15,7 @@ import TabPanel from "primevue/tabpanel";
 
 import { Form as VeeForm, Field as VeeField, ErrorMessage, defineRule, configure } from "vee-validate";
 import { required, email, min, max, regex, confirmed } from "@vee-validate/rules";
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 
 defineRule("required", required);
 defineRule("email", email);
@@ -78,6 +78,17 @@ const generalError = ref(null);
 
 const isFormProcessing = computed(() => formStatus.value === "loading" || authStore.isLoading);
 
+watch(
+  () => authModalStore.isOpen,
+  (isOpen) => {
+    if (!isOpen) {
+      formStatus.value = "idle";
+      generalError.value = null;
+      authStore.clearError();
+    }
+  }
+);
+
 const onLoginSubmit = async (values) => {
   formStatus.value = "loading";
   generalError.value = null;
@@ -93,21 +104,14 @@ const onLoginSubmit = async (values) => {
       setTimeout(() => {
         formStatus.value = "idle";
         toggleAuthModal();
-      }, 2000);
+      }, 500);
     } else {
       formStatus.value = "error";
       generalError.value = result.error;
-      setTimeout(() => {
-        formStatus.value = "idle";
-      }, 5000);
     }
   } catch {
     formStatus.value = "error";
     generalError.value = "An unexpected error occurred. Please try again.";
-    setTimeout(() => {
-      formStatus.value = "idle";
-      generalError.value = null;
-    }, 5000);
   }
 };
 
@@ -127,20 +131,14 @@ const onRegisterSubmit = async (values) => {
       formStatus.value = "success";
       setTimeout(() => {
         formStatus.value = "idle";
-      }, 2000);
+      }, 500);
     } else {
       formStatus.value = "error";
       generalError.value = result.error;
-      setTimeout(() => {
-        formStatus.value = "idle";
-      }, 5000);
     }
   } catch {
     formStatus.value = "error";
     generalError.value = "An unexpected error occurred. Please try again.";
-    setTimeout(() => {
-      formStatus.value = "idle";
-    }, 5000);
   }
 };
 </script>

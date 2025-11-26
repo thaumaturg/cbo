@@ -190,7 +190,7 @@ const handleTournamentCreated = async (newTournament) => {
 
   setTimeout(() => {
     showCreateTournamentDialog.value = false;
-  }, 500);
+  }, 1000);
 
   // Step 2: BACKGROUND VALIDATION - fetch from backend to ensure data consistency
   try {
@@ -229,7 +229,7 @@ const handleTournamentUpdated = async (updatedTournament) => {
 
   setTimeout(() => {
     showCreateTournamentDialog.value = false;
-  }, 500);
+  }, 1000);
 
   // Step 2: BACKGROUND VALIDATION - fetch from backend to ensure data consistency
   try {
