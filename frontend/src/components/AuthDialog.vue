@@ -1,5 +1,5 @@
 <script setup>
-import { useAuthModalStore } from "@/stores/auth-modal.js";
+import { useAuthDialogStore } from "@/stores/auth-dialog.js";
 import { useAuthStore } from "@/stores/auth.js";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
@@ -15,7 +15,7 @@ import TabPanel from "primevue/tabpanel";
 
 import { Form as VeeForm, Field as VeeField, ErrorMessage, defineRule, configure } from "vee-validate";
 import { required, email, min, max, regex, confirmed } from "@vee-validate/rules";
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 
 defineRule("required", required);
 defineRule("email", email);
@@ -65,18 +65,35 @@ configure({
   validateOnModelUpdate: false,
 });
 
-const authModalStore = useAuthModalStore();
+const authDialogStore = useAuthDialogStore();
 const authStore = useAuthStore();
 
 const toggleAuthModal = () => {
-  authModalStore.toggle();
+  authDialogStore.toggle();
   authStore.clearError();
 };
 
 const formStatus = ref("idle");
 const generalError = ref(null);
+const activeTab = ref("0");
 
 const isFormProcessing = computed(() => formStatus.value === "loading" || authStore.isLoading);
+
+watch(
+  () => authDialogStore.isOpen,
+  (isOpen) => {
+    if (!isOpen) {
+      formStatus.value = "idle";
+      generalError.value = null;
+      authStore.clearError();
+    }
+  }
+);
+
+watch(activeTab, () => {
+  formStatus.value = "idle";
+  generalError.value = null;
+});
 
 const onLoginSubmit = async (values) => {
   formStatus.value = "loading";
@@ -93,21 +110,14 @@ const onLoginSubmit = async (values) => {
       setTimeout(() => {
         formStatus.value = "idle";
         toggleAuthModal();
-      }, 2000);
+      }, 500);
     } else {
       formStatus.value = "error";
       generalError.value = result.error;
-      setTimeout(() => {
-        formStatus.value = "idle";
-      }, 5000);
     }
   } catch {
     formStatus.value = "error";
     generalError.value = "An unexpected error occurred. Please try again.";
-    setTimeout(() => {
-      formStatus.value = "idle";
-      generalError.value = null;
-    }, 5000);
   }
 };
 
@@ -125,29 +135,20 @@ const onRegisterSubmit = async (values) => {
 
     if (result.success) {
       formStatus.value = "success";
-      setTimeout(() => {
-        formStatus.value = "idle";
-      }, 2000);
     } else {
       formStatus.value = "error";
       generalError.value = result.error;
-      setTimeout(() => {
-        formStatus.value = "idle";
-      }, 5000);
     }
   } catch {
     formStatus.value = "error";
     generalError.value = "An unexpected error occurred. Please try again.";
-    setTimeout(() => {
-      formStatus.value = "idle";
-    }, 5000);
   }
 };
 </script>
 
 <template>
-  <Dialog v-model:visible="authModalStore.isOpen" modal header="Authentication" :draggable="false">
-    <Tabs value="0">
+  <Dialog v-model:visible="authDialogStore.isOpen" modal header="Authentication" :draggable="false">
+    <Tabs v-model:value="activeTab">
       <TabList>
         <Tab value="0">Login</Tab>
         <Tab value="1">Register</Tab>

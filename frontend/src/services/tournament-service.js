@@ -2,28 +2,12 @@ import api from "./api-interceptors.js";
 
 export const tournamentService = {
   /**
-   * Get tournaments where the current user is registered
+   * Get all tournaments for the current user
    * @returns {Promise} - API response with user's tournaments
-   */
-  async getUserTournaments() {
-    try {
-      const response = await api.get("/Tournament/user");
-      return { success: true, data: response.data };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to fetch tournaments. Please try again.",
-      };
-    }
-  },
-
-  /**
-   * Get all available tournaments
-   * @returns {Promise} - API response with all tournaments
    */
   async getAllTournaments() {
     try {
-      const response = await api.get("/Tournament");
+      const response = await api.get("/Tournaments");
       return { success: true, data: response.data };
     } catch (error) {
       return {
@@ -40,7 +24,7 @@ export const tournamentService = {
    */
   async getTournamentById(tournamentId) {
     try {
-      const response = await api.get(`/Tournament/${tournamentId}`);
+      const response = await api.get(`/Tournaments/${tournamentId}`);
       return { success: true, data: response.data };
     } catch (error) {
       return {
@@ -53,19 +37,21 @@ export const tournamentService = {
   /**
    * Create a new tournament
    * @param {Object} tournamentData - Tournament data
-   * @param {string} tournamentData.name - Tournament name
-   * @param {string} tournamentData.description - Tournament description
-   * @param {string} tournamentData.startDate - Tournament start date
-   * @param {string} tournamentData.endDate - Tournament end date
-   * @returns {Promise} - API response
+   * @param {string} tournamentData.title - Tournament title
+   * @param {string} [tournamentData.description] - Tournament description (optional)
+   * @param {number} [tournamentData.participantsPerTournament] - Maximum participants in tournament (optional)
+   * @param {number} [tournamentData.topicsPerParticipantMax] - Maximum topics per participant (optional)
+   * @param {number} [tournamentData.topicsPerParticipantMin] - Minimum topics per participant (optional)
+   * @returns {Promise} - API response with created tournament
    */
   async createTournament(tournamentData) {
     try {
-      const response = await api.post("/Tournament", {
-        name: tournamentData.name,
+      const response = await api.post("/Tournaments", {
+        title: tournamentData.title,
         description: tournamentData.description,
-        startDate: tournamentData.startDate,
-        endDate: tournamentData.endDate,
+        participantsPerTournament: tournamentData.participantsPerTournament,
+        topicsPerParticipantMax: tournamentData.topicsPerParticipantMax,
+        topicsPerParticipantMin: tournamentData.topicsPerParticipantMin,
       });
       return { success: true, data: response.data };
     } catch (error) {
@@ -80,11 +66,22 @@ export const tournamentService = {
    * Update tournament
    * @param {number} tournamentId - Tournament ID
    * @param {Object} tournamentData - Updated tournament data
-   * @returns {Promise} - API response
+   * @param {string} tournamentData.title - Tournament title
+   * @param {string} [tournamentData.description] - Tournament description (optional)
+   * @param {number} [tournamentData.participantsPerTournament] - Maximum participants in tournament (optional)
+   * @param {number} [tournamentData.topicsPerParticipantMax] - Maximum topics per participant (optional)
+   * @param {number} [tournamentData.topicsPerParticipantMin] - Minimum topics per participant (optional)
+   * @returns {Promise} - API response with updated tournament
    */
   async updateTournament(tournamentId, tournamentData) {
     try {
-      const response = await api.put(`/Tournament/${tournamentId}`, tournamentData);
+      const response = await api.put(`/Tournaments/${tournamentId}`, {
+        title: tournamentData.title,
+        description: tournamentData.description,
+        participantsPerTournament: tournamentData.participantsPerTournament,
+        topicsPerParticipantMax: tournamentData.topicsPerParticipantMax,
+        topicsPerParticipantMin: tournamentData.topicsPerParticipantMin,
+      });
       return { success: true, data: response.data };
     } catch (error) {
       return {
@@ -101,7 +98,7 @@ export const tournamentService = {
    */
   async deleteTournament(tournamentId) {
     try {
-      const response = await api.delete(`/Tournament/${tournamentId}`);
+      const response = await api.delete(`/Tournaments/${tournamentId}`);
       return { success: true, data: response.data };
     } catch (error) {
       return {
@@ -111,36 +108,102 @@ export const tournamentService = {
     }
   },
 
+  // ==================== Tournament Participants Management ====================
+
   /**
-   * Register user for a tournament
+   * Get all participants for a tournament
    * @param {number} tournamentId - Tournament ID
-   * @returns {Promise} - API response
+   * @returns {Promise} - API response with participants list
    */
-  async registerForTournament(tournamentId) {
+  async getAllParticipants(tournamentId) {
     try {
-      const response = await api.post(`/Tournament/${tournamentId}/register`);
+      const response = await api.get(`/Tournaments/${tournamentId}/participants`);
       return { success: true, data: response.data };
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data || "Failed to register for tournament. Please try again.",
+        error: error.response?.data || "Failed to fetch participants. Please try again.",
       };
     }
   },
 
   /**
-   * Unregister user from a tournament
+   * Get participant by ID
    * @param {number} tournamentId - Tournament ID
-   * @returns {Promise} - API response
+   * @param {number} participantId - Participant ID
+   * @returns {Promise} - API response with participant details
    */
-  async unregisterFromTournament(tournamentId) {
+  async getParticipantById(tournamentId, participantId) {
     try {
-      const response = await api.delete(`/Tournament/${tournamentId}/register`);
+      const response = await api.get(`/Tournaments/${tournamentId}/participants/${participantId}`);
       return { success: true, data: response.data };
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data || "Failed to unregister from tournament. Please try again.",
+        error: error.response?.data || "Failed to fetch participant details. Please try again.",
+      };
+    }
+  },
+
+  /**
+   * Add a participant to a tournament
+   * @param {number} tournamentId - Tournament ID
+   * @param {Object} participantData - Participant data
+   * @param {string} participantData.username - Username of the participant
+   * @param {string} participantData.role - Participant role
+   * @returns {Promise} - API response with created participant
+   */
+  async createParticipant(tournamentId, participantData) {
+    try {
+      const response = await api.post(`/Tournaments/${tournamentId}/participants`, {
+        username: participantData.username,
+        role: participantData.role,
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data || "Failed to add participant. Please try again.",
+      };
+    }
+  },
+
+  /**
+   * Update participant role
+   * @param {number} tournamentId - Tournament ID
+   * @param {number} participantId - Participant ID
+   * @param {Object} participantData - Updated participant data
+   * @param {string} participantData.role - Participant role
+   * @returns {Promise} - API response with updated participant
+   */
+  async updateParticipant(tournamentId, participantId, participantData) {
+    try {
+      const response = await api.put(`/Tournaments/${tournamentId}/participants/${participantId}`, {
+        role: participantData.role,
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data || "Failed to update participant. Please try again.",
+      };
+    }
+  },
+
+  /**
+   * Remove a participant from a tournament
+   * @param {number} tournamentId - Tournament ID
+   * @param {number} participantId - Participant ID
+   * @returns {Promise} - API response
+   */
+  async deleteParticipant(tournamentId, participantId) {
+    try {
+      const response = await api.delete(`/Tournaments/${tournamentId}/participants/${participantId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data || "Failed to remove participant. Please try again.",
       };
     }
   },

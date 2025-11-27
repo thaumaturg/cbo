@@ -8,10 +8,11 @@ const props = defineProps({
     required: true,
     default: () => ({
       id: null,
-      name: "Tournament Name",
+      title: "Tournament Name",
       description: "",
-      startDate: null,
-      endDate: null,
+      currentStage: "",
+      startedAt: null,
+      endedAt: null,
     }),
   },
 });
@@ -20,22 +21,22 @@ const emit = defineEmits(["settings", "participants", "start", "delete"]);
 
 const handleSettings = () => {
   emit("settings", props.tournament);
-  console.log("Settings clicked for tournament:", props.tournament.name);
+  console.log("Settings clicked for tournament:", props.tournament.title);
 };
 
 const handleParticipants = () => {
   emit("participants", props.tournament);
-  console.log("Participants clicked for tournament:", props.tournament.name);
+  console.log("Participants clicked for tournament:", props.tournament.title);
 };
 
 const handleStart = () => {
   emit("start", props.tournament);
-  console.log("Start clicked for tournament:", props.tournament.name);
+  console.log("Start clicked for tournament:", props.tournament.title);
 };
 
 const handleDelete = () => {
   emit("delete", props.tournament);
-  console.log("Delete clicked for tournament:", props.tournament.name);
+  console.log("Delete clicked for tournament:", props.tournament.title);
 };
 </script>
 
@@ -45,7 +46,7 @@ const handleDelete = () => {
       <div class="p-4">
         <div class="mb-4">
           <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
-            {{ tournament.name }}
+            {{ tournament.title }}
           </h3>
           <p v-if="tournament.description" class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
             {{ tournament.description }}
@@ -90,6 +91,7 @@ const handleDelete = () => {
           />
 
           <Button
+            v-if="tournament.currentUserRole === 'Creator'"
             icon="pi pi-trash"
             severity="danger"
             outlined
@@ -109,6 +111,7 @@ const handleDelete = () => {
 <style scoped>
 .line-clamp-2 {
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;

@@ -3,5 +3,6 @@
 public enum TournamentParticipantRole
 {
     Player,
-    Organiser
+    Organizer,
+    Creator
 }

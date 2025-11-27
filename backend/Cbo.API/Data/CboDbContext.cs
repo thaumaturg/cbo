@@ -18,7 +18,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
     public DbSet<Question> Questions { get; set; }
     public DbSet<Round> Rounds { get; set; }
     public DbSet<RoundAnswer> RoundAnswers { get; set; }
-    public DbSet<Settings> Settings { get; set; }
     public DbSet<Topic> Topics { get; set; }
     public DbSet<TopicAuthor> TopicAuthors { get; set; }
     public DbSet<Tournament> Tournaments { get; set; }
@@ -254,62 +253,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // Settings
-        modelBuilder.Entity<Settings>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-
-            entity.Property(e => e.Id)
-                .ValueGeneratedOnAdd();
-
-            entity.Property(e => e.ParticipantsPerMatch)
-                .HasDefaultValue(DefaultSettings.TournamentSettings["ParticipantsPerMatch"])
-                .IsRequired();
-
-            entity.Property(e => e.ParticipantsPerTournament)
-                .HasDefaultValue(DefaultSettings.TournamentSettings["ParticipantsPerTournament"])
-                .IsRequired();
-
-            entity.Property(e => e.QuestionsCostMax)
-                .HasDefaultValue(DefaultSettings.TournamentSettings["QuestionsCostMax"])
-                .IsRequired();
-
-            entity.Property(e => e.QuestionsCostMin)
-                .HasDefaultValue(DefaultSettings.TournamentSettings["QuestionsCostMin"])
-                .IsRequired();
-
-            entity.Property(e => e.QuestionsPerTopicMax)
-                .HasDefaultValue(DefaultSettings.TournamentSettings["QuestionsPerTopicMax"])
-                .IsRequired();
-
-            entity.Property(e => e.QuestionsPerTopicMin)
-                .HasDefaultValue(DefaultSettings.TournamentSettings["QuestionsPerTopicMin"])
-                .IsRequired();
-
-            entity.Property(e => e.TopicsAuthorsMax)
-                .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsAuthorsMax"])
-                .IsRequired();
-
-            entity.Property(e => e.TopicsPerParticipantMax)
-                .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerParticipantMax"])
-                .IsRequired();
-
-            entity.Property(e => e.TopicsPerParticipantMin)
-                .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerParticipantMin"])
-                .IsRequired();
-
-            entity.Property(e => e.TopicsPerMatch)
-                .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerMatch"])
-                .IsRequired();
-
-            // One-to-one: Settings <-> Tournament
-             entity.HasOne(s => s.Tournament)
-                 .WithOne(t => t.Settings)
-                 .HasForeignKey<Settings>(s => s.TournamentId)
-                 .OnDelete(DeleteBehavior.Cascade)
-                 .IsRequired();
-        });
-
         // Topic
         modelBuilder.Entity<Topic>(entity =>
         {
@@ -370,9 +313,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .HasConversion<string>()
                 .HasDefaultValue(TournamentStage.Preparations);
 
-            entity.Property(e => e.PlannedStart)
-                .IsRequired();
-
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .ValueGeneratedOnAdd();
@@ -383,11 +323,17 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
             entity.Property(e => e.EndedAt)
                 .ValueGeneratedOnAddOrUpdate();
 
-            // One-to-one: Tournament <-> Settings
-            entity.HasOne(t => t.Settings)
-                .WithOne(s => s.Tournament)
-                .HasForeignKey<Settings>(s => s.TournamentId)
-                .OnDelete(DeleteBehavior.Cascade)
+            // Settings properties with default values
+            entity.Property(e => e.ParticipantsPerTournament)
+                .HasDefaultValue(DefaultSettings.TournamentSettings["ParticipantsPerTournament"])
+                .IsRequired();
+
+            entity.Property(e => e.TopicsPerParticipantMax)
+                .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerParticipantMax"])
+                .IsRequired();
+
+            entity.Property(e => e.TopicsPerParticipantMin)
+                .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerParticipantMin"])
                 .IsRequired();
 
             // One-to-many: Tournament -> TournamentParticipants
@@ -410,9 +356,42 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
         });
 
         // TournamentParticipant
-        modelBuilder.Entity<TournamentParticipant>()
-            .Property(e => e.Role)
-            .HasConversion<string>();
+        modelBuilder.Entity<TournamentParticipant>(entity =>
+        {
+            entity.HasKey(tp => tp.Id);
+
+            entity.Property(tp => tp.Id)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(tp => tp.Role)
+                .IsRequired()
+                .HasConversion<string>()
+                .HasDefaultValue(TournamentParticipantRole.Player);
+
+            entity.Property(tp => tp.TournamentId)
+                .IsRequired();
+
+            entity.Property(tp => tp.ApplicationUserId)
+                .IsRequired();
+
+            // Many-to-one: TournamentParticipant -> Tournament
+            entity.HasOne(tp => tp.Tournament)
+                .WithMany(t => t.TournamentParticipants)
+                .HasForeignKey(tp => tp.TournamentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Many-to-one: TournamentParticipant -> ApplicationUser
+            entity.HasOne(tp => tp.ApplicationUser)
+                .WithMany(au => au.TournamentParticipants)
+                .HasForeignKey(tp => tp.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-many: TournamentParticipant -> MatchParticipants
+            entity.HasMany(tp => tp.MatchParticipants)
+                .WithOne(mp => mp.TournamentParticipant)
+                .HasForeignKey(mp => mp.TournamentParticipantId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         // TournamentTopic
 

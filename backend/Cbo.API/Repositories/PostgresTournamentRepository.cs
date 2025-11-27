@@ -13,19 +13,16 @@ public class PostgresTournamentRepository : ITournamentRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<Tournament>> GetAllAsync()
+    public async Task<List<Tournament>> GetAllByUserIdAsync(int userId)
     {
-        return await _dbContext.Tournaments.ToListAsync();
+        return await _dbContext.Tournaments
+            .Where(t => t.TournamentParticipants.Any(tp => tp.ApplicationUserId == userId))
+            .ToListAsync();
     }
 
     public async Task<Tournament?> GetByIdAsync(int id)
     {
         return await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
-    }
-
-    public async Task<Tournament?> GetByIdIncludeSettingsAsync(int id)
-    {
-        return await _dbContext.Tournaments.Include(t => t.Settings).FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task<Tournament> CreateAsync(Tournament tournament)
@@ -44,7 +41,9 @@ public class PostgresTournamentRepository : ITournamentRepository
 
         existingTournament.Title = updatedTournament.Title;
         existingTournament.Description = updatedTournament.Description;
-        existingTournament.PlannedStart = updatedTournament.PlannedStart;
+        existingTournament.ParticipantsPerTournament = updatedTournament.ParticipantsPerTournament;
+        existingTournament.TopicsPerParticipantMax = updatedTournament.TopicsPerParticipantMax;
+        existingTournament.TopicsPerParticipantMin = updatedTournament.TopicsPerParticipantMin;
 
         await _dbContext.SaveChangesAsync();
 

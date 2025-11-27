@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-export const useAuthModalStore = defineStore("auth-modal", () => {
+export const useAuthDialogStore = defineStore("auth-dialog", () => {
   const isOpen = ref(false);
 
   function open() {
