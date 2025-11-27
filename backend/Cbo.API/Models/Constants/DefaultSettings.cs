@@ -11,7 +11,7 @@ public static class DefaultSettings
         { "QuestionsCostMin", -50 },
         { "QuestionsPerTopicMax", 5 },
         { "QuestionsPerTopicMin", 5 },
-        { "TopicsAuthorsMax", 5 },
+        { "TopicsAuthorsMax", 3 },
         { "TopicsPerParticipantMax", 10 },
         { "TopicsPerParticipantMin", 6 },
         { "TopicsPerMatch", 4 }
