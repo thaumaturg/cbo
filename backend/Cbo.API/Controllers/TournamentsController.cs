@@ -95,29 +95,21 @@ public class TournamentsController : ControllerBase
             return Unauthorized("User not found in the system.");
 
         Tournament tournamentDomain = _mapper.Map<Tournament>(createTournamentDto);
-        tournamentDomain = await _tournamentRepository.CreateAsync(tournamentDomain);
 
-        TournamentParticipant organizerParticipant = new TournamentParticipant
+        tournamentDomain.TournamentParticipants.Add(new TournamentParticipant
         {
             Id = 0, // Will be assigned by database
             Role = TournamentParticipantRole.Creator,
             PointsSum = null,
-            TournamentId = tournamentDomain.Id,
+            TournamentId = 0, // Will be set automatically by EF Core
             ApplicationUserId = creator.Id,
             Tournament = null!, // Navigation property, not needed for creation
             ApplicationUser = null! // Navigation property, not needed for creation
-        };
+        });
 
-        await _participantsRepository.CreateAsync(organizerParticipant);
+        tournamentDomain = await _tournamentRepository.CreateAsync(tournamentDomain);
 
-        Tournament? createdTournament = await _tournamentRepository.GetByIdAsync(tournamentDomain.Id);
-
-        if (createdTournament is null)
-        {
-            return StatusCode(500, "Tournament created but could not be retrieved.");
-        }
-
-        GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(createdTournament);
+        GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentDomain);
 
         return CreatedAtAction(nameof(GetById), new { id = tournamentDomain.Id }, tournamentDto);
     }
