@@ -60,7 +60,6 @@ const emit = defineEmits(["update:visible", "tournament-created", "tournament-up
 
 const DEFAULT_VALUES = {
   participantsPerTournament: 12,
-  topicsAuthorsMax: 5,
   topicsPerParticipantMax: 10,
   topicsPerParticipantMin: 6,
   topicsPerMatch: 4,
@@ -70,7 +69,6 @@ const formData = ref({
   title: "",
   description: "",
   participantsPerTournament: DEFAULT_VALUES.participantsPerTournament,
-  topicsAuthorsMax: DEFAULT_VALUES.topicsAuthorsMax,
   topicsPerParticipantMax: DEFAULT_VALUES.topicsPerParticipantMax,
   topicsPerParticipantMin: DEFAULT_VALUES.topicsPerParticipantMin,
   topicsPerMatch: DEFAULT_VALUES.topicsPerMatch,
@@ -87,7 +85,6 @@ const populateForm = async (tournament = null) => {
     title: tournament?.title || "",
     description: tournament?.description || "",
     participantsPerTournament: tournament?.participantsPerTournament ?? DEFAULT_VALUES.participantsPerTournament,
-    topicsAuthorsMax: tournament?.topicsAuthorsMax ?? DEFAULT_VALUES.topicsAuthorsMax,
     topicsPerParticipantMax: tournament?.topicsPerParticipantMax ?? DEFAULT_VALUES.topicsPerParticipantMax,
     topicsPerParticipantMin: tournament?.topicsPerParticipantMin ?? DEFAULT_VALUES.topicsPerParticipantMin,
     topicsPerMatch: tournament?.topicsPerMatch ?? DEFAULT_VALUES.topicsPerMatch,
@@ -135,7 +132,6 @@ const onSubmit = async (values) => {
       title: values.title,
       description: values.description || null,
       participantsPerTournament: formData.value.participantsPerTournament,
-      topicsAuthorsMax: formData.value.topicsAuthorsMax,
       topicsPerParticipantMax: formData.value.topicsPerParticipantMax,
       topicsPerParticipantMin: formData.value.topicsPerParticipantMin,
       topicsPerMatch: formData.value.topicsPerMatch,
@@ -219,18 +215,6 @@ const onSubmit = async (values) => {
               inputId="participantsPerTournament"
               :min="2"
               :max="1000"
-              showButtons
-            />
-          </div>
-
-          <!-- Topics Authors Max -->
-          <div class="flex flex-col gap-1">
-            <label for="topicsAuthorsMax" class="font-semibold text-sm">Topics Authors Max</label>
-            <InputNumber
-              v-model="formData.topicsAuthorsMax"
-              inputId="topicsAuthorsMax"
-              :min="1"
-              :max="10"
               showButtons
             />
           </div>

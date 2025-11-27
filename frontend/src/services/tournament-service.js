@@ -42,7 +42,6 @@ export const tournamentService = {
    * @param {string} tournamentData.title - Tournament title
    * @param {string} [tournamentData.description] - Tournament description (optional)
    * @param {number} [tournamentData.participantsPerTournament] - Maximum participants in tournament (optional)
-   * @param {number} [tournamentData.topicsAuthorsMax] - Maximum topic authors (optional)
    * @param {number} [tournamentData.topicsPerParticipantMax] - Maximum topics per participant (optional)
    * @param {number} [tournamentData.topicsPerParticipantMin] - Minimum topics per participant (optional)
    * @param {number} [tournamentData.topicsPerMatch] - Topics per match (optional)
@@ -54,7 +53,6 @@ export const tournamentService = {
         title: tournamentData.title,
         description: tournamentData.description,
         participantsPerTournament: tournamentData.participantsPerTournament,
-        topicsAuthorsMax: tournamentData.topicsAuthorsMax,
         topicsPerParticipantMax: tournamentData.topicsPerParticipantMax,
         topicsPerParticipantMin: tournamentData.topicsPerParticipantMin,
         topicsPerMatch: tournamentData.topicsPerMatch,
@@ -75,7 +73,6 @@ export const tournamentService = {
    * @param {string} tournamentData.title - Tournament title
    * @param {string} [tournamentData.description] - Tournament description (optional)
    * @param {number} [tournamentData.participantsPerTournament] - Maximum participants in tournament (optional)
-   * @param {number} [tournamentData.topicsAuthorsMax] - Maximum topic authors (optional)
    * @param {number} [tournamentData.topicsPerParticipantMax] - Maximum topics per participant (optional)
    * @param {number} [tournamentData.topicsPerParticipantMin] - Minimum topics per participant (optional)
    * @param {number} [tournamentData.topicsPerMatch] - Topics per match (optional)
@@ -87,7 +84,6 @@ export const tournamentService = {
         title: tournamentData.title,
         description: tournamentData.description,
         participantsPerTournament: tournamentData.participantsPerTournament,
-        topicsAuthorsMax: tournamentData.topicsAuthorsMax,
         topicsPerParticipantMax: tournamentData.topicsPerParticipantMax,
         topicsPerParticipantMin: tournamentData.topicsPerParticipantMin,
         topicsPerMatch: tournamentData.topicsPerMatch,
