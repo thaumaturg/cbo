@@ -12,7 +12,6 @@ public record GetTournamentDto
     public DateTime? StartedAt { get; set; }
     public DateTime? EndedAt { get; set; }
     public required int ParticipantsPerTournament { get; set; }
-    public required int QuestionsCostMax { get; set; }
     public required int QuestionsCostMin { get; set; }
     public required int QuestionsPerTopicMax { get; set; }
     public required int QuestionsPerTopicMin { get; set; }

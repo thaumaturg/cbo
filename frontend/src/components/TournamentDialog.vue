@@ -60,7 +60,6 @@ const emit = defineEmits(["update:visible", "tournament-created", "tournament-up
 
 const DEFAULT_VALUES = {
   participantsPerTournament: 12,
-  questionsCostMax: 50,
   questionsCostMin: -50,
   questionsPerTopicMax: 5,
   questionsPerTopicMin: 5,
@@ -74,7 +73,6 @@ const formData = ref({
   title: "",
   description: "",
   participantsPerTournament: DEFAULT_VALUES.participantsPerTournament,
-  questionsCostMax: DEFAULT_VALUES.questionsCostMax,
   questionsCostMin: DEFAULT_VALUES.questionsCostMin,
   questionsPerTopicMax: DEFAULT_VALUES.questionsPerTopicMax,
   questionsPerTopicMin: DEFAULT_VALUES.questionsPerTopicMin,
@@ -95,7 +93,6 @@ const populateForm = async (tournament = null) => {
     title: tournament?.title || "",
     description: tournament?.description || "",
     participantsPerTournament: tournament?.participantsPerTournament ?? DEFAULT_VALUES.participantsPerTournament,
-    questionsCostMax: tournament?.questionsCostMax ?? DEFAULT_VALUES.questionsCostMax,
     questionsCostMin: tournament?.questionsCostMin ?? DEFAULT_VALUES.questionsCostMin,
     questionsPerTopicMax: tournament?.questionsPerTopicMax ?? DEFAULT_VALUES.questionsPerTopicMax,
     questionsPerTopicMin: tournament?.questionsPerTopicMin ?? DEFAULT_VALUES.questionsPerTopicMin,
@@ -147,7 +144,6 @@ const onSubmit = async (values) => {
       title: values.title,
       description: values.description || null,
       participantsPerTournament: formData.value.participantsPerTournament,
-      questionsCostMax: formData.value.questionsCostMax,
       questionsCostMin: formData.value.questionsCostMin,
       questionsPerTopicMax: formData.value.questionsPerTopicMax,
       questionsPerTopicMin: formData.value.questionsPerTopicMin,
@@ -245,18 +241,6 @@ const onSubmit = async (values) => {
             <InputNumber
               v-model="formData.questionsCostMin"
               inputId="questionsCostMin"
-              :min="1"
-              :max="1000"
-              showButtons
-            />
-          </div>
-
-          <!-- Questions Cost Max -->
-          <div class="flex flex-col gap-1">
-            <label for="questionsCostMax" class="font-semibold text-sm">Questions Cost Max</label>
-            <InputNumber
-              v-model="formData.questionsCostMax"
-              inputId="questionsCostMax"
               :min="1"
               :max="1000"
               showButtons

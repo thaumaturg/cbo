@@ -5,7 +5,6 @@ public record CreateTournamentDto
     public required string Title { get; set; }
     public string? Description { get; set; }
     public int? ParticipantsPerTournament { get; set; }
-    public int? QuestionsCostMax { get; set; }
     public int? QuestionsCostMin { get; set; }
     public int? QuestionsPerTopicMax { get; set; }
     public int? QuestionsPerTopicMin { get; set; }
