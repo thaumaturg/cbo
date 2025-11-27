@@ -1,8 +1,6 @@
 import api from "./api-interceptors.js";
 
 export const tournamentService = {
-  // ==================== Tournament Management ====================
-
   /**
    * Get all tournaments for the current user
    * @returns {Promise} - API response with user's tournaments

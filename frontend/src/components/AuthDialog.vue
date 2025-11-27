@@ -170,7 +170,7 @@ const onRegisterSubmit = async (values) => {
                 <VeeField
                   name="loginPassword"
                   label="Password"
-                  :rules="'required|password_chars|min:1|max:64'"
+                  :rules="'required|password_chars|min:8|max:64'"
                   v-slot="{ field }"
                 >
                   <Password
@@ -252,7 +252,7 @@ const onRegisterSubmit = async (values) => {
                 <VeeField
                   name="registerPassword"
                   label="Password"
-                  :rules="'required|password_chars|min:1|max:64'"
+                  :rules="'required|password_chars|min:8|max:64'"
                   v-slot="{ field }"
                 >
                   <Password

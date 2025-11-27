@@ -37,7 +37,7 @@ public class AuthController : ControllerBase
 
         if (identityResult.Succeeded)
         {
-            string[] roles = new string[] { "Reader", "Writer" };
+            string[] roles = ["Reader"];
 
             identityResult = await _userManager.AddToRolesAsync(applicationUser, roles);
 

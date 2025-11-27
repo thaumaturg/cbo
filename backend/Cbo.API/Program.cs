@@ -57,7 +57,7 @@ public class Program
             options.Password.RequireLowercase = false;
             options.Password.RequireUppercase = false;
             options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequiredLength = 1;
+            options.Password.RequiredLength = 8;
             options.Password.RequiredUniqueChars = 1;
         });
 
