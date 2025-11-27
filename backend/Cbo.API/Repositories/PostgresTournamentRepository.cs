@@ -41,7 +41,6 @@ public class PostgresTournamentRepository : ITournamentRepository
 
         existingTournament.Title = updatedTournament.Title;
         existingTournament.Description = updatedTournament.Description;
-        existingTournament.PlannedStart = updatedTournament.PlannedStart;
         existingTournament.ParticipantsPerMatch = updatedTournament.ParticipantsPerMatch;
         existingTournament.ParticipantsPerTournament = updatedTournament.ParticipantsPerTournament;
         existingTournament.QuestionsCostMax = updatedTournament.QuestionsCostMax;

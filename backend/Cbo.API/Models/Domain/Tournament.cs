@@ -8,7 +8,6 @@ public class Tournament
     public required string Title { get; set; }
     public string? Description { get; set; }
     public required TournamentStage CurrentStage { get; set; }
-    public required DateTime PlannedStart { get; set; }
     public required DateTime CreatedAt { get; set; }
     public DateTime? StartedAt { get; set; }
     public DateTime? EndedAt { get; set; }

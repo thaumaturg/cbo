@@ -5,7 +5,6 @@ import InputText from "primevue/inputtext";
 import Textarea from "primevue/textarea";
 import Button from "primevue/button";
 import Message from "primevue/message";
-import DatePicker from "primevue/datepicker";
 import InputNumber from "primevue/inputnumber";
 import { Form as VeeForm, Field as VeeField, ErrorMessage, defineRule, configure } from "vee-validate";
 import { required, min, max, min_value, max_value } from "@vee-validate/rules";
@@ -75,7 +74,6 @@ const DEFAULT_VALUES = {
 const formData = ref({
   title: "",
   description: "",
-  plannedStart: null,
   participantsPerMatch: DEFAULT_VALUES.participantsPerMatch,
   participantsPerTournament: DEFAULT_VALUES.participantsPerTournament,
   questionsCostMax: DEFAULT_VALUES.questionsCostMax,
@@ -98,7 +96,6 @@ const populateForm = async (tournament = null) => {
   const values = {
     title: tournament?.title || "",
     description: tournament?.description || "",
-    plannedStart: tournament?.plannedStart ? new Date(tournament.plannedStart) : null,
     participantsPerMatch: tournament?.participantsPerMatch ?? DEFAULT_VALUES.participantsPerMatch,
     participantsPerTournament: tournament?.participantsPerTournament ?? DEFAULT_VALUES.participantsPerTournament,
     questionsCostMax: tournament?.questionsCostMax ?? DEFAULT_VALUES.questionsCostMax,
@@ -152,7 +149,6 @@ const onSubmit = async (values) => {
     const tournamentData = {
       title: values.title,
       description: values.description || null,
-      plannedStart: values.plannedStart.toISOString(),
       participantsPerMatch: formData.value.participantsPerMatch,
       participantsPerTournament: formData.value.participantsPerTournament,
       questionsCostMax: formData.value.questionsCostMax,
@@ -225,27 +221,6 @@ const onSubmit = async (values) => {
             </VeeField>
           </div>
           <ErrorMessage name="description" v-slot="{ message }">
-            <Message severity="error">{{ message }}</Message>
-          </ErrorMessage>
-        </div>
-
-        <!-- Planned Start Date -->
-        <div class="flex flex-col gap-1 mb-4">
-          <div class="flex items-center gap-4">
-            <label for="plannedStart" class="font-semibold w-40">Planned Start *</label>
-            <VeeField name="plannedStart" :rules="'required'" v-slot="{ field, handleChange }">
-              <DatePicker
-                :modelValue="field.value"
-                @update:modelValue="handleChange"
-                inputId="plannedStart"
-                showTime
-                hourFormat="24"
-                class="flex-auto"
-                :minDate="new Date()"
-              />
-            </VeeField>
-          </div>
-          <ErrorMessage name="plannedStart" v-slot="{ message }">
             <Message severity="error">{{ message }}</Message>
           </ErrorMessage>
         </div>

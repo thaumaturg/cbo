@@ -313,9 +313,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .HasConversion<string>()
                 .HasDefaultValue(TournamentStage.Preparations);
 
-            entity.Property(e => e.PlannedStart)
-                .IsRequired();
-
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .ValueGeneratedOnAdd();

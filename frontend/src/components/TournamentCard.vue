@@ -11,7 +11,6 @@ const props = defineProps({
       title: "Tournament Name",
       description: "",
       currentStage: "",
-      plannedStart: null,
       startedAt: null,
       endedAt: null,
     }),
