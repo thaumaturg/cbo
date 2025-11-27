@@ -44,7 +44,6 @@ export const tournamentService = {
    * @param {number} [tournamentData.participantsPerTournament] - Maximum participants in tournament (optional)
    * @param {number} [tournamentData.topicsPerParticipantMax] - Maximum topics per participant (optional)
    * @param {number} [tournamentData.topicsPerParticipantMin] - Minimum topics per participant (optional)
-   * @param {number} [tournamentData.topicsPerMatch] - Topics per match (optional)
    * @returns {Promise} - API response with created tournament
    */
   async createTournament(tournamentData) {
@@ -55,7 +54,6 @@ export const tournamentService = {
         participantsPerTournament: tournamentData.participantsPerTournament,
         topicsPerParticipantMax: tournamentData.topicsPerParticipantMax,
         topicsPerParticipantMin: tournamentData.topicsPerParticipantMin,
-        topicsPerMatch: tournamentData.topicsPerMatch,
       });
       return { success: true, data: response.data };
     } catch (error) {
@@ -75,7 +73,6 @@ export const tournamentService = {
    * @param {number} [tournamentData.participantsPerTournament] - Maximum participants in tournament (optional)
    * @param {number} [tournamentData.topicsPerParticipantMax] - Maximum topics per participant (optional)
    * @param {number} [tournamentData.topicsPerParticipantMin] - Minimum topics per participant (optional)
-   * @param {number} [tournamentData.topicsPerMatch] - Topics per match (optional)
    * @returns {Promise} - API response with updated tournament
    */
   async updateTournament(tournamentId, tournamentData) {
@@ -86,7 +83,6 @@ export const tournamentService = {
         participantsPerTournament: tournamentData.participantsPerTournament,
         topicsPerParticipantMax: tournamentData.topicsPerParticipantMax,
         topicsPerParticipantMin: tournamentData.topicsPerParticipantMin,
-        topicsPerMatch: tournamentData.topicsPerMatch,
       });
       return { success: true, data: response.data };
     } catch (error) {

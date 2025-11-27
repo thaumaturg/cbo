@@ -336,10 +336,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerParticipantMin"])
                 .IsRequired();
 
-            entity.Property(e => e.TopicsPerMatch)
-                .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerMatch"])
-                .IsRequired();
-
             // One-to-many: Tournament -> TournamentParticipants
             entity.HasMany(t => t.TournamentParticipants)
                 .WithOne(tp => tp.Tournament)

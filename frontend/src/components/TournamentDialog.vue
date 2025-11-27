@@ -62,7 +62,6 @@ const DEFAULT_VALUES = {
   participantsPerTournament: 12,
   topicsPerParticipantMax: 10,
   topicsPerParticipantMin: 6,
-  topicsPerMatch: 4,
 };
 
 const formData = ref({
@@ -71,7 +70,6 @@ const formData = ref({
   participantsPerTournament: DEFAULT_VALUES.participantsPerTournament,
   topicsPerParticipantMax: DEFAULT_VALUES.topicsPerParticipantMax,
   topicsPerParticipantMin: DEFAULT_VALUES.topicsPerParticipantMin,
-  topicsPerMatch: DEFAULT_VALUES.topicsPerMatch,
 });
 
 const formStatus = ref("idle"); // idle | loading | success | error
@@ -87,7 +85,6 @@ const populateForm = async (tournament = null) => {
     participantsPerTournament: tournament?.participantsPerTournament ?? DEFAULT_VALUES.participantsPerTournament,
     topicsPerParticipantMax: tournament?.topicsPerParticipantMax ?? DEFAULT_VALUES.topicsPerParticipantMax,
     topicsPerParticipantMin: tournament?.topicsPerParticipantMin ?? DEFAULT_VALUES.topicsPerParticipantMin,
-    topicsPerMatch: tournament?.topicsPerMatch ?? DEFAULT_VALUES.topicsPerMatch,
   };
 
   formData.value = values;
@@ -134,7 +131,6 @@ const onSubmit = async (values) => {
       participantsPerTournament: formData.value.participantsPerTournament,
       topicsPerParticipantMax: formData.value.topicsPerParticipantMax,
       topicsPerParticipantMin: formData.value.topicsPerParticipantMin,
-      topicsPerMatch: formData.value.topicsPerMatch,
     };
 
     const result =
@@ -241,12 +237,6 @@ const onSubmit = async (values) => {
               :max="20"
               showButtons
             />
-          </div>
-
-          <!-- Topics Per Match -->
-          <div class="flex flex-col gap-1">
-            <label for="topicsPerMatch" class="font-semibold text-sm">Topics Per Match</label>
-            <InputNumber v-model="formData.topicsPerMatch" inputId="topicsPerMatch" :min="1" :max="10" showButtons />
           </div>
         </div>
       </div>

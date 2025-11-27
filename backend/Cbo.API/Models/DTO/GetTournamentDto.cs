@@ -14,6 +14,5 @@ public record GetTournamentDto
     public required int ParticipantsPerTournament { get; set; }
     public required int TopicsPerParticipantMax { get; set; }
     public required int TopicsPerParticipantMin { get; set; }
-    public required int TopicsPerMatch { get; set; }
     public TournamentParticipantRole? CurrentUserRole { get; set; }
 }

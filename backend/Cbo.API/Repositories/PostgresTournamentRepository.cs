@@ -44,7 +44,6 @@ public class PostgresTournamentRepository : ITournamentRepository
         existingTournament.ParticipantsPerTournament = updatedTournament.ParticipantsPerTournament;
         existingTournament.TopicsPerParticipantMax = updatedTournament.TopicsPerParticipantMax;
         existingTournament.TopicsPerParticipantMin = updatedTournament.TopicsPerParticipantMin;
-        existingTournament.TopicsPerMatch = updatedTournament.TopicsPerMatch;
 
         await _dbContext.SaveChangesAsync();
 
