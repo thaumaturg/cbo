@@ -75,6 +75,7 @@ const toggleAuthModal = () => {
 
 const formStatus = ref("idle");
 const generalError = ref(null);
+const activeTab = ref("0");
 
 const isFormProcessing = computed(() => formStatus.value === "loading" || authStore.isLoading);
 
@@ -88,6 +89,11 @@ watch(
     }
   }
 );
+
+watch(activeTab, () => {
+  formStatus.value = "idle";
+  generalError.value = null;
+});
 
 const onLoginSubmit = async (values) => {
   formStatus.value = "loading";
@@ -129,9 +135,6 @@ const onRegisterSubmit = async (values) => {
 
     if (result.success) {
       formStatus.value = "success";
-      setTimeout(() => {
-        formStatus.value = "idle";
-      }, 500);
     } else {
       formStatus.value = "error";
       generalError.value = result.error;
@@ -145,7 +148,7 @@ const onRegisterSubmit = async (values) => {
 
 <template>
   <Dialog v-model:visible="authDialogStore.isOpen" modal header="Authentication" :draggable="false">
-    <Tabs value="0">
+    <Tabs v-model:value="activeTab">
       <TabList>
         <Tab value="0">Login</Tab>
         <Tab value="1">Register</Tab>
