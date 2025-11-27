@@ -41,7 +41,6 @@ export const tournamentService = {
    * @param {Object} tournamentData - Tournament data
    * @param {string} tournamentData.title - Tournament title
    * @param {string} [tournamentData.description] - Tournament description (optional)
-   * @param {number} [tournamentData.participantsPerMatch] - Number of participants per match (optional)
    * @param {number} [tournamentData.participantsPerTournament] - Maximum participants in tournament (optional)
    * @param {number} [tournamentData.questionsCostMax] - Maximum question cost (optional)
    * @param {number} [tournamentData.questionsCostMin] - Minimum question cost (optional)
@@ -58,7 +57,6 @@ export const tournamentService = {
       const response = await api.post("/Tournaments", {
         title: tournamentData.title,
         description: tournamentData.description,
-        participantsPerMatch: tournamentData.participantsPerMatch,
         participantsPerTournament: tournamentData.participantsPerTournament,
         questionsCostMax: tournamentData.questionsCostMax,
         questionsCostMin: tournamentData.questionsCostMin,
@@ -84,7 +82,6 @@ export const tournamentService = {
    * @param {Object} tournamentData - Updated tournament data
    * @param {string} tournamentData.title - Tournament title
    * @param {string} [tournamentData.description] - Tournament description (optional)
-   * @param {number} [tournamentData.participantsPerMatch] - Number of participants per match (optional)
    * @param {number} [tournamentData.participantsPerTournament] - Maximum participants in tournament (optional)
    * @param {number} [tournamentData.questionsCostMax] - Maximum question cost (optional)
    * @param {number} [tournamentData.questionsCostMin] - Minimum question cost (optional)
@@ -101,7 +98,6 @@ export const tournamentService = {
       const response = await api.put(`/Tournaments/${tournamentId}`, {
         title: tournamentData.title,
         description: tournamentData.description,
-        participantsPerMatch: tournamentData.participantsPerMatch,
         participantsPerTournament: tournamentData.participantsPerTournament,
         questionsCostMax: tournamentData.questionsCostMax,
         questionsCostMin: tournamentData.questionsCostMin,

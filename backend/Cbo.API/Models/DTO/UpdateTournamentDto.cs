@@ -4,7 +4,6 @@ public record UpdateTournamentDto
 {
     public required string Title { get; set; }
     public string? Description { get; set; }
-    public int? ParticipantsPerMatch { get; set; }
     public int? ParticipantsPerTournament { get; set; }
     public int? QuestionsCostMax { get; set; }
     public int? QuestionsCostMin { get; set; }

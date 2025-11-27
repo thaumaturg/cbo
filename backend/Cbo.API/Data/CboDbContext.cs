@@ -324,10 +324,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .ValueGeneratedOnAddOrUpdate();
 
             // Settings properties with default values
-            entity.Property(e => e.ParticipantsPerMatch)
-                .HasDefaultValue(DefaultSettings.TournamentSettings["ParticipantsPerMatch"])
-                .IsRequired();
-
             entity.Property(e => e.ParticipantsPerTournament)
                 .HasDefaultValue(DefaultSettings.TournamentSettings["ParticipantsPerTournament"])
                 .IsRequired();

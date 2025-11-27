@@ -59,7 +59,6 @@ const props = defineProps({
 const emit = defineEmits(["update:visible", "tournament-created", "tournament-updated"]);
 
 const DEFAULT_VALUES = {
-  participantsPerMatch: 4,
   participantsPerTournament: 12,
   questionsCostMax: 50,
   questionsCostMin: -50,
@@ -74,7 +73,6 @@ const DEFAULT_VALUES = {
 const formData = ref({
   title: "",
   description: "",
-  participantsPerMatch: DEFAULT_VALUES.participantsPerMatch,
   participantsPerTournament: DEFAULT_VALUES.participantsPerTournament,
   questionsCostMax: DEFAULT_VALUES.questionsCostMax,
   questionsCostMin: DEFAULT_VALUES.questionsCostMin,
@@ -96,7 +94,6 @@ const populateForm = async (tournament = null) => {
   const values = {
     title: tournament?.title || "",
     description: tournament?.description || "",
-    participantsPerMatch: tournament?.participantsPerMatch ?? DEFAULT_VALUES.participantsPerMatch,
     participantsPerTournament: tournament?.participantsPerTournament ?? DEFAULT_VALUES.participantsPerTournament,
     questionsCostMax: tournament?.questionsCostMax ?? DEFAULT_VALUES.questionsCostMax,
     questionsCostMin: tournament?.questionsCostMin ?? DEFAULT_VALUES.questionsCostMin,
@@ -149,7 +146,6 @@ const onSubmit = async (values) => {
     const tournamentData = {
       title: values.title,
       description: values.description || null,
-      participantsPerMatch: formData.value.participantsPerMatch,
       participantsPerTournament: formData.value.participantsPerTournament,
       questionsCostMax: formData.value.questionsCostMax,
       questionsCostMin: formData.value.questionsCostMin,
@@ -231,18 +227,6 @@ const onSubmit = async (values) => {
         <h3 class="text-lg font-semibold mb-4">Tournament Settings</h3>
 
         <div class="grid grid-cols-2 gap-4">
-          <!-- Participants Per Match -->
-          <div class="flex flex-col gap-1">
-            <label for="participantsPerMatch" class="font-semibold text-sm">Participants Per Match</label>
-            <InputNumber
-              v-model="formData.participantsPerMatch"
-              inputId="participantsPerMatch"
-              :min="2"
-              :max="10"
-              showButtons
-            />
-          </div>
-
           <!-- Participants Per Tournament -->
           <div class="flex flex-col gap-1">
             <label for="participantsPerTournament" class="font-semibold text-sm">Participants Per Tournament</label>
