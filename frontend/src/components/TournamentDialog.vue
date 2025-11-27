@@ -60,7 +60,6 @@ const emit = defineEmits(["update:visible", "tournament-created", "tournament-up
 
 const DEFAULT_VALUES = {
   participantsPerTournament: 12,
-  questionsPerTopicMax: 5,
   questionsPerTopicMin: 5,
   topicsAuthorsMax: 5,
   topicsPerParticipantMax: 10,
@@ -72,7 +71,6 @@ const formData = ref({
   title: "",
   description: "",
   participantsPerTournament: DEFAULT_VALUES.participantsPerTournament,
-  questionsPerTopicMax: DEFAULT_VALUES.questionsPerTopicMax,
   questionsPerTopicMin: DEFAULT_VALUES.questionsPerTopicMin,
   topicsAuthorsMax: DEFAULT_VALUES.topicsAuthorsMax,
   topicsPerParticipantMax: DEFAULT_VALUES.topicsPerParticipantMax,
@@ -91,7 +89,6 @@ const populateForm = async (tournament = null) => {
     title: tournament?.title || "",
     description: tournament?.description || "",
     participantsPerTournament: tournament?.participantsPerTournament ?? DEFAULT_VALUES.participantsPerTournament,
-    questionsPerTopicMax: tournament?.questionsPerTopicMax ?? DEFAULT_VALUES.questionsPerTopicMax,
     questionsPerTopicMin: tournament?.questionsPerTopicMin ?? DEFAULT_VALUES.questionsPerTopicMin,
     topicsAuthorsMax: tournament?.topicsAuthorsMax ?? DEFAULT_VALUES.topicsAuthorsMax,
     topicsPerParticipantMax: tournament?.topicsPerParticipantMax ?? DEFAULT_VALUES.topicsPerParticipantMax,
@@ -141,7 +138,6 @@ const onSubmit = async (values) => {
       title: values.title,
       description: values.description || null,
       participantsPerTournament: formData.value.participantsPerTournament,
-      questionsPerTopicMax: formData.value.questionsPerTopicMax,
       questionsPerTopicMin: formData.value.questionsPerTopicMin,
       topicsAuthorsMax: formData.value.topicsAuthorsMax,
       topicsPerParticipantMax: formData.value.topicsPerParticipantMax,
@@ -237,18 +233,6 @@ const onSubmit = async (values) => {
             <InputNumber
               v-model="formData.questionsPerTopicMin"
               inputId="questionsPerTopicMin"
-              :min="1"
-              :max="100"
-              showButtons
-            />
-          </div>
-
-          <!-- Questions Per Topic Max -->
-          <div class="flex flex-col gap-1">
-            <label for="questionsPerTopicMax" class="font-semibold text-sm">Questions Per Topic Max</label>
-            <InputNumber
-              v-model="formData.questionsPerTopicMax"
-              inputId="questionsPerTopicMax"
               :min="1"
               :max="100"
               showButtons

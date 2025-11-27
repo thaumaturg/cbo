@@ -42,7 +42,6 @@ export const tournamentService = {
    * @param {string} tournamentData.title - Tournament title
    * @param {string} [tournamentData.description] - Tournament description (optional)
    * @param {number} [tournamentData.participantsPerTournament] - Maximum participants in tournament (optional)
-   * @param {number} [tournamentData.questionsPerTopicMax] - Maximum questions per topic (optional)
    * @param {number} [tournamentData.questionsPerTopicMin] - Minimum questions per topic (optional)
    * @param {number} [tournamentData.topicsAuthorsMax] - Maximum topic authors (optional)
    * @param {number} [tournamentData.topicsPerParticipantMax] - Maximum topics per participant (optional)
@@ -56,7 +55,6 @@ export const tournamentService = {
         title: tournamentData.title,
         description: tournamentData.description,
         participantsPerTournament: tournamentData.participantsPerTournament,
-        questionsPerTopicMax: tournamentData.questionsPerTopicMax,
         questionsPerTopicMin: tournamentData.questionsPerTopicMin,
         topicsAuthorsMax: tournamentData.topicsAuthorsMax,
         topicsPerParticipantMax: tournamentData.topicsPerParticipantMax,
@@ -79,7 +77,6 @@ export const tournamentService = {
    * @param {string} tournamentData.title - Tournament title
    * @param {string} [tournamentData.description] - Tournament description (optional)
    * @param {number} [tournamentData.participantsPerTournament] - Maximum participants in tournament (optional)
-   * @param {number} [tournamentData.questionsPerTopicMax] - Maximum questions per topic (optional)
    * @param {number} [tournamentData.questionsPerTopicMin] - Minimum questions per topic (optional)
    * @param {number} [tournamentData.topicsAuthorsMax] - Maximum topic authors (optional)
    * @param {number} [tournamentData.topicsPerParticipantMax] - Maximum topics per participant (optional)
@@ -93,7 +90,6 @@ export const tournamentService = {
         title: tournamentData.title,
         description: tournamentData.description,
         participantsPerTournament: tournamentData.participantsPerTournament,
-        questionsPerTopicMax: tournamentData.questionsPerTopicMax,
         questionsPerTopicMin: tournamentData.questionsPerTopicMin,
         topicsAuthorsMax: tournamentData.topicsAuthorsMax,
         topicsPerParticipantMax: tournamentData.topicsPerParticipantMax,

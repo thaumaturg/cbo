@@ -328,10 +328,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .HasDefaultValue(DefaultSettings.TournamentSettings["ParticipantsPerTournament"])
                 .IsRequired();
 
-            entity.Property(e => e.QuestionsPerTopicMax)
-                .HasDefaultValue(DefaultSettings.TournamentSettings["QuestionsPerTopicMax"])
-                .IsRequired();
-
             entity.Property(e => e.QuestionsPerTopicMin)
                 .HasDefaultValue(DefaultSettings.TournamentSettings["QuestionsPerTopicMin"])
                 .IsRequired();
