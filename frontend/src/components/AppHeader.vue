@@ -1,21 +1,15 @@
 <script setup>
 import Menubar from "primevue/menubar";
 import Button from "primevue/button";
-import { useRouter } from "vue-router";
 import { useAuthDialogStore } from "@/stores/auth-dialog";
 import { useAuthStore } from "@/stores/auth";
 
-const router = useRouter();
 const authDialogStore = useAuthDialogStore();
 const authStore = useAuthStore();
 
 const items = [
   // We can add more navigation items here later
 ];
-
-const navigateHome = () => {
-  router.push("/");
-};
 
 const toggleAuthModal = () => {
   authDialogStore.toggle();
@@ -29,9 +23,7 @@ const handleLogout = () => {
 <template>
   <Menubar :model="items">
     <template #start>
-      <div class="cursor-pointer" @click="navigateHome">
-        <span>cbo</span>
-      </div>
+      <RouterLink :to="{ name: 'home' }">Competitive Bracket Organizer</RouterLink>
     </template>
     <template #end>
       <div v-if="!authStore.isAuthenticated">
@@ -45,8 +37,4 @@ const handleLogout = () => {
   </Menubar>
 </template>
 
-<style scoped>
-.cursor-pointer {
-  cursor: pointer;
-}
-</style>
+<style scoped></style>
