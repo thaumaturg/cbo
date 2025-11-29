@@ -3,5 +3,6 @@
 public record UpdateTopicDto
 {
     public required string Title { get; set; }
+    public string? Description { get; set; }
     public required bool IsPlayed { get; set; }
 }
