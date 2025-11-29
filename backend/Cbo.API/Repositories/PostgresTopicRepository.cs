@@ -42,7 +42,6 @@ public class PostgresTopicRepository : ITopicRepository
             return null;
 
         existingTopic.Title = updatedTopic.Title;
-        existingTopic.IsGuest = updatedTopic.IsGuest;
         existingTopic.IsPlayed = updatedTopic.IsPlayed;
 
         await _dbContext.SaveChangesAsync();

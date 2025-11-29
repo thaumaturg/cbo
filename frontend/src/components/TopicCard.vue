@@ -11,7 +11,6 @@ const props = defineProps({
       name: "Topic Name",
       authors: [],
       description: "",
-      isGuest: false,
       isPlayed: false,
     }),
   },
@@ -45,12 +44,6 @@ const handleDelete = () => {
               {{ topic.name }}
             </h3>
             <div class="flex gap-2">
-              <span
-                v-if="topic.isGuest"
-                class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded"
-              >
-                Guest
-              </span>
               <span
                 v-if="topic.isPlayed"
                 class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded"

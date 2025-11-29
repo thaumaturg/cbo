@@ -28,7 +28,6 @@ const topics = ref([
     authors: ["John Smith", "Jane Doe"],
     description:
       "Explore major historical events and their impact on modern civilization. From ancient empires to world wars.",
-    isGuest: true,
     isPlayed: true,
   },
   {
@@ -36,7 +35,6 @@ const topics = ref([
     name: "Science & Technology",
     authors: ["Alice Johnson"],
     description: "Dive into fascinating questions about physics, chemistry, biology, and cutting-edge technology.",
-    isGuest: true,
     isPlayed: false,
   },
   {
@@ -44,7 +42,6 @@ const topics = ref([
     name: "Pop Culture Trivia",
     authors: ["Bob Williams", "Sarah Brown"],
     description: "Test your knowledge of movies, music, TV shows, and celebrity gossip from the past decades.",
-    isGuest: false,
     isPlayed: true,
   },
   {
@@ -52,7 +49,6 @@ const topics = ref([
     name: "Geography Challenge",
     authors: ["Mike Davis"],
     description: "Journey across continents with questions about countries, capitals, landmarks, and cultures.",
-    isGuest: false,
     isPlayed: false,
   },
 ]);

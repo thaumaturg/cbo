@@ -1,8 +1,7 @@
 ﻿namespace Cbo.API.Models.DTO;
 
-public class UpdateTopicDto
+public record UpdateTopicDto
 {
     public required string Title { get; set; }
-    public required bool IsGuest { get; set; }
     public required bool IsPlayed { get; set; }
 }
