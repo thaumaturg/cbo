@@ -3,6 +3,7 @@ using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cbo.API.Controllers;
@@ -12,13 +13,16 @@ namespace Cbo.API.Controllers;
 public class TopicsController : ControllerBase
 {
     private readonly ITopicRepository _topicRepository;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly IMapper _mapper;
 
     public TopicsController(
         ITopicRepository topicRepository,
+        UserManager<ApplicationUser> userManager,
         IMapper mapper)
     {
         _topicRepository = topicRepository;
+        _userManager = userManager;
         _mapper = mapper;
     }
 
@@ -26,7 +30,15 @@ public class TopicsController : ControllerBase
     [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetAll()
     {
-        List<Topic> topicsDomain = await _topicRepository.GetAllAsync();
+        string? username = User.Identity?.Name;
+        if (string.IsNullOrEmpty(username))
+            return Unauthorized("Unable to identify the current user.");
+
+        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
+        if (currentUser is null)
+            return Unauthorized("User not found in the system.");
+
+        List<Topic> topicsDomain = await _topicRepository.GetAllByUserIdAsync(currentUser.Id);
 
         List<GetTopicDto> topicsDto = _mapper.Map<List<GetTopicDto>>(topicsDomain);
 
@@ -38,7 +50,7 @@ public class TopicsController : ControllerBase
     [Authorize(Roles = "Reader")]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
-        Topic? topicDomain = await _topicRepository.GetByIdAsync(id);
+        Topic? topicDomain = await _topicRepository.GetByIdIncludeQuestionsAsync(id);
 
         if (topicDomain is null)
             return NotFound();

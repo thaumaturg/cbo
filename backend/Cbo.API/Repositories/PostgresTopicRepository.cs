@@ -18,13 +18,26 @@ public class PostgresTopicRepository : ITopicRepository
         return await _dbContext.Topics.ToListAsync();
     }
 
+    public async Task<List<Topic>> GetAllByUserIdAsync(int userId)
+    {
+        return await _dbContext.Topics
+            .Include(t => t.Questions)
+            .Include(t => t.TopicAuthors)
+            .Where(t => t.TopicAuthors.Any(ta => ta.ApplicationUserId == userId && ta.IsOwner))
+            .ToListAsync();
+    }
+
     public async Task<Topic?> GetByIdAsync(int id)
     {
         return await _dbContext.Topics.FirstOrDefaultAsync(x => x.Id == id);
     }
+
     public async Task<Topic?> GetByIdIncludeQuestionsAsync(int id)
     {
-        return await _dbContext.Topics.Include(t => t.Questions).FirstOrDefaultAsync(x => x.Id == id);
+        return await _dbContext.Topics
+            .Include(t => t.Questions)
+            .Include(t => t.TopicAuthors)
+            .FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task<Topic> CreateAsync(Topic topic)
