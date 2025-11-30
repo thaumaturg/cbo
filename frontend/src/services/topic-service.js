@@ -52,6 +52,9 @@ export const topicService = {
         isPlayed: topicData.isPlayed,
         isAuthor: topicData.isAuthor,
         questions: topicData.questions.map((q) => ({
+          questionNumber: q.questionNumber,
+          costPositive: q.costPositive,
+          costNegative: q.costNegative,
           text: q.text,
           answer: q.answer,
           comment: q.comment || null,
@@ -73,6 +76,7 @@ export const topicService = {
    * @param {string} topicData.title - Topic title
    * @param {string} topicData.description - Topic description (optional)
    * @param {boolean} topicData.isPlayed - Whether topic has been played
+   * @param {boolean} topicData.isAuthor - Whether current user is the author
    * @param {Array} topicData.questions - Array of questions
    * @returns {Promise} - API response
    */
@@ -82,7 +86,11 @@ export const topicService = {
         title: topicData.title,
         description: topicData.description || null,
         isPlayed: topicData.isPlayed,
+        isAuthor: topicData.isAuthor,
         questions: topicData.questions.map((q) => ({
+          questionNumber: q.questionNumber,
+          costPositive: q.costPositive,
+          costNegative: q.costNegative,
           text: q.text,
           answer: q.answer,
           comment: q.comment || null,

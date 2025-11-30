@@ -8,10 +8,10 @@ const props = defineProps({
     required: true,
     default: () => ({
       id: null,
-      name: "Topic Name",
-      authors: [],
+      title: "Topic Title",
       description: "",
       isPlayed: false,
+      isAuthor: false,
     }),
   },
 });
@@ -19,18 +19,15 @@ const props = defineProps({
 const emit = defineEmits(["view", "authors", "delete"]);
 
 const handleView = () => {
-  emit("settings", props.topic);
-  console.log("View clicked for topic:", props.topic.name);
+  emit("view", props.topic);
 };
 
 const handleAuthors = () => {
-  emit("participants", props.topic);
-  console.log("Authors clicked for authors:", props.topic.name);
+  emit("authors", props.topic);
 };
 
 const handleDelete = () => {
   emit("delete", props.topic);
-  console.log("Delete clicked for topic:", props.topic.name);
 };
 </script>
 
@@ -41,9 +38,15 @@ const handleDelete = () => {
         <div class="mb-4">
           <div class="flex items-start justify-between gap-2 mb-2">
             <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              {{ topic.name }}
+              {{ topic.title }}
             </h3>
             <div class="flex gap-2">
+              <span
+                v-if="topic.isAuthor"
+                class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded"
+              >
+                Author
+              </span>
               <span
                 v-if="topic.isPlayed"
                 class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded"
@@ -55,26 +58,19 @@ const handleDelete = () => {
           <p v-if="topic.description" class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
             {{ topic.description }}
           </p>
-          <div
-            v-if="topic.authors && topic.authors.length > 0"
-            class="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400"
-          >
-            <i class="pi pi-users text-xs"></i>
-            <span>{{ topic.authors.join(", ") }}</span>
-          </div>
         </div>
 
         <div class="flex items-center gap-3">
           <Button
-            icon="pi pi-cog"
+            icon="pi pi-pencil"
             severity="secondary"
             outlined
             rounded
             size="small"
             @click="handleView"
-            v-tooltip.bottom="'View'"
+            v-tooltip.bottom="'Edit'"
             class="p-2"
-            aria-label="Topic View"
+            aria-label="Edit Topic"
           />
 
           <Button
