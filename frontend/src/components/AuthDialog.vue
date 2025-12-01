@@ -55,6 +55,8 @@ configure({
         return "Latin letters, numbers, !@#$%^&*";
       case "confirmed":
         return "Passwords do not match";
+      case "latin_cyrillic_latvian":
+        return "Only English, Russian, and Latvian letters are allowed";
       default:
         return "Field is invalid";
     }
