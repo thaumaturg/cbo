@@ -45,12 +45,10 @@ const route = useRoute();
 const toast = useToast();
 const authStore = useAuthStore();
 
-// Determine if we're creating or editing
 const isEditMode = computed(() => route.params.id && route.params.id !== "new");
 const topicId = computed(() => (isEditMode.value ? parseInt(route.params.id) : null));
 const pageTitle = computed(() => (isEditMode.value ? "Edit Topic" : "Create New Topic"));
 
-// Form state
 const formData = ref({
   title: "",
   description: "",
@@ -63,7 +61,6 @@ const generalError = ref(null);
 const isLoading = ref(false);
 const veeFormRef = ref(null);
 
-// Questions table data - 5 questions
 const questions = ref([
   { questionNumber: 1, costPositive: 10, costNegative: 10, text: "", answer: "", comment: "" },
   { questionNumber: 2, costPositive: 20, costNegative: 20, text: "", answer: "", comment: "" },
@@ -74,7 +71,6 @@ const questions = ref([
 
 const isFormProcessing = computed(() => formStatus.value === "loading");
 
-// Fetch topic data if editing
 const fetchTopicData = async () => {
   if (!isEditMode.value) return;
 
@@ -90,7 +86,6 @@ const fetchTopicData = async () => {
         isAuthor: topic.isAuthor,
       };
 
-      // Map questions from API response
       if (topic.questions && topic.questions.length > 0) {
         questions.value = topic.questions.map((q) => ({
           questionNumber: q.questionNumber,
@@ -101,7 +96,6 @@ const fetchTopicData = async () => {
           comment: q.comment || "",
         }));
 
-        // Ensure we always have 5 questions
         while (questions.value.length < 5) {
           const nextNum = questions.value.length + 1;
           questions.value.push({
@@ -151,14 +145,12 @@ onMounted(() => {
   fetchTopicData();
 });
 
-// Handle paste event for questions table
 const handlePaste = (event) => {
   const clipboardData = event.clipboardData || window.clipboardData;
   const pastedData = clipboardData.getData("text");
 
   if (!pastedData) return;
 
-  // Parse tab-separated data (from Google Sheets)
   const rows = pastedData
     .split("\n")
     .map((row) => row.split("\t"))
@@ -170,7 +162,6 @@ const handlePaste = (event) => {
 
   const firstRowCols = rows[0].length;
 
-  // Validate data dimensions - we expect 5 rows max
   if (rows.length > 5) {
     toast.add({
       severity: "warn",
@@ -180,7 +171,6 @@ const handlePaste = (event) => {
     });
   }
 
-  // Determine format based on column count
   const rowsToProcess = rows.slice(0, 5);
 
   rowsToProcess.forEach((row, index) => {
@@ -223,7 +213,6 @@ const importSuccess = (event) => {
   event.preventDefault();
 }
 
-// Submit handler
 const onSubmit = async (values) => {
   // Validate that at least one question has content
   const hasQuestions = questions.value.some((q) => q.text.trim() && q.answer.trim());
@@ -288,7 +277,7 @@ const handleCancel = () => {
 
 <template>
   <Toast />
-  <main class="container mx-auto px-4 py-8 max-w-6xl">
+  <main class="container mx-auto px-4 py-8 max-w-8/10">
     <!-- Page Header -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ pageTitle }}</h1>
@@ -342,16 +331,26 @@ const handleCancel = () => {
           </div>
 
           <!-- Checkboxes -->
-          <div class="flex flex-wrap gap-8 md:col-span-2">
-            <div class="flex items-center gap-3">
-              <Checkbox v-model="formData.isPlayed" inputId="isPlayed" :binary="true" />
-              <label for="isPlayed" class="cursor-pointer text-gray-700 dark:text-gray-300">
-                <span class="font-medium">Already Played</span>
-                <span class="block text-sm text-gray-500">Mark if this topic has already been used in a game</span>
-              </label>
+          <div class="flex flex-wrap items-start gap-8 md:col-span-2">
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-3">
+                <Checkbox v-model="formData.isPlayed" inputId="isPlayed" :binary="true" />
+                <label for="isPlayed" class="cursor-pointer text-gray-700 dark:text-gray-300">
+                  <span class="font-medium">Already Played</span>
+                  <span class="block text-sm text-gray-500">Mark if this topic has already been used in a game</span>
+                </label>
+              </div>
+              <div
+                class="ml-8 p-2 bg-amber-50 dark:bg-amber-900/20 rounded border border-amber-300 dark:border-amber-700"
+              >
+                <p class="text-sm text-amber-700 dark:text-amber-300 flex items-center gap-2">
+                  <i class="pi pi-exclamation-triangle"></i>
+                  <span><strong>Warning:</strong> This will make the topic read-only. You won't be able to edit or delete it later.</span>
+                </p>
+              </div>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 pt-0.5">
               <Checkbox v-model="formData.isAuthor" inputId="isAuthor" :binary="true" />
               <label for="isAuthor" class="cursor-pointer text-gray-700 dark:text-gray-300">
                 <span class="font-medium">I am the Author</span>
@@ -417,21 +416,21 @@ const handleCancel = () => {
             </template>
           </Column>
 
-          <Column field="text" header="Question" style="min-width: 200px">
+          <Column field="text" header="Question" style="min-width: 300px">
             <template #body="{ data }">
-              <InputText v-model="data.text" class="w-full" placeholder="Enter question" />
+              <Textarea v-model="data.text" class="w-full" placeholder="Enter question" rows="3" autoResize />
             </template>
           </Column>
 
-          <Column field="answer" header="Answer" style="min-width: 150px">
+          <Column field="answer" header="Answer" style="min-width: 200px">
             <template #body="{ data }">
-              <InputText v-model="data.answer" class="w-full" placeholder="Enter answer" />
+              <Textarea v-model="data.answer" class="w-full" placeholder="Enter answer" rows="3" autoResize />
             </template>
           </Column>
 
-          <Column field="comment" header="Comment" style="min-width: 150px">
+          <Column field="comment" header="Comment" style="min-width: 200px">
             <template #body="{ data }">
-              <InputText v-model="data.comment" class="w-full" placeholder="Optional comment" />
+              <Textarea v-model="data.comment" class="w-full" placeholder="Optional comment" rows="3" autoResize />
             </template>
           </Column>
         </DataTable>
