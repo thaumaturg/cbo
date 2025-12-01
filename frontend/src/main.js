@@ -5,6 +5,7 @@ import { createPinia } from "pinia";
 
 import App from "./App.vue";
 import router from "./router";
+import VeeValidatePlugin from "./includes/validation";
 import PrimeVue from "primevue/config";
 import Aura from "@primeuix/themes/aura";
 import Tooltip from "primevue/tooltip";
@@ -17,6 +18,7 @@ const pinia = createPinia();
 
 app.use(pinia);
 app.use(router);
+app.use(VeeValidatePlugin);
 app.use(PrimeVue, {
   theme: {
     preset: Aura,
