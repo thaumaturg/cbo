@@ -166,7 +166,7 @@ const onRegisterSubmit = async (values) => {
                 </VeeField>
               </div>
               <ErrorMessage name="loginEmail" v-slot="{ message }">
-                <Message severity="error">{{ message }}</Message>
+                <Message severity="error" variant="simple">{{ message }}</Message>
               </ErrorMessage>
             </div>
             <div class="flex flex-col gap-1 mb-8">
@@ -189,7 +189,7 @@ const onRegisterSubmit = async (values) => {
                 </VeeField>
               </div>
               <ErrorMessage name="loginPassword" v-slot="{ message }">
-                <Message severity="error">{{ message }}</Message>
+                <Message severity="error" variant="simple">{{ message }}</Message>
               </ErrorMessage>
             </div>
             <div class="mb-4" v-if="formStatus === 'loading'">
@@ -216,7 +216,7 @@ const onRegisterSubmit = async (values) => {
                 </VeeField>
               </div>
               <ErrorMessage name="registerEmail" v-slot="{ message }">
-                <Message severity="error">{{ message }}</Message>
+                <Message severity="error" variant="simple">{{ message }}</Message>
               </ErrorMessage>
             </div>
             <div class="flex flex-col gap-1 mb-4">
@@ -232,7 +232,7 @@ const onRegisterSubmit = async (values) => {
                 </VeeField>
               </div>
               <ErrorMessage name="registerUsername" v-slot="{ message }">
-                <Message severity="error">{{ message }}</Message>
+                <Message severity="error" variant="simple">{{ message }}</Message>
               </ErrorMessage>
             </div>
             <div class="flex flex-col gap-1 mb-4">
@@ -248,7 +248,7 @@ const onRegisterSubmit = async (values) => {
                 </VeeField>
               </div>
               <ErrorMessage name="registerFullName" v-slot="{ message }">
-                <Message severity="error">{{ message }}</Message>
+                <Message severity="error" variant="simple">{{ message }}</Message>
               </ErrorMessage>
             </div>
             <div class="flex flex-col gap-1 mb-4">
@@ -271,7 +271,7 @@ const onRegisterSubmit = async (values) => {
                 </VeeField>
               </div>
               <ErrorMessage name="registerPassword" v-slot="{ message }">
-                <Message severity="error">{{ message }}</Message>
+                <Message severity="error" variant="simple">{{ message }}</Message>
               </ErrorMessage>
             </div>
             <div class="flex flex-col gap-1 mb-8">
@@ -294,7 +294,7 @@ const onRegisterSubmit = async (values) => {
                 </VeeField>
               </div>
               <ErrorMessage name="registerRepeatPassword" v-slot="{ message }">
-                <Message severity="error">{{ message }}</Message>
+                <Message severity="error" variant="simple">{{ message }}</Message>
               </ErrorMessage>
             </div>
             <div class="mb-4" v-if="formStatus === 'loading'">
