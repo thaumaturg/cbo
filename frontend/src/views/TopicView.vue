@@ -147,10 +147,10 @@ const handlePaste = (event) => {
 
   const rowsToProcess = rows.slice(0, 5);
 
-  rowsToProcess.forEach((row, index) => {
-    if (index >= 5) return;
+  if (firstRowCols !== 5 && firstRowCols !== 3) return;
 
-    if (firstRowCols == 5) {
+  rowsToProcess.forEach((row, index) => {
+    if (firstRowCols === 5) {
       // Full format: costPositive, costNegative, question, answer, comment
       questions.value[index] = {
         questionNumber: index + 1,
@@ -160,8 +160,7 @@ const handlePaste = (event) => {
         answer: row[3]?.trim() || "",
         comment: row[4]?.trim() || "",
       };
-      importSuccess(event);
-    } else if (firstRowCols == 3) {
+    } else {
       // Minimal format: question, answer, comment
       questions.value[index] = {
         questionNumber: index + 1,
@@ -171,9 +170,10 @@ const handlePaste = (event) => {
         answer: row[1]?.trim() || "",
         comment: row[2]?.trim() || "",
       };
-      importSuccess(event);
     }
   });
+
+  importSuccess(event);
 };
 
 const importSuccess = (event) => {
@@ -364,8 +364,8 @@ const handleCancel = () => {
             <template #body="{ data }">
               <InputNumber
                 v-model="data.costPositive"
-                :min="0"
-                :max="1000"
+                :min="-50"
+                :max="50"
                 class="w-full"
                 inputClass="w-full text-center"
               />
@@ -376,8 +376,8 @@ const handleCancel = () => {
             <template #body="{ data }">
               <InputNumber
                 v-model="data.costNegative"
-                :min="0"
-                :max="1000"
+                :min="-50"
+                :max="50"
                 class="w-full"
                 inputClass="w-full text-center"
               />
