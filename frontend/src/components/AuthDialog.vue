@@ -228,7 +228,7 @@ const onRegisterSubmit = async (values) => {
                 <VeeField
                   name="registerRepeatPassword"
                   label="Repeat password"
-                  rules="confirmed:@registerPassword"
+                  rules="required|password_chars|confirmed:@registerPassword"
                   v-slot="{ field }"
                 >
                   <Password
