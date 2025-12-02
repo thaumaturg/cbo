@@ -288,7 +288,7 @@ const handleCreateTopic = () => {
       <!-- Tournaments Section -->
       <div>
         <div class="mb-6">
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Tournaments</h1>
+          <h1 class="text-3xl mb-2 text-center">Tournaments</h1>
           <CreateNewButton v-if="authStore.isAuthenticated" entityType="Tournament" @create="handleCreateTournament" />
         </div>
 
@@ -335,7 +335,7 @@ const handleCreateTopic = () => {
       <!-- Topics Section -->
       <div>
         <div class="mb-6">
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Topics</h1>
+          <h1 class="text-3xl mb-2 text-center">Topics</h1>
           <CreateNewButton v-if="authStore.isAuthenticated" entityType="Topic" @create="handleCreateTopic" />
         </div>
 

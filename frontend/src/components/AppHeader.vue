@@ -21,20 +21,25 @@ const handleLogout = () => {
 </script>
 
 <template>
-  <Menubar :model="items">
+  <Menubar :model="items" class="header-menubar container mx-auto px-4 py-8">
     <template #start>
-      <RouterLink :to="{ name: 'home' }">Competitive Bracket Organizer</RouterLink>
+      <RouterLink :to="{ name: 'home' }" class="text-xl font-bold">Competitive Bracket Organizer</RouterLink>
     </template>
     <template #end>
       <div v-if="!authStore.isAuthenticated">
         <Button label="Login/Register" severity="primary" outlined @click="toggleAuthModal" />
       </div>
       <div v-else class="flex items-center gap-3">
-        <span class="text-sm text-gray-600">Welcome, {{ authStore.userName }}</span>
+        <span class="text-sm">Welcome, {{ authStore.userName }}</span>
         <Button label="Logout" severity="secondary" outlined rounded @click="handleLogout" class="p-2" />
       </div>
     </template>
   </Menubar>
 </template>
 
-<style scoped></style>
+<style scoped>
+.header-menubar {
+  border: none;
+  background: transparent;
+}
+</style>
