@@ -284,98 +284,86 @@ const handleCreateTopic = () => {
   <TournamentParticipantsDialog v-model:visible="showParticipantsDialog" :tournament="selectedTournament" />
 
   <main class="container mx-auto px-4 py-8">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Not authenticated message -->
+    <div v-if="!authStore.isAuthenticated" class="text-center py-16">
+      <div class="text-gray-500 dark:text-gray-400">
+        <i class="pi pi-lock text-5xl mb-4 block"></i>
+        <p class="text-xl mb-2">Please log in to continue</p>
+        <p class="text-sm">Sign in to view and manage your tournaments and topics</p>
+      </div>
+    </div>
+
+    <!-- Authenticated content -->
+    <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <!-- Tournaments Section -->
       <div>
-        <div class="mb-6">
-          <h1 class="text-3xl mb-2 text-center">Tournaments</h1>
-          <CreateNewButton v-if="authStore.isAuthenticated" entityType="Tournament" @create="handleCreateTournament" />
+        <div class="mb-6 flex items-center justify-center gap-4">
+          <h1 class="text-3xl">Tournaments</h1>
+          <CreateNewButton @create="handleCreateTournament" />
         </div>
 
-        <!-- Not authenticated message -->
-        <div v-if="!authStore.isAuthenticated" class="text-center py-12">
+        <div v-if="isLoadingTournaments" class="text-center py-12">
           <div class="text-gray-500 dark:text-gray-400">
-            <i class="pi pi-lock text-4xl mb-4 block"></i>
-            <p class="text-lg">Please log in to view tournaments</p>
+            <i class="pi pi-spin pi-spinner text-4xl mb-4 block"></i>
+            <p class="text-lg">Loading tournaments...</p>
           </div>
         </div>
 
-        <!-- Authenticated content -->
-        <template v-else>
-          <div v-if="isLoadingTournaments" class="text-center py-12">
-            <div class="text-gray-500 dark:text-gray-400">
-              <i class="pi pi-spin pi-spinner text-4xl mb-4 block"></i>
-              <p class="text-lg">Loading tournaments...</p>
-            </div>
-          </div>
+        <div v-else class="space-y-4">
+          <TournamentCard
+            v-for="tournament in tournaments"
+            :key="tournament.id"
+            :tournament="tournament"
+            @settings="handleTournamentSettings"
+            @participants="handleTournamentParticipants"
+            @start="handleTournamentStart"
+            @delete="handleTournamentDelete"
+            class="w-full"
+          />
+        </div>
 
-          <div v-else class="space-y-4">
-            <TournamentCard
-              v-for="tournament in tournaments"
-              :key="tournament.id"
-              :tournament="tournament"
-              @settings="handleTournamentSettings"
-              @participants="handleTournamentParticipants"
-              @start="handleTournamentStart"
-              @delete="handleTournamentDelete"
-              class="w-full"
-            />
+        <div v-if="!isLoadingTournaments && tournaments.length === 0" class="text-center py-12">
+          <div class="text-gray-500 dark:text-gray-400">
+            <i class="pi pi-trophy text-4xl mb-4 block"></i>
+            <p class="text-lg">No tournaments available</p>
+            <p class="text-sm">Check back later for upcoming tournaments</p>
           </div>
-
-          <div v-if="!isLoadingTournaments && tournaments.length === 0" class="text-center py-12">
-            <div class="text-gray-500 dark:text-gray-400">
-              <i class="pi pi-trophy text-4xl mb-4 block"></i>
-              <p class="text-lg">No tournaments available</p>
-              <p class="text-sm">Check back later for upcoming tournaments</p>
-            </div>
-          </div>
-        </template>
+        </div>
       </div>
 
       <!-- Topics Section -->
       <div>
-        <div class="mb-6">
-          <h1 class="text-3xl mb-2 text-center">Topics</h1>
-          <CreateNewButton v-if="authStore.isAuthenticated" entityType="Topic" @create="handleCreateTopic" />
+        <div class="mb-6 flex items-center justify-center gap-4">
+          <h1 class="text-3xl">Topics</h1>
+          <CreateNewButton @create="handleCreateTopic" />
         </div>
 
-        <!-- Not authenticated message -->
-        <div v-if="!authStore.isAuthenticated" class="text-center py-12">
+        <div v-if="isLoadingTopics" class="text-center py-12">
           <div class="text-gray-500 dark:text-gray-400">
-            <i class="pi pi-lock text-4xl mb-4 block"></i>
-            <p class="text-lg">Please log in to view topics</p>
+            <i class="pi pi-spin pi-spinner text-4xl mb-4 block"></i>
+            <p class="text-lg">Loading topics...</p>
           </div>
         </div>
 
-        <!-- Authenticated content -->
-        <template v-else>
-          <div v-if="isLoadingTopics" class="text-center py-12">
-            <div class="text-gray-500 dark:text-gray-400">
-              <i class="pi pi-spin pi-spinner text-4xl mb-4 block"></i>
-              <p class="text-lg">Loading topics...</p>
-            </div>
-          </div>
+        <div v-else class="space-y-4">
+          <TopicCard
+            v-for="topic in topics"
+            :key="topic.id"
+            :topic="topic"
+            @view="handleTopicView"
+            @authors="handleTopicAuthors"
+            @delete="handleTopicDelete"
+            class="w-full"
+          />
+        </div>
 
-          <div v-else class="space-y-4">
-            <TopicCard
-              v-for="topic in topics"
-              :key="topic.id"
-              :topic="topic"
-              @view="handleTopicView"
-              @authors="handleTopicAuthors"
-              @delete="handleTopicDelete"
-              class="w-full"
-            />
+        <div v-if="!isLoadingTopics && topics.length === 0" class="text-center py-12">
+          <div class="text-gray-500 dark:text-gray-400">
+            <i class="pi pi-book text-4xl mb-4 block"></i>
+            <p class="text-lg">No topics available</p>
+            <p class="text-sm">Create your first topic to get started</p>
           </div>
-
-          <div v-if="!isLoadingTopics && topics.length === 0" class="text-center py-12">
-            <div class="text-gray-500 dark:text-gray-400">
-              <i class="pi pi-book text-4xl mb-4 block"></i>
-              <p class="text-lg">No topics available</p>
-              <p class="text-sm">Create your first topic to get started</p>
-            </div>
-          </div>
-        </template>
+        </div>
       </div>
     </div>
   </main>
