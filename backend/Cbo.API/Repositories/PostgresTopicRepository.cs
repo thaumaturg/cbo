@@ -13,11 +13,6 @@ public class PostgresTopicRepository : ITopicRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<Topic>> GetAllAsync()
-    {
-        return await _dbContext.Topics.ToListAsync();
-    }
-
     public async Task<List<Topic>> GetAllByUserIdAsync(int userId)
     {
         return await _dbContext.Topics
