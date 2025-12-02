@@ -326,7 +326,6 @@ const handleCreateTopic = () => {
           <div class="text-gray-500 dark:text-gray-400">
             <i class="pi pi-trophy text-4xl mb-4 block"></i>
             <p class="text-lg">No tournaments available</p>
-            <p class="text-sm">Check back later for upcoming tournaments</p>
           </div>
         </div>
       </div>
@@ -361,7 +360,6 @@ const handleCreateTopic = () => {
           <div class="text-gray-500 dark:text-gray-400">
             <i class="pi pi-book text-4xl mb-4 block"></i>
             <p class="text-lg">No topics available</p>
-            <p class="text-sm">Create your first topic to get started</p>
           </div>
         </div>
       </div>

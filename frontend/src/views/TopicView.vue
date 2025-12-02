@@ -11,34 +11,8 @@ import InputNumber from "primevue/inputnumber";
 import Message from "primevue/message";
 import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
-import { Form as VeeForm, Field as VeeField, ErrorMessage, defineRule, configure } from "vee-validate";
-import { required, min, max } from "@vee-validate/rules";
 import { topicService } from "@/services/topic-service.js";
 import { useAuthStore } from "@/stores/auth.js";
-
-defineRule("required", required);
-defineRule("min", min);
-defineRule("max", max);
-
-configure({
-  generateMessage: (ctx) => {
-    const rule = ctx.rule?.name;
-    switch (rule) {
-      case "required":
-        return "Required";
-      case "min":
-        return `Must be at least ${ctx.rule?.params[0]} characters`;
-      case "max":
-        return `Must be at most ${ctx.rule?.params[0]} characters`;
-      default:
-        return "Field is invalid";
-    }
-  },
-  validateOnBlur: true,
-  validateOnChange: true,
-  validateOnInput: false,
-  validateOnModelUpdate: false,
-});
 
 const router = useRouter();
 const route = useRoute();
@@ -295,11 +269,6 @@ const handleCancel = () => {
     <VeeForm v-else ref="veeFormRef" @submit="onSubmit" class="space-y-8">
       <!-- Basic Information Card -->
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
-          <i class="pi pi-info-circle text-blue-500"></i>
-          Basic Information
-        </h2>
-
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Title -->
           <div class="flex flex-col gap-2">
@@ -314,7 +283,7 @@ const handleCancel = () => {
               />
             </VeeField>
             <ErrorMessage name="title" v-slot="{ message }">
-              <small class="text-red-500">{{ message }}</small>
+                <Message severity="error" variant="simple">{{ message }}</Message>
             </ErrorMessage>
           </div>
 
