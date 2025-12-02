@@ -12,12 +12,10 @@ import Message from "primevue/message";
 import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
 import { topicService } from "@/services/topic-service.js";
-import { useAuthStore } from "@/stores/auth.js";
 
 const router = useRouter();
 const route = useRoute();
 const toast = useToast();
-const authStore = useAuthStore();
 
 const isEditMode = computed(() => route.params.id && route.params.id !== "new");
 const topicId = computed(() => (isEditMode.value ? parseInt(route.params.id) : null));
@@ -106,16 +104,6 @@ const fetchTopicData = async () => {
 };
 
 onMounted(() => {
-  if (!authStore.isAuthenticated) {
-    toast.add({
-      severity: "warn",
-      summary: "Authentication Required",
-      detail: "Please log in to manage topics",
-      life: 3000,
-    });
-    router.push("/");
-    return;
-  }
   fetchTopicData();
 });
 

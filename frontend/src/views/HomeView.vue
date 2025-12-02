@@ -9,11 +9,12 @@ import { tournamentService } from "@/services/tournament-service.js";
 import { topicService } from "@/services/topic-service.js";
 import { ref, onMounted, watch } from "vue";
 import { useToast } from "primevue/usetoast";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/auth.js";
 
 const toast = useToast();
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 
 const showTournamentDialog = ref(false);
@@ -68,6 +69,18 @@ const fetchTopics = async () => {
 };
 
 onMounted(() => {
+  // Show toast if redirected due to auth requirement
+  if (route.query.authRequired === "true") {
+    toast.add({
+      severity: "warn",
+      summary: "Authentication Required",
+      detail: "Please log in to manage topics",
+      life: 3000,
+    });
+    // Clear the query parameter without adding to history
+    router.replace({ query: {} });
+  }
+
   fetchTournaments();
   fetchTopics();
 });
