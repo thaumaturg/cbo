@@ -1,6 +1,5 @@
 import { Form as VeeForm, Field as VeeField, ErrorMessage, defineRule, configure } from "vee-validate";
-import { required, email, min, max, regex, confirmed } from "@vee-validate/rules";
-
+import { required, email, min, max, regex, confirmed, min_value, max_value } from "@vee-validate/rules";
 
 export default {
   install(app) {
@@ -12,6 +11,8 @@ export default {
     defineRule("email", email);
     defineRule("min", min);
     defineRule("max", max);
+    defineRule("min_value", min_value);
+    defineRule("max_value", max_value);
     defineRule("regex", regex);
     defineRule("confirmed", confirmed);
     defineRule("password_chars", (value) => {
@@ -35,6 +36,8 @@ export default {
           email: "Must be a valid email",
           min: `Must be at least ${ctx.rule?.params?.[0]} characters`,
           max: `Must be at most ${ctx.rule?.params?.[0]} characters`,
+          min_value: `Must be at least ${ctx.rule?.params?.[0]}`,
+          max_value: `Must be at most ${ctx.rule?.params?.[0]}`,
           username_chars: "Latin letters, numbers, and underscores",
           password_chars: "Latin letters, numbers, !@#$%^&*",
           confirmed: "Passwords do not match",

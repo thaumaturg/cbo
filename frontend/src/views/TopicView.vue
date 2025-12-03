@@ -261,7 +261,7 @@ const handleCancel = () => {
           <!-- Title -->
           <div class="flex flex-col gap-2">
             <label for="title" class="font-semibold text-gray-700 dark:text-gray-300">Title *</label>
-            <VeeField name="title" :rules="'required|min:3|max:100'" v-model="formData.title" v-slot="{ field }">
+            <VeeField name="title" rules="required|min:3|max:100" v-model="formData.title" v-slot="{ field }">
               <InputText
                 v-bind="field"
                 id="title"
