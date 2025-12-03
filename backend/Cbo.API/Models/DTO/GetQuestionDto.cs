@@ -1,6 +1,6 @@
 ﻿namespace Cbo.API.Models.DTO;
 
-public class GetQuestionDto
+public record GetQuestionDto
 {
     public required int Id { get; set; }
     public required int QuestionNumber { get; set; }

@@ -2,7 +2,7 @@
 
 namespace Cbo.API.Models.DTO;
 
-public class GetMatchDto
+public record GetMatchDto
 {
     public required int Id { get; set; }
     public required int NumberInTournament { get; set; }
