@@ -42,7 +42,7 @@ public class PostgresTopicRepository : ITopicRepository
         return topic;
     }
 
-    public async Task<Topic?> UpdateAsync(int id, Topic updatedTopic, int currentUserId, bool isAuthor)
+    public async Task<Topic?> UpdateAsync(int id, Topic updatedTopic, int currentUserId, bool isAuthor, ICollection<Question> incomingQuestions)
     {
         Topic? existingTopic = await _dbContext.Topics
             .Include(t => t.Questions)
@@ -52,22 +52,36 @@ public class PostgresTopicRepository : ITopicRepository
         if (existingTopic is null)
             return null;
 
-        // Update basic topic properties
+        // Validate all existing question IDs are present
+        HashSet<int> incomingQuestionIds = incomingQuestions.Select(q => q.Id).ToHashSet();
+        HashSet<int> existingQuestionIds = existingTopic.Questions.Select(q => q.Id).ToHashSet();
+
+        List<int> missingIds = existingQuestionIds.Except(incomingQuestionIds).ToList();
+        if (missingIds.Count > 0)
+        {
+            throw new InvalidOperationException(
+                $"Incomplete update request. Missing question IDs: {string.Join(", ", missingIds)}. " +
+                $"PUT requires all existing questions to be included.");
+        }
+
         existingTopic.Title = updatedTopic.Title;
         existingTopic.Description = updatedTopic.Description;
         existingTopic.IsPlayed = updatedTopic.IsPlayed;
 
-        // Update questions - replace all existing questions with new ones
-        _dbContext.Questions.RemoveRange(existingTopic.Questions);
-
-        foreach (Question question in updatedTopic.Questions)
+        foreach (Question incomingQuestion in incomingQuestions)
         {
-            question.Id = 0; // Reset ID so EF creates new records
-            question.TopicId = id;
-            existingTopic.Questions.Add(question);
+            Question? existingQuestion = existingTopic.Questions.FirstOrDefault(q => q.Id == incomingQuestion.Id);
+            if (existingQuestion is not null)
+            {
+                existingQuestion.QuestionNumber = incomingQuestion.QuestionNumber;
+                existingQuestion.CostPositive = incomingQuestion.CostPositive;
+                existingQuestion.CostNegative = incomingQuestion.CostNegative;
+                existingQuestion.Text = incomingQuestion.Text;
+                existingQuestion.Answer = incomingQuestion.Answer;
+                existingQuestion.Comment = incomingQuestion.Comment;
+            }
         }
 
-        // Update TopicAuthor IsAuthor flag for current user
         TopicAuthor? topicAuthor = existingTopic.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUserId);
         if (topicAuthor is not null)
         {

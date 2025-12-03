@@ -34,11 +34,11 @@ const isLoading = ref(false);
 const veeFormRef = ref(null);
 
 const questions = ref([
-  { questionNumber: 1, costPositive: 10, costNegative: 10, text: "", answer: "", comment: "" },
-  { questionNumber: 2, costPositive: 20, costNegative: 20, text: "", answer: "", comment: "" },
-  { questionNumber: 3, costPositive: 30, costNegative: 30, text: "", answer: "", comment: "" },
-  { questionNumber: 4, costPositive: 40, costNegative: 40, text: "", answer: "", comment: "" },
-  { questionNumber: 5, costPositive: 50, costNegative: 50, text: "", answer: "", comment: "" },
+  { id: null, questionNumber: 1, costPositive: 10, costNegative: 10, text: "", answer: "", comment: "" },
+  { id: null, questionNumber: 2, costPositive: 20, costNegative: 20, text: "", answer: "", comment: "" },
+  { id: null, questionNumber: 3, costPositive: 30, costNegative: 30, text: "", answer: "", comment: "" },
+  { id: null, questionNumber: 4, costPositive: 40, costNegative: 40, text: "", answer: "", comment: "" },
+  { id: null, questionNumber: 5, costPositive: 50, costNegative: 50, text: "", answer: "", comment: "" },
 ]);
 
 const isFormProcessing = computed(() => formStatus.value === "loading");
@@ -60,6 +60,7 @@ const fetchTopicData = async () => {
 
       if (topic.questions && topic.questions.length > 0) {
         questions.value = topic.questions.map((q) => ({
+          id: q.id,  // Preserve question ID for updates
           questionNumber: q.questionNumber,
           costPositive: q.costPositive,
           costNegative: q.costNegative,
@@ -71,6 +72,7 @@ const fetchTopicData = async () => {
         while (questions.value.length < 5) {
           const nextNum = questions.value.length + 1;
           questions.value.push({
+            id: null,  // New questions have no ID
             questionNumber: nextNum,
             costPositive: nextNum * 10,
             costNegative: nextNum * 10,
@@ -196,21 +198,24 @@ const onSubmit = async (values) => {
   generalError.value = null;
 
   try {
+    const questionsToSend = questions.value
+      .filter((q) => isEditMode.value ? q.id : q.text.trim() && q.answer.trim())
+      .map((q) => ({
+        ...(q.id && { id: q.id }),  // Include ID only if present
+        questionNumber: q.questionNumber,
+        costPositive: q.costPositive,
+        costNegative: q.costNegative,
+        text: q.text.trim(),
+        answer: q.answer.trim(),
+        comment: q.comment?.trim() || null,
+      }));
+
     const topicData = {
       title: values.title,
-      description: formData.value.description || null,
+      description: formData.value.description?.trim() || null,
       isPlayed: formData.value.isPlayed,
       isAuthor: formData.value.isAuthor,
-      questions: questions.value
-        .filter((q) => q.text.trim() && q.answer.trim())
-        .map((q) => ({
-          questionNumber: q.questionNumber,
-          costPositive: q.costPositive,
-          costNegative: q.costNegative,
-          text: q.text,
-          answer: q.answer,
-          comment: q.comment || null,
-        })),
+      questions: questionsToSend,
     };
 
     const result = isEditMode.value

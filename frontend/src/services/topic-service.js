@@ -36,30 +36,12 @@ export const topicService = {
 
   /**
    * Create a new topic with questions
-   * @param {Object} topicData - Topic data
-   * @param {string} topicData.title - Topic title
-   * @param {string} topicData.description - Topic description (optional)
-   * @param {boolean} topicData.isPlayed - Whether topic has been played
-   * @param {boolean} topicData.isAuthor - Whether current user is the author
-   * @param {Array} topicData.questions - Array of questions
+   * @param {Object} topicData - Pre-formatted topic data from view
    * @returns {Promise} - API response
    */
   async createTopic(topicData) {
     try {
-      const response = await api.post("/Topics", {
-        title: topicData.title,
-        description: topicData.description || null,
-        isPlayed: topicData.isPlayed,
-        isAuthor: topicData.isAuthor,
-        questions: topicData.questions.map((q) => ({
-          questionNumber: q.questionNumber,
-          costPositive: q.costPositive,
-          costNegative: q.costNegative,
-          text: q.text,
-          answer: q.answer,
-          comment: q.comment || null,
-        })),
-      });
+      const response = await api.post("/Topics", topicData);
       return { success: true, data: response.data };
     } catch (error) {
       return {
@@ -72,30 +54,12 @@ export const topicService = {
   /**
    * Update topic with questions
    * @param {number} topicId - Topic ID
-   * @param {Object} topicData - Updated topic data
-   * @param {string} topicData.title - Topic title
-   * @param {string} topicData.description - Topic description (optional)
-   * @param {boolean} topicData.isPlayed - Whether topic has been played
-   * @param {boolean} topicData.isAuthor - Whether current user is the author
-   * @param {Array} topicData.questions - Array of questions
+   * @param {Object} topicData - Pre-formatted topic data from view (questions must include IDs)
    * @returns {Promise} - API response
    */
   async updateTopic(topicId, topicData) {
     try {
-      const response = await api.put(`/Topics/${topicId}`, {
-        title: topicData.title,
-        description: topicData.description || null,
-        isPlayed: topicData.isPlayed,
-        isAuthor: topicData.isAuthor,
-        questions: topicData.questions.map((q) => ({
-          questionNumber: q.questionNumber,
-          costPositive: q.costPositive,
-          costNegative: q.costNegative,
-          text: q.text,
-          answer: q.answer,
-          comment: q.comment || null,
-        })),
-      });
+      const response = await api.put(`/Topics/${topicId}`, topicData);
       return { success: true, data: response.data };
     } catch (error) {
       return {

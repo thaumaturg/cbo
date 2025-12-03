@@ -126,15 +126,24 @@ public class TopicsController : ControllerBase
         if (currentUser is null)
             return Unauthorized("User not found in the system.");
 
-        Topic? topicDomain = _mapper.Map<Topic>(updateTopicDto);
+        Topic topicDomain = _mapper.Map<Topic>(updateTopicDto);
+        List<Question> incomingQuestions = _mapper.Map<List<Question>>(updateTopicDto.Questions);
 
-        topicDomain = await _topicRepository.UpdateAsync(id, topicDomain, currentUser.Id, updateTopicDto.IsAuthor);
+        Topic? updatedTopic;
+        try
+        {
+            updatedTopic = await _topicRepository.UpdateAsync(id, topicDomain, currentUser.Id, updateTopicDto.IsAuthor, incomingQuestions);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
 
-        if (topicDomain is null)
+        if (updatedTopic is null)
             return NotFound();
 
-        GetTopicDto getTopicDto = _mapper.Map<GetTopicDto>(topicDomain);
-        TopicAuthor? topicAuthor = topicDomain.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUser.Id);
+        GetTopicDto getTopicDto = _mapper.Map<GetTopicDto>(updatedTopic);
+        TopicAuthor? topicAuthor = updatedTopic.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUser.Id);
         getTopicDto.IsAuthor = topicAuthor?.IsAuthor ?? false;
 
         return Ok(getTopicDto);

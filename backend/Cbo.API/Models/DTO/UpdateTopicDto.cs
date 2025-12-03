@@ -6,5 +6,5 @@ public record UpdateTopicDto
     public string? Description { get; set; }
     public required bool IsPlayed { get; set; }
     public required bool IsAuthor { get; set; }
-    public required ICollection<CreateQuestionDto> Questions { get; set; }
+    public required ICollection<UpdateQuestionDto> Questions { get; set; }
 }
