@@ -2,12 +2,18 @@
 
 ## TODO
 
-- .NET 10, VS18
-- slnx
+- .NET 10, slnx
 - AsNoTracking() for RO ops
 - ditch AutoMapper
 - backend validation
 - pagination and filtering
+- Resource-based authorization
+- Informative Error Messages
+- Root editorconfig
+- Server-Sent Events
+- User Profile
+- Move to GUID
+- Email (confirm email, reset password)
 
 # Competitive Bracket Organizer
 
