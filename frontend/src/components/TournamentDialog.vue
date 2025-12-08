@@ -6,39 +6,7 @@ import Textarea from "primevue/textarea";
 import Button from "primevue/button";
 import Message from "primevue/message";
 import InputNumber from "primevue/inputnumber";
-import { Form as VeeForm, Field as VeeField, ErrorMessage, defineRule, configure } from "vee-validate";
-import { required, min, max, min_value, max_value } from "@vee-validate/rules";
 import { tournamentService } from "@/services/tournament-service.js";
-
-defineRule("required", required);
-defineRule("min", min);
-defineRule("max", max);
-defineRule("min_value", min_value);
-defineRule("max_value", max_value);
-
-configure({
-  generateMessage: (ctx) => {
-    const rule = ctx.rule?.name;
-    switch (rule) {
-      case "required":
-        return "Required";
-      case "min":
-        return `Must be at least ${ctx.rule?.params[0]} characters`;
-      case "max":
-        return `Must be at most ${ctx.rule?.params[0]} characters`;
-      case "min_value":
-        return `Must be at least ${ctx.rule?.params[0]}`;
-      case "max_value":
-        return `Must be at most ${ctx.rule?.params[0]}`;
-      default:
-        return "Field is invalid";
-    }
-  },
-  validateOnBlur: true,
-  validateOnChange: true,
-  validateOnInput: false,
-  validateOnModelUpdate: false,
-});
 
 const props = defineProps({
   visible: {
@@ -175,7 +143,7 @@ const onSubmit = async (values) => {
         <div class="flex flex-col gap-1 mb-4">
           <div class="flex items-center gap-4">
             <label for="title" class="font-semibold w-40">Title *</label>
-            <VeeField name="title" :rules="'required|min:3|max:100'" v-slot="{ field }">
+            <VeeField name="title" rules="required|min:3|max:100" v-slot="{ field }">
               <InputText v-bind="field" id="title" class="flex-auto" />
             </VeeField>
           </div>
@@ -188,7 +156,7 @@ const onSubmit = async (values) => {
         <div class="flex flex-col gap-1 mb-4">
           <div class="flex items-start gap-4">
             <label for="description" class="font-semibold w-40 pt-2">Description</label>
-            <VeeField name="description" :rules="'max:500'" v-slot="{ field }">
+            <VeeField name="description" rules="max:500" v-slot="{ field }">
               <Textarea v-bind="field" id="description" class="flex-auto" rows="3" />
             </VeeField>
           </div>

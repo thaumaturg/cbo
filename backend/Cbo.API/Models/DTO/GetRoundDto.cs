@@ -1,6 +1,6 @@
 ﻿namespace Cbo.API.Models.DTO;
 
-public class GetRoundDto
+public record GetRoundDto
 {
     public required int Id { get; set; }
     public required int NumberInMatch { get; set; }

@@ -13,18 +13,26 @@ public class PostgresTopicRepository : ITopicRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<Topic>> GetAllAsync()
+    public async Task<List<Topic>> GetAllByUserIdAsync(int userId)
     {
-        return await _dbContext.Topics.ToListAsync();
+        return await _dbContext.Topics
+            .Include(t => t.Questions.OrderBy(q => q.QuestionNumber))
+            .Include(t => t.TopicAuthors)
+            .Where(t => t.TopicAuthors.Any(ta => ta.ApplicationUserId == userId && ta.IsOwner))
+            .ToListAsync();
     }
 
     public async Task<Topic?> GetByIdAsync(int id)
     {
         return await _dbContext.Topics.FirstOrDefaultAsync(x => x.Id == id);
     }
+
     public async Task<Topic?> GetByIdIncludeQuestionsAsync(int id)
     {
-        return await _dbContext.Topics.Include(t => t.Questions).FirstOrDefaultAsync(x => x.Id == id);
+        return await _dbContext.Topics
+            .Include(t => t.Questions.OrderBy(q => q.QuestionNumber))
+            .Include(t => t.TopicAuthors)
+            .FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task<Topic> CreateAsync(Topic topic)
@@ -34,16 +42,51 @@ public class PostgresTopicRepository : ITopicRepository
         return topic;
     }
 
-    public async Task<Topic?> UpdateAsync(int id, Topic updatedTopic)
+    public async Task<Topic?> UpdateAsync(int id, Topic updatedTopic, int currentUserId, bool isAuthor, ICollection<Question> incomingQuestions)
     {
-        Topic? existingTopic = await _dbContext.Topics.FirstOrDefaultAsync(x => x.Id == id);
+        Topic? existingTopic = await _dbContext.Topics
+            .Include(t => t.Questions)
+            .Include(t => t.TopicAuthors)
+            .FirstOrDefaultAsync(x => x.Id == id);
 
         if (existingTopic is null)
             return null;
 
+        // Validate all existing question IDs are present
+        HashSet<int> incomingQuestionIds = incomingQuestions.Select(q => q.Id).ToHashSet();
+        HashSet<int> existingQuestionIds = existingTopic.Questions.Select(q => q.Id).ToHashSet();
+
+        List<int> missingIds = existingQuestionIds.Except(incomingQuestionIds).ToList();
+        if (missingIds.Count > 0)
+        {
+            throw new InvalidOperationException(
+                $"Incomplete update request. Missing question IDs: {string.Join(", ", missingIds)}. " +
+                $"PUT requires all existing questions to be included.");
+        }
+
         existingTopic.Title = updatedTopic.Title;
-        existingTopic.IsGuest = updatedTopic.IsGuest;
+        existingTopic.Description = updatedTopic.Description;
         existingTopic.IsPlayed = updatedTopic.IsPlayed;
+
+        foreach (Question incomingQuestion in incomingQuestions)
+        {
+            Question? existingQuestion = existingTopic.Questions.FirstOrDefault(q => q.Id == incomingQuestion.Id);
+            if (existingQuestion is not null)
+            {
+                existingQuestion.QuestionNumber = incomingQuestion.QuestionNumber;
+                existingQuestion.CostPositive = incomingQuestion.CostPositive;
+                existingQuestion.CostNegative = incomingQuestion.CostNegative;
+                existingQuestion.Text = incomingQuestion.Text;
+                existingQuestion.Answer = incomingQuestion.Answer;
+                existingQuestion.Comment = incomingQuestion.Comment;
+            }
+        }
+
+        TopicAuthor? topicAuthor = existingTopic.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUserId);
+        if (topicAuthor is not null)
+        {
+            topicAuthor.IsAuthor = isAuthor;
+        }
 
         await _dbContext.SaveChangesAsync();
 

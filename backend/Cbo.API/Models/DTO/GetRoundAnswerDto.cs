@@ -2,7 +2,7 @@
 
 namespace Cbo.API.Models.DTO;
 
-public class GetRoundAnswerDto
+public record GetRoundAnswerDto
 {
     public required int Id { get; set; }
     public required bool IsAnswerAccepted { get; set; }

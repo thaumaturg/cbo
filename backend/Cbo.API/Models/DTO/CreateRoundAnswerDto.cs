@@ -1,6 +1,6 @@
 ﻿namespace Cbo.API.Models.DTO;
 
-public class CreateRoundAnswerDto
+public record CreateRoundAnswerDto
 {
     public required bool IsAnswerAccepted { get; set; }
     public required int RoundId { get; set; }

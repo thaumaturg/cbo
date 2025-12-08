@@ -2,7 +2,7 @@
 
 namespace Cbo.API.Models.DTO;
 
-public class RegisterUserDto
+public record RegisterUserDto
 {
     [DataType(DataType.EmailAddress)]
     public required string Email { get; set; }

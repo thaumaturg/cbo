@@ -6,11 +6,15 @@ import TournamentDialog from "@/components/TournamentDialog.vue";
 import TournamentParticipantsDialog from "@/components/TournamentParticipantsDialog.vue";
 import Toast from "primevue/toast";
 import { tournamentService } from "@/services/tournament-service.js";
+import { topicService } from "@/services/topic-service.js";
 import { ref, onMounted, watch } from "vue";
 import { useToast } from "primevue/usetoast";
+import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/auth.js";
 
 const toast = useToast();
+const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 
 const showTournamentDialog = ref(false);
@@ -21,41 +25,8 @@ const isLoadingTournaments = ref(false);
 const tournamentDialogMode = ref("create");
 const tournamentToEdit = ref(null);
 
-const topics = ref([
-  {
-    id: 1,
-    name: "World History",
-    authors: ["John Smith", "Jane Doe"],
-    description:
-      "Explore major historical events and their impact on modern civilization. From ancient empires to world wars.",
-    isGuest: true,
-    isPlayed: true,
-  },
-  {
-    id: 2,
-    name: "Science & Technology",
-    authors: ["Alice Johnson"],
-    description: "Dive into fascinating questions about physics, chemistry, biology, and cutting-edge technology.",
-    isGuest: true,
-    isPlayed: false,
-  },
-  {
-    id: 3,
-    name: "Pop Culture Trivia",
-    authors: ["Bob Williams", "Sarah Brown"],
-    description: "Test your knowledge of movies, music, TV shows, and celebrity gossip from the past decades.",
-    isGuest: false,
-    isPlayed: true,
-  },
-  {
-    id: 4,
-    name: "Geography Challenge",
-    authors: ["Mike Davis"],
-    description: "Journey across continents with questions about countries, capitals, landmarks, and cultures.",
-    isGuest: false,
-    isPlayed: false,
-  },
-]);
+const topics = ref([]);
+const isLoadingTopics = ref(false);
 
 const fetchTournaments = async () => {
   if (!authStore.isAuthenticated) {
@@ -77,8 +48,41 @@ const fetchTournaments = async () => {
   }
 };
 
+const fetchTopics = async () => {
+  if (!authStore.isAuthenticated) {
+    return;
+  }
+
+  isLoadingTopics.value = true;
+  try {
+    const result = await topicService.getAllTopics();
+    if (result.success) {
+      topics.value = result.data;
+    } else {
+      console.error("Failed to fetch topics:", result.error);
+    }
+  } catch (error) {
+    console.error("Error fetching topics:", error);
+  } finally {
+    isLoadingTopics.value = false;
+  }
+};
+
 onMounted(() => {
+  // Show toast if redirected due to auth requirement
+  if (route.query.authRequired === "true") {
+    toast.add({
+      severity: "warn",
+      summary: "Authentication Required",
+      detail: "Please log in to manage topics",
+      life: 3000,
+    });
+    // Clear the query parameter without adding to history
+    router.replace({ query: {} });
+  }
+
   fetchTournaments();
+  fetchTopics();
 });
 
 watch(
@@ -86,8 +90,10 @@ watch(
   (isAuthenticated) => {
     if (isAuthenticated) {
       fetchTournaments();
+      fetchTopics();
     } else {
       tournaments.value = [];
+      topics.value = [];
     }
   }
 );
@@ -147,22 +153,48 @@ const handleTournamentDelete = async (tournament) => {
 };
 
 const handleTopicView = (topic) => {
-  console.log("View topic:", topic.name);
-  // navigate to topic view or open modal
+  router.push(`/topics/${topic.id}`);
 };
 
 const handleTopicAuthors = (topic) => {
-  console.log("Authors for topic:", topic.name);
-  // show authors list or navigate to authors page
+  console.log("Authors for topic:", topic.title);
+  // TODO: implement authors management modal
 };
 
-const handleTopicDelete = (topic) => {
-  console.log("Delete topic:", topic.name);
-  // show a confirmation dialog and then delete
-  if (confirm(`Are you sure you want to delete "${topic.name}"?`)) {
+const handleTopicDelete = async (topic) => {
+  if (!authStore.isAuthenticated) {
+    return;
+  }
+
+  const topicTitle = topic.title;
+  if (confirm(`Are you sure you want to delete "${topicTitle}"?`)) {
+    // Optimistic update - remove from UI immediately
     const index = topics.value.findIndex((t) => t.id === topic.id);
     if (index > -1) {
       topics.value.splice(index, 1);
+    }
+
+    const result = await topicService.deleteTopic(topic.id);
+
+    if (!result.success) {
+      console.error("Failed to delete topic:", result.error);
+      toast.add({
+        severity: "error",
+        summary: "Delete Failed",
+        detail: `Failed to delete "${topicTitle}". ${result.error}`,
+        life: 5000,
+      });
+      // Re-fetch to restore the topic if deletion failed
+      await fetchTopics();
+    } else {
+      toast.add({
+        severity: "success",
+        summary: "Topic Deleted",
+        detail: `"${topicTitle}" has been deleted successfully.`,
+        life: 3000,
+      });
+      // Background validation - ensure UI is in sync
+      await fetchTopics();
     }
   }
 };
@@ -249,8 +281,7 @@ const handleTournamentUpdated = async (updatedTournament) => {
 };
 
 const handleCreateTopic = () => {
-  console.log("Create new topic");
-  // open topic creation modal
+  router.push("/topics/new");
 };
 </script>
 
@@ -266,62 +297,67 @@ const handleCreateTopic = () => {
   <TournamentParticipantsDialog v-model:visible="showParticipantsDialog" :tournament="selectedTournament" />
 
   <main class="container mx-auto px-4 py-8">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Not authenticated message -->
+    <div v-if="!authStore.isAuthenticated" class="text-center py-16">
+      <div class="text-gray-500 dark:text-gray-400">
+        <i class="pi pi-lock text-5xl mb-4 block"></i>
+        <p class="text-xl mb-2">Please log in to continue</p>
+        <p class="text-sm">Sign in to view and manage your tournaments and topics</p>
+      </div>
+    </div>
+
+    <!-- Authenticated content -->
+    <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <!-- Tournaments Section -->
       <div>
-        <div class="mb-6">
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Tournaments</h1>
-          <CreateNewButton v-if="authStore.isAuthenticated" entityType="Tournament" @create="handleCreateTournament" />
+        <div class="mb-6 flex items-center justify-center gap-4">
+          <h1 class="text-3xl">Tournaments</h1>
+          <CreateNewButton @create="handleCreateTournament" />
         </div>
 
-        <!-- Not authenticated message -->
-        <div v-if="!authStore.isAuthenticated" class="text-center py-12">
+        <div v-if="isLoadingTournaments" class="text-center py-12">
           <div class="text-gray-500 dark:text-gray-400">
-            <i class="pi pi-lock text-4xl mb-4 block"></i>
-            <p class="text-lg">Please log in to view tournaments</p>
+            <i class="pi pi-spin pi-spinner text-4xl mb-4 block"></i>
+            <p class="text-lg">Loading tournaments...</p>
           </div>
         </div>
 
-        <!-- Authenticated content -->
-        <template v-else>
-          <div v-if="isLoadingTournaments" class="text-center py-12">
-            <div class="text-gray-500 dark:text-gray-400">
-              <i class="pi pi-spin pi-spinner text-4xl mb-4 block"></i>
-              <p class="text-lg">Loading tournaments...</p>
-            </div>
-          </div>
+        <div v-else class="space-y-4">
+          <TournamentCard
+            v-for="tournament in tournaments"
+            :key="tournament.id"
+            :tournament="tournament"
+            @settings="handleTournamentSettings"
+            @participants="handleTournamentParticipants"
+            @start="handleTournamentStart"
+            @delete="handleTournamentDelete"
+            class="w-full"
+          />
+        </div>
 
-          <div v-else class="space-y-4">
-            <TournamentCard
-              v-for="tournament in tournaments"
-              :key="tournament.id"
-              :tournament="tournament"
-              @settings="handleTournamentSettings"
-              @participants="handleTournamentParticipants"
-              @start="handleTournamentStart"
-              @delete="handleTournamentDelete"
-              class="w-full"
-            />
+        <div v-if="!isLoadingTournaments && tournaments.length === 0" class="text-center py-12">
+          <div class="text-gray-500 dark:text-gray-400">
+            <i class="pi pi-trophy text-4xl mb-4 block"></i>
+            <p class="text-lg">No tournaments available</p>
           </div>
-
-          <div v-if="!isLoadingTournaments && tournaments.length === 0" class="text-center py-12">
-            <div class="text-gray-500 dark:text-gray-400">
-              <i class="pi pi-trophy text-4xl mb-4 block"></i>
-              <p class="text-lg">No tournaments available</p>
-              <p class="text-sm">Check back later for upcoming tournaments</p>
-            </div>
-          </div>
-        </template>
+        </div>
       </div>
 
       <!-- Topics Section -->
       <div>
-        <div class="mb-6">
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Topics</h1>
-          <CreateNewButton entityType="Topic" @create="handleCreateTopic" />
+        <div class="mb-6 flex items-center justify-center gap-4">
+          <h1 class="text-3xl">Topics</h1>
+          <CreateNewButton @create="handleCreateTopic" />
         </div>
 
-        <div class="space-y-4">
+        <div v-if="isLoadingTopics" class="text-center py-12">
+          <div class="text-gray-500 dark:text-gray-400">
+            <i class="pi pi-spin pi-spinner text-4xl mb-4 block"></i>
+            <p class="text-lg">Loading topics...</p>
+          </div>
+        </div>
+
+        <div v-else class="space-y-4">
           <TopicCard
             v-for="topic in topics"
             :key="topic.id"
@@ -333,11 +369,10 @@ const handleCreateTopic = () => {
           />
         </div>
 
-        <div v-if="topics.length === 0" class="text-center py-12">
+        <div v-if="!isLoadingTopics && topics.length === 0" class="text-center py-12">
           <div class="text-gray-500 dark:text-gray-400">
             <i class="pi pi-book text-4xl mb-4 block"></i>
             <p class="text-lg">No topics available</p>
-            <p class="text-sm">Check back later for new topics</p>
           </div>
         </div>
       </div>

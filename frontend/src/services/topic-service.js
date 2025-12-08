@@ -2,28 +2,12 @@ import api from "./api-interceptors.js";
 
 export const topicService = {
   /**
-   * Get topics owned by the current user
+   * Get all topics owned by the current user
    * @returns {Promise} - API response with user's topics
-   */
-  async getUserTopics() {
-    try {
-      const response = await api.get("/Topic/user");
-      return { success: true, data: response.data };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to fetch topics. Please try again.",
-      };
-    }
-  },
-
-  /**
-   * Get all available topics
-   * @returns {Promise} - API response with all topics
    */
   async getAllTopics() {
     try {
-      const response = await api.get("/Topic");
+      const response = await api.get("/Topics");
       return { success: true, data: response.data };
     } catch (error) {
       return {
@@ -34,13 +18,13 @@ export const topicService = {
   },
 
   /**
-   * Get topic by ID
+   * Get topic by ID (includes questions)
    * @param {number} topicId - Topic ID
    * @returns {Promise} - API response with topic details
    */
   async getTopicById(topicId) {
     try {
-      const response = await api.get(`/Topic/${topicId}`);
+      const response = await api.get(`/Topics/${topicId}`);
       return { success: true, data: response.data };
     } catch (error) {
       return {
@@ -51,20 +35,13 @@ export const topicService = {
   },
 
   /**
-   * Create a new topic
-   * @param {Object} topicData - Topic data
-   * @param {string} topicData.title - Topic title
-   * @param {string} topicData.description - Topic description
-   * @param {string} topicData.category - Topic category (optional)
+   * Create a new topic with questions
+   * @param {Object} topicData - Pre-formatted topic data from view
    * @returns {Promise} - API response
    */
   async createTopic(topicData) {
     try {
-      const response = await api.post("/Topic", {
-        title: topicData.title,
-        description: topicData.description,
-        category: topicData.category || null,
-      });
+      const response = await api.post("/Topics", topicData);
       return { success: true, data: response.data };
     } catch (error) {
       return {
@@ -75,14 +52,14 @@ export const topicService = {
   },
 
   /**
-   * Update topic
+   * Update topic with questions
    * @param {number} topicId - Topic ID
-   * @param {Object} topicData - Updated topic data
+   * @param {Object} topicData - Pre-formatted topic data from view (questions must include IDs)
    * @returns {Promise} - API response
    */
   async updateTopic(topicId, topicData) {
     try {
-      const response = await api.put(`/Topic/${topicId}`, topicData);
+      const response = await api.put(`/Topics/${topicId}`, topicData);
       return { success: true, data: response.data };
     } catch (error) {
       return {
@@ -99,49 +76,12 @@ export const topicService = {
    */
   async deleteTopic(topicId) {
     try {
-      const response = await api.delete(`/Topic/${topicId}`);
+      const response = await api.delete(`/Topics/${topicId}`);
       return { success: true, data: response.data };
     } catch (error) {
       return {
         success: false,
         error: error.response?.data || "Failed to delete topic. Please try again.",
-      };
-    }
-  },
-
-  /**
-   * Get comments for a topic
-   * @param {number} topicId - Topic ID
-   * @returns {Promise} - API response with topic comments
-   */
-  async getTopicComments(topicId) {
-    try {
-      const response = await api.get(`/Topic/${topicId}/comments`);
-      return { success: true, data: response.data };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to fetch comments. Please try again.",
-      };
-    }
-  },
-
-  /**
-   * Add comment to a topic
-   * @param {number} topicId - Topic ID
-   * @param {string} content - Comment content
-   * @returns {Promise} - API response
-   */
-  async addComment(topicId, content) {
-    try {
-      const response = await api.post(`/Topic/${topicId}/comments`, {
-        content: content,
-      });
-      return { success: true, data: response.data };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to add comment. Please try again.",
       };
     }
   },

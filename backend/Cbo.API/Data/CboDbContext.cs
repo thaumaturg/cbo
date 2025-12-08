@@ -264,9 +264,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
             entity.Property(t => t.Title)
                 .IsRequired();
 
-            entity.Property(t => t.IsGuest)
-                .IsRequired();
-
             entity.Property(t => t.IsPlayed)
                 .IsRequired();
 
@@ -296,6 +293,37 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
         });
 
         // TopicAuthor
+        modelBuilder.Entity<TopicAuthor>(entity =>
+        {
+            entity.HasKey(ta => ta.Id);
+
+            entity.Property(ta => ta.Id)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(ta => ta.IsOwner)
+                .IsRequired();
+
+            entity.Property(ta => ta.IsAuthor)
+                .IsRequired();
+
+            entity.Property(ta => ta.ApplicationUserId)
+                .IsRequired();
+
+            entity.Property(ta => ta.TopicId)
+                .IsRequired();
+
+            // Many-to-one: TopicAuthor -> ApplicationUser
+            entity.HasOne(ta => ta.ApplicationUser)
+                .WithMany(au => au.TopicAuthors)
+                .HasForeignKey(ta => ta.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Many-to-one: TopicAuthor -> Topic
+            entity.HasOne(ta => ta.Topic)
+                .WithMany(t => t.TopicAuthors)
+                .HasForeignKey(ta => ta.TopicId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         // Tournament
         modelBuilder.Entity<Tournament>(entity =>

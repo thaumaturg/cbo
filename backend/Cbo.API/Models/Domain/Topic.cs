@@ -4,7 +4,7 @@ public class Topic
 {
     public required int Id { get; set; }
     public required string Title { get; set; }
-    public required bool IsGuest { get; set; }
+    public string? Description { get; set; }
     public required bool IsPlayed { get; set; }
     public Round? Round { get; set; }
     public ICollection<Question> Questions {  get; set; } = [];
