@@ -1,17 +1,12 @@
-# editorconfig.org
+# Borrowed from github/dotnet/runtime
 
-# top-most EditorConfig file
-root = true
+# XML project and config files
+[*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj,builds,xml,stylecop,resx,ruleset,props,targets,config,nuspec}]
+indent_size = 2
 
-# Default settings:
-# A newline ending every file
-# Use 4 spaces as indentation
-[*]
-insert_final_newline = true
-indent_style = space
-indent_size = 4
-trim_trailing_whitespace = true
-guidelines = 120
+# XML project files need UTF-8 (excludes vcxproj which uses other encodings)
+[*.{csproj,vbproj,proj,nativeproj,locproj}]
+charset = utf-8
 
 # Generated code
 [*{_AssemblyInfo.cs,.notsupported.cs,AsmOffsets.cs}]
@@ -154,36 +149,3 @@ csharp_space_between_method_declaration_name_and_open_parenthesis = false
 csharp_space_between_method_declaration_parameter_list_parentheses = false
 csharp_space_between_parentheses = false
 csharp_space_between_square_brackets = false
-
-# Xml project files
-[*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]
-indent_size = 2
-
-[*.{csproj,vbproj,proj,nativeproj,locproj}]
-charset = utf-8
-
-# Xml build files
-[*.builds]
-indent_size = 2
-
-# Xml files
-[*.{xml,stylecop,resx,ruleset}]
-indent_size = 2
-
-# Xml config files
-[*.{props,targets,config,nuspec}]
-indent_size = 2
-
-# YAML config files
-[*.{yml,yaml}]
-indent_size = 2
-
-# Shell scripts
-[*.sh]
-end_of_line = lf
-[*.{cmd,bat}]
-end_of_line = crlf
-
-# JSON files
-[*.json]
-indent_size = 2

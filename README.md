@@ -9,7 +9,6 @@
 - pagination and filtering
 - Resource-based authorization
 - Informative Error Messages
-- Root editorconfig
 - Server-Sent Events
 - User Profile
 - Move to GUID
