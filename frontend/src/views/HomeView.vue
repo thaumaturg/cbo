@@ -4,6 +4,7 @@ import TopicCard from "@/components/TopicCard.vue";
 import CreateNewButton from "@/components/CreateNewButton.vue";
 import TournamentDialog from "@/components/TournamentDialog.vue";
 import TournamentParticipantsDialog from "@/components/TournamentParticipantsDialog.vue";
+import TopicAuthorsDialog from "@/components/TopicAuthorsDialog.vue";
 import Toast from "primevue/toast";
 import { tournamentService } from "@/services/tournament-service.js";
 import { topicService } from "@/services/topic-service.js";
@@ -27,6 +28,8 @@ const tournamentToEdit = ref(null);
 
 const topics = ref([]);
 const isLoadingTopics = ref(false);
+const showAuthorsDialog = ref(false);
+const selectedTopic = ref(null);
 
 const fetchTournaments = async () => {
   if (!authStore.isAuthenticated) {
@@ -157,8 +160,8 @@ const handleTopicView = (topic) => {
 };
 
 const handleTopicAuthors = (topic) => {
-  console.log("Authors for topic:", topic.title);
-  // TODO: implement authors management modal
+  selectedTopic.value = topic;
+  showAuthorsDialog.value = true;
 };
 
 const handleTopicDelete = async (topic) => {
@@ -295,6 +298,7 @@ const handleCreateTopic = () => {
     @tournament-updated="handleTournamentUpdated"
   />
   <TournamentParticipantsDialog v-model:visible="showParticipantsDialog" :tournament="selectedTournament" />
+  <TopicAuthorsDialog v-model:visible="showAuthorsDialog" :topic="selectedTopic" />
 
   <main class="container mx-auto px-4 py-8">
     <!-- Not authenticated message -->
