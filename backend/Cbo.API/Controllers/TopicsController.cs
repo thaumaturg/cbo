@@ -13,15 +13,18 @@ namespace Cbo.API.Controllers;
 public class TopicsController : ControllerBase
 {
     private readonly ITopicRepository _topicRepository;
+    private readonly ITopicAuthorRepository _topicAuthorRepository;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IMapper _mapper;
 
     public TopicsController(
         ITopicRepository topicRepository,
+        ITopicAuthorRepository topicAuthorRepository,
         UserManager<ApplicationUser> userManager,
         IMapper mapper)
     {
         _topicRepository = topicRepository;
+        _topicAuthorRepository = topicAuthorRepository;
         _userManager = userManager;
         _mapper = mapper;
     }
@@ -162,5 +165,147 @@ public class TopicsController : ControllerBase
         GetTopicDto getTopicDto = _mapper.Map<GetTopicDto>(topicDomain);
 
         return Ok(getTopicDto);
+    }
+
+    [HttpGet]
+    [Route("{topicId:int}/authors")]
+    [Authorize(Roles = "Reader")]
+    public async Task<IActionResult> GetAllAuthors([FromRoute] int topicId)
+    {
+        string? username = User.Identity?.Name;
+        if (string.IsNullOrEmpty(username))
+            return Unauthorized("Unable to identify the current user.");
+
+        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
+        if (currentUser is null)
+            return Unauthorized("User not found in the system.");
+
+        Topic? topic = await _topicRepository.GetByIdAsync(topicId);
+        if (topic is null)
+            return NotFound($"Topic with ID {topicId} not found.");
+
+        TopicAuthor? ownerCheck = await _topicAuthorRepository.GetByUserIdAndTopicIdAsync(currentUser.Id, topicId);
+        if (ownerCheck is null || !ownerCheck.IsOwner)
+            return Forbid();
+
+        List<TopicAuthor> authorsDomain = await _topicAuthorRepository.GetAllByTopicIdAsync(topicId);
+        List<GetTopicAuthorDto> authorsDto = _mapper.Map<List<GetTopicAuthorDto>>(authorsDomain);
+
+        return Ok(authorsDto);
+    }
+
+    [HttpGet]
+    [Route("{topicId:int}/authors/{id:int}")]
+    [Authorize(Roles = "Reader")]
+    public async Task<IActionResult> GetAuthorById([FromRoute] int topicId, [FromRoute] int id)
+    {
+        string? username = User.Identity?.Name;
+        if (string.IsNullOrEmpty(username))
+            return Unauthorized("Unable to identify the current user.");
+
+        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
+        if (currentUser is null)
+            return Unauthorized("User not found in the system.");
+
+        Topic? topic = await _topicRepository.GetByIdAsync(topicId);
+        if (topic is null)
+            return NotFound($"Topic with ID {topicId} not found.");
+
+        TopicAuthor? ownerCheck = await _topicAuthorRepository.GetByUserIdAndTopicIdAsync(currentUser.Id, topicId);
+        if (ownerCheck is null || !ownerCheck.IsOwner)
+            return Forbid();
+
+        TopicAuthor? authorDomain = await _topicAuthorRepository.GetByAuthorIdAndTopicIdAsync(id, topicId);
+
+        if (authorDomain is null)
+            return NotFound();
+
+        GetTopicAuthorDto authorDto = _mapper.Map<GetTopicAuthorDto>(authorDomain);
+
+        return Ok(authorDto);
+    }
+
+    [HttpPost]
+    [Route("{topicId:int}/authors")]
+    [Authorize(Roles = "Writer")]
+    public async Task<IActionResult> CreateAuthor([FromRoute] int topicId, [FromBody] CreateTopicAuthorDto createAuthorDto)
+    {
+        string? username = User.Identity?.Name;
+        if (string.IsNullOrEmpty(username))
+            return Unauthorized("Unable to identify the current user.");
+
+        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
+        if (currentUser is null)
+            return Unauthorized("User not found in the system.");
+
+        Topic? topic = await _topicRepository.GetByIdAsync(topicId);
+        if (topic is null)
+            return NotFound($"Topic with ID {topicId} not found.");
+
+        TopicAuthor? ownerCheck = await _topicAuthorRepository.GetByUserIdAndTopicIdAsync(currentUser.Id, topicId);
+        if (ownerCheck is null || !ownerCheck.IsOwner)
+            return Forbid();
+
+        ApplicationUser? user = await _userManager.FindByNameAsync(createAuthorDto.Username);
+        if (user is null)
+            return NotFound($"User with username '{createAuthorDto.Username}' not found.");
+
+        TopicAuthor? existingAuthor = await _topicAuthorRepository.GetByUserIdAndTopicIdAsync(user.Id, topicId);
+        if (existingAuthor is not null)
+            return Conflict($"User '{createAuthorDto.Username}' is already an author of this topic.");
+
+        TopicAuthor authorDomain = new TopicAuthor
+        {
+            IsOwner = false,
+            IsAuthor = true,
+            TopicId = topicId,
+            ApplicationUserId = user.Id,
+            Topic = topic,
+            ApplicationUser = user
+        };
+
+        authorDomain = await _topicAuthorRepository.CreateAsync(authorDomain);
+
+        GetTopicAuthorDto authorDto = _mapper.Map<GetTopicAuthorDto>(authorDomain);
+
+        return CreatedAtAction(nameof(GetAuthorById), new { topicId, id = authorDomain.Id }, authorDto);
+    }
+
+    [HttpDelete]
+    [Route("{topicId:int}/authors/{id:int}")]
+    [Authorize(Roles = "Writer")]
+    public async Task<IActionResult> DeleteAuthor([FromRoute] int topicId, [FromRoute] int id)
+    {
+        string? username = User.Identity?.Name;
+        if (string.IsNullOrEmpty(username))
+            return Unauthorized("Unable to identify the current user.");
+
+        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
+        if (currentUser is null)
+            return Unauthorized("User not found in the system.");
+
+        Topic? topic = await _topicRepository.GetByIdAsync(topicId);
+        if (topic is null)
+            return NotFound($"Topic with ID {topicId} not found.");
+
+        TopicAuthor? ownerCheck = await _topicAuthorRepository.GetByUserIdAndTopicIdAsync(currentUser.Id, topicId);
+        if (ownerCheck is null || !ownerCheck.IsOwner)
+            return Forbid();
+
+        TopicAuthor? existingAuthor = await _topicAuthorRepository.GetByAuthorIdAndTopicIdAsync(id, topicId);
+        if (existingAuthor is null)
+            return NotFound();
+
+        if (existingAuthor.IsOwner)
+            return BadRequest("Cannot remove the owner from the authors list.");
+
+        TopicAuthor? authorDomain = await _topicAuthorRepository.DeleteAsync(id);
+
+        if (authorDomain is null)
+            return NotFound();
+
+        GetTopicAuthorDto authorDto = _mapper.Map<GetTopicAuthorDto>(authorDomain);
+
+        return Ok(authorDto);
     }
 }

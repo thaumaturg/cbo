@@ -27,5 +27,7 @@ public class AutoMapperProfiles : Profile
             .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.ApplicationUser.UserName));
         CreateMap<TournamentParticipant, CreateTournamentParticipantDto>().ReverseMap();
         CreateMap<TournamentParticipant, UpdateTournamentParticipantDto>().ReverseMap();
+        CreateMap<TopicAuthor, GetTopicAuthorDto>()
+            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.ApplicationUser.UserName));
     }
 }
