@@ -1,17 +1,17 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import InputText from "primevue/inputtext";
-import Textarea from "primevue/textarea";
-import Checkbox from "primevue/checkbox";
+import { topicService } from "@/services/topic-service.js";
 import Button from "primevue/button";
-import DataTable from "primevue/datatable";
+import Checkbox from "primevue/checkbox";
 import Column from "primevue/column";
+import DataTable from "primevue/datatable";
 import InputNumber from "primevue/inputnumber";
+import InputText from "primevue/inputtext";
 import Message from "primevue/message";
+import Textarea from "primevue/textarea";
 import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
-import { topicService } from "@/services/topic-service.js";
+import { computed, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 const router = useRouter();
 const route = useRoute();
@@ -32,6 +32,7 @@ const formStatus = ref("idle"); // idle | loading | success | error
 const generalError = ref(null);
 const isLoading = ref(false);
 const veeFormRef = ref(null);
+const questionErrors = ref({});
 
 const questions = ref([
   { id: null, questionNumber: 1, costPositive: 10, costNegative: 10, text: "", answer: "", comment: "" },
@@ -42,6 +43,62 @@ const questions = ref([
 ]);
 
 const isFormProcessing = computed(() => formStatus.value === "loading");
+
+const validateCostField = (value, fieldName) => {
+  if (value === null || value === undefined || value === "") {
+    return `${fieldName} is required`;
+  }
+  if (value < -50) {
+    return `${fieldName} must be at least -50`;
+  }
+  if (value > 50) {
+    return `${fieldName} must be at most 50`;
+  }
+  return null;
+};
+
+const validateQuestion = (question) => {
+  const errors = {};
+
+  if (!question.text?.trim()) {
+    errors.text = "Question is required";
+  }
+  if (!question.answer?.trim()) {
+    errors.answer = "Answer is required";
+  }
+
+  const costPosError = validateCostField(question.costPositive, "Cost +");
+  if (costPosError) errors.costPositive = costPosError;
+
+  const costNegError = validateCostField(question.costNegative, "Cost -");
+  if (costNegError) errors.costNegative = costNegError;
+
+  return errors;
+};
+
+const validateAllQuestions = () => {
+  const allErrors = {};
+  let hasAnyError = false;
+
+  questions.value.forEach((q, index) => {
+    const errors = validateQuestion(q, index);
+    if (Object.keys(errors).length > 0) {
+      allErrors[index] = errors;
+      hasAnyError = true;
+    }
+  });
+
+  questionErrors.value = allErrors;
+  return !hasAnyError;
+};
+
+const getFieldError = (index, field) => {
+  return questionErrors.value[index]?.[field] || null;
+};
+
+const hasFieldError = (index, field) => {
+  return !!getFieldError(index, field);
+};
 
 const fetchTopicData = async () => {
   if (!isEditMode.value) return;
@@ -60,7 +117,7 @@ const fetchTopicData = async () => {
 
       if (topic.questions && topic.questions.length > 0) {
         questions.value = topic.questions.map((q) => ({
-          id: q.id,  // Preserve question ID for updates
+          id: q.id,
           questionNumber: q.questionNumber,
           costPositive: q.costPositive,
           costNegative: q.costNegative,
@@ -72,7 +129,7 @@ const fetchTopicData = async () => {
         while (questions.value.length < 5) {
           const nextNum = questions.value.length + 1;
           questions.value.push({
-            id: null,  // New questions have no ID
+            id: null,
             questionNumber: nextNum,
             costPositive: nextNum * 10,
             costNegative: nextNum * 10,
@@ -175,22 +232,16 @@ const importSuccess = (event) => {
   });
 
   event.preventDefault();
-}
+};
+
+const onInvalidSubmit = () => {
+  // Also validate questions when VeeValidate's validation fails
+  validateAllQuestions();
+};
 
 const onSubmit = async (values) => {
-  // Validate that at least one question has content
-  const hasQuestions = questions.value.some((q) => q.text.trim() && q.answer.trim());
-  if (!hasQuestions) {
-    generalError.value = "Please add at least one question with both text and answer.";
-    return;
-  }
-
-  // Validate all questions have required fields if they have any content
-  const incompleteQuestions = questions.value.filter(
-    (q) => (q.text.trim() && !q.answer.trim()) || (!q.text.trim() && q.answer.trim())
-  );
-  if (incompleteQuestions.length > 0) {
-    generalError.value = "Each question must have both text and answer filled in.";
+  if (!validateAllQuestions()) {
+    generalError.value = "Please fix the errors in the questions table.";
     return;
   }
 
@@ -199,9 +250,9 @@ const onSubmit = async (values) => {
 
   try {
     const questionsToSend = questions.value
-      .filter((q) => isEditMode.value ? q.id : q.text.trim() && q.answer.trim())
+      .filter((q) => (isEditMode.value ? q.id : q.text.trim() && q.answer.trim()))
       .map((q) => ({
-        ...(q.id && { id: q.id }),  // Include ID only if present
+        ...(q.id && { id: q.id }),
         questionNumber: q.questionNumber,
         costPositive: q.costPositive,
         costNegative: q.costNegative,
@@ -247,7 +298,9 @@ const handleCancel = () => {
   <main class="container mx-auto px-4 py-8 max-w-8/10">
     <!-- Page Header -->
     <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ pageTitle }}</h1>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+        {{ pageTitle }}
+      </h1>
     </div>
 
     <!-- Loading State -->
@@ -259,7 +312,7 @@ const handleCancel = () => {
     </div>
 
     <!-- Form -->
-    <VeeForm v-else ref="veeFormRef" @submit="onSubmit" class="space-y-8">
+    <VeeForm v-else ref="veeFormRef" @submit="onSubmit" @invalid-submit="onInvalidSubmit" class="space-y-8">
       <!-- Basic Information Card -->
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -267,15 +320,10 @@ const handleCancel = () => {
           <div class="flex flex-col gap-2">
             <label for="title" class="font-semibold text-gray-700 dark:text-gray-300">Title *</label>
             <VeeField name="title" rules="required|min:3|max:100" v-model="formData.title" v-slot="{ field }">
-              <InputText
-                v-bind="field"
-                id="title"
-                class="w-full"
-                placeholder="Enter topic title"
-              />
+              <InputText v-bind="field" id="title" class="w-full" placeholder="Enter topic title" />
             </VeeField>
             <ErrorMessage name="title" v-slot="{ message }">
-                <Message severity="error" variant="simple">{{ message }}</Message>
+              <Message severity="error" variant="simple">{{ message }}</Message>
             </ErrorMessage>
           </div>
 
@@ -306,7 +354,10 @@ const handleCancel = () => {
               >
                 <p class="text-sm text-amber-700 dark:text-amber-300 flex items-center gap-2">
                   <i class="pi pi-exclamation-triangle"></i>
-                  <span><strong>Warning:</strong> This will make the topic read-only. You won't be able to edit or delete it later.</span>
+                  <span
+                    ><strong>Warning:</strong> This will make the topic read-only. You won't be able to edit or delete
+                    it later.</span
+                  >
                 </p>
               </div>
             </div>
@@ -353,39 +404,73 @@ const handleCancel = () => {
             </template>
           </Column>
 
-          <Column field="costPositive" header="Cost +" style="width: 100px">
-            <template #body="{ data }">
-              <InputNumber
-                v-model="data.costPositive"
-                :min="-50"
-                :max="50"
-                class="w-full"
-                inputClass="w-full text-center"
-              />
+          <Column field="costPositive" header="Cost + *" style="width: 120px">
+            <template #body="{ data, index }">
+              <div class="flex flex-col gap-1">
+                <InputNumber
+                  v-model="data.costPositive"
+                  class="w-full"
+                  :inputClass="['w-full text-center', hasFieldError(index, 'costPositive') ? 'p-invalid' : '']"
+                  :invalid="hasFieldError(index, 'costPositive')"
+                />
+                <small v-if="hasFieldError(index, 'costPositive')" class="text-red-500 text-xs">
+                  {{ getFieldError(index, "costPositive") }}
+                </small>
+              </div>
             </template>
           </Column>
 
-          <Column field="costNegative" header="Cost -" style="width: 100px">
-            <template #body="{ data }">
-              <InputNumber
-                v-model="data.costNegative"
-                :min="-50"
-                :max="50"
-                class="w-full"
-                inputClass="w-full text-center"
-              />
+          <Column field="costNegative" header="Cost - *" style="width: 120px">
+            <template #body="{ data, index }">
+              <div class="flex flex-col gap-1">
+                <InputNumber
+                  v-model="data.costNegative"
+                  class="w-full"
+                  :inputClass="['w-full text-center', hasFieldError(index, 'costNegative') ? 'p-invalid' : '']"
+                  :invalid="hasFieldError(index, 'costNegative')"
+                />
+                <small v-if="hasFieldError(index, 'costNegative')" class="text-red-500 text-xs">
+                  {{ getFieldError(index, "costNegative") }}
+                </small>
+              </div>
             </template>
           </Column>
 
-          <Column field="text" header="Question" style="min-width: 300px">
-            <template #body="{ data }">
-              <Textarea v-model="data.text" class="w-full" placeholder="Enter question" rows="3" autoResize />
+          <Column field="text" header="Question *" style="min-width: 300px">
+            <template #body="{ data, index }">
+              <div class="flex flex-col gap-1">
+                <Textarea
+                  v-model="data.text"
+                  class="w-full"
+                  :class="{ 'p-invalid': hasFieldError(index, 'text') }"
+                  placeholder="Enter question"
+                  rows="3"
+                  autoResize
+                  :invalid="hasFieldError(index, 'text')"
+                />
+                <small v-if="hasFieldError(index, 'text')" class="text-red-500 text-xs">
+                  {{ getFieldError(index, "text") }}
+                </small>
+              </div>
             </template>
           </Column>
 
-          <Column field="answer" header="Answer" style="min-width: 200px">
-            <template #body="{ data }">
-              <Textarea v-model="data.answer" class="w-full" placeholder="Enter answer" rows="3" autoResize />
+          <Column field="answer" header="Answer *" style="min-width: 200px">
+            <template #body="{ data, index }">
+              <div class="flex flex-col gap-1">
+                <Textarea
+                  v-model="data.answer"
+                  class="w-full"
+                  :class="{ 'p-invalid': hasFieldError(index, 'answer') }"
+                  placeholder="Enter answer"
+                  rows="3"
+                  autoResize
+                  :invalid="hasFieldError(index, 'answer')"
+                />
+                <small v-if="hasFieldError(index, 'answer')" class="text-red-500 text-xs">
+                  {{ getFieldError(index, "answer") }}
+                </small>
+              </div>
             </template>
           </Column>
 
@@ -434,6 +519,7 @@ const handleCancel = () => {
 <style scoped>
 :deep(.p-datatable .p-datatable-tbody > tr > td) {
   padding: 0.5rem;
+  vertical-align: top;
 }
 
 :deep(.p-datatable .p-datatable-thead > tr > th) {
