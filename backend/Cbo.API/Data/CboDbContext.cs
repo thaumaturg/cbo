@@ -351,17 +351,16 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
             entity.Property(e => e.EndedAt)
                 .ValueGeneratedOnAddOrUpdate();
 
-            // Settings properties with default values
             entity.Property(e => e.ParticipantsPerTournament)
-                .HasDefaultValue(DefaultSettings.TournamentSettings["ParticipantsPerTournament"])
+                .HasDefaultValue(DefaultSettings.ParticipantsPerTournament)
                 .IsRequired();
 
             entity.Property(e => e.TopicsPerParticipantMax)
-                .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerParticipantMax"])
+                .HasDefaultValue(DefaultSettings.TopicsPerParticipantMax)
                 .IsRequired();
 
             entity.Property(e => e.TopicsPerParticipantMin)
-                .HasDefaultValue(DefaultSettings.TournamentSettings["TopicsPerParticipantMin"])
+                .HasDefaultValue(DefaultSettings.TopicsPerParticipantMin)
                 .IsRequired();
 
             // One-to-many: Tournament -> TournamentParticipants

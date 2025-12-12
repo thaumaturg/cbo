@@ -2,18 +2,15 @@ namespace Cbo.API.Models.Constants;
 
 public static class DefaultSettings
 {
-    public static readonly Dictionary<string, int> TournamentSettings = new Dictionary<string, int>
-    {
-        { "ParticipantsPerMatchMax", 4 },
-        { "ParticipantsPerMatchMin", 2 },
-        { "ParticipantsPerTournament", 12 },
-        { "QuestionsCostMax", 50 },
-        { "QuestionsCostMin", -50 },
-        { "QuestionsPerTopicMax", 5 },
-        { "QuestionsPerTopicMin", 5 },
-        { "TopicsAuthorsMax", 3 },
-        { "TopicsPerParticipantMax", 10 },
-        { "TopicsPerParticipantMin", 6 },
-        { "TopicsPerMatch", 4 }
-    };
+    public const int ParticipantsPerMatchMax = 4;
+    public const int ParticipantsPerMatchMin = 2;
+    public const int ParticipantsPerTournament = 12;
+    public const int QuestionsCostMax = 50;
+    public const int QuestionsCostMin = 50;
+    public const int QuestionsPerTopicMax = 5;
+    public const int QuestionsPerTopicMin = 5;
+    public const int TopicsAuthorsMax = 3;
+    public const int TopicsPerParticipantMax = 10;
+    public const int TopicsPerParticipantMin = 6;
+    public const int TopicsPerMatch = 4;
 }
