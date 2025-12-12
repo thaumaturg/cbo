@@ -1,0 +1,79 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Backend: Launch (Scalar API)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "backend: build",
+      "program": "${workspaceFolder}/backend/Cbo.API/bin/Debug/net9.0/Cbo.API.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/backend/Cbo.API",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+https?://\\S+",
+        "uriFormat": "https://localhost:7053/scalar/"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "sourceFileMap": {
+        "/Views": "${workspaceFolder}/Views"
+      }
+    },
+    {
+      "name": "Backend: Launch (Silent)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "backend: build",
+      "program": "${workspaceFolder}/backend/Cbo.API/bin/Debug/net9.0/Cbo.API.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/backend/Cbo.API",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "sourceFileMap": {
+        "/Views": "${workspaceFolder}/Views"
+      }
+    },
+    {
+      "name": "Backend: Attach",
+      "type": "coreclr",
+      "request": "attach"
+    },
+    {
+      "name": "Frontend: Launch Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "https://localhost:5173",
+      "webRoot": "${workspaceFolder}/frontend/src",
+      "sourceMapPathOverrides": {
+        "webpack:///src/*": "${webRoot}/*"
+      },
+      "preLaunchTask": "frontend: dev"
+    },
+    {
+      "name": "Full Stack: Launch Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "https://localhost:7053",
+      "webRoot": "${workspaceFolder}/frontend/src",
+      "sourceMapPathOverrides": {
+        "webpack:///src/*": "${webRoot}/*"
+      },
+      "preLaunchTask": "frontend: dev"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack: Debug All",
+      "configurations": [
+        "Backend: Launch (Silent)",
+        "Full Stack: Launch Chrome"
+      ],
+      "stopAll": true
+    }
+  ]
+}

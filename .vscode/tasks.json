@@ -1,0 +1,144 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "backend: build",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/backend/backend.sln",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary;ForceNoAlign"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "backend: watch",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "watch",
+        "run",
+        "--project",
+        "${workspaceFolder}/backend/Cbo.API/Cbo.API.csproj"
+      ],
+      "problemMatcher": "$msCompile",
+      "isBackground": true
+    },
+    {
+      "label": "backend: run",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "run",
+        "--project",
+        "${workspaceFolder}/backend/Cbo.API/Cbo.API.csproj"
+      ],
+      "problemMatcher": "$msCompile",
+      "isBackground": true
+    },
+    {
+      "label": "backend: ef migrations add",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "ef",
+        "migrations",
+        "add",
+        "${input:migrationName}",
+        "--project",
+        "${workspaceFolder}/backend/Cbo.API/Cbo.API.csproj"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "backend: ef database update",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "ef",
+        "database",
+        "update",
+        "--project",
+        "${workspaceFolder}/backend/Cbo.API/Cbo.API.csproj"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "backend: ef database drop",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "ef",
+        "database",
+        "drop",
+        "--force",
+        "--project",
+        "${workspaceFolder}/backend/Cbo.API/Cbo.API.csproj"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "frontend: dev",
+      "type": "npm",
+      "script": "dev",
+      "path": "frontend",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "dev"
+      }
+    },
+    {
+      "label": "frontend: build",
+      "type": "npm",
+      "script": "build",
+      "path": "frontend",
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "frontend: lint",
+      "type": "npm",
+      "script": "lint",
+      "path": "frontend",
+      "problemMatcher": ["$eslint-stylish"]
+    },
+    {
+      "label": "frontend: format",
+      "type": "npm",
+      "script": "format",
+      "path": "frontend",
+      "problemMatcher": []
+    },
+    {
+      "label": "frontend: install",
+      "type": "npm",
+      "script": "install",
+      "path": "frontend",
+      "problemMatcher": []
+    },
+    {
+      "label": "Build All",
+      "dependsOn": ["backend: build", "frontend: build"],
+      "dependsOrder": "parallel",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "migrationName",
+      "description": "Name for the new migration",
+      "type": "promptString",
+      "default": "NewMigration"
+    }
+  ]
+}
