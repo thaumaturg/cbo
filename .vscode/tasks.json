@@ -22,10 +22,27 @@
         "watch",
         "run",
         "--project",
-        "${workspaceFolder}/backend/Cbo.API/Cbo.API.csproj"
+        "${workspaceFolder}/backend/Cbo.API/Cbo.API.csproj",
+        "--launch-profile",
+        "https"
       ],
-      "problemMatcher": "$msCompile",
-      "isBackground": true
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "dotnet-watch",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "dotnet watch",
+          "endsPattern": "Now listening on"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "dev"
+      }
     },
     {
       "label": "backend: run",
@@ -85,8 +102,18 @@
       "type": "npm",
       "script": "dev",
       "path": "frontend",
-      "problemMatcher": [],
       "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "VITE",
+          "endsPattern": "ready in"
+        }
+      },
       "presentation": {
         "reveal": "always",
         "panel": "new",
@@ -131,6 +158,12 @@
         "kind": "build",
         "isDefault": true
       }
+    },
+    {
+      "label": "Full Stack: Start Servers",
+      "dependsOn": ["backend: watch", "frontend: dev"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
     }
   ],
   "inputs": [

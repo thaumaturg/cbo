@@ -23,22 +23,6 @@
       }
     },
     {
-      "name": "Backend: Launch (Silent)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "backend: build",
-      "program": "${workspaceFolder}/backend/Cbo.API/bin/Debug/net9.0/Cbo.API.dll",
-      "args": [],
-      "cwd": "${workspaceFolder}/backend/Cbo.API",
-      "stopAtEntry": false,
-      "env": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "sourceFileMap": {
-        "/Views": "${workspaceFolder}/Views"
-      }
-    },
-    {
       "name": "Backend: Attach",
       "type": "coreclr",
       "request": "attach"
@@ -52,6 +36,7 @@
       "sourceMapPathOverrides": {
         "webpack:///src/*": "${webRoot}/*"
       },
+      "runtimeArgs": ["--incognito"],
       "preLaunchTask": "frontend: dev"
     },
     {
@@ -63,17 +48,8 @@
       "sourceMapPathOverrides": {
         "webpack:///src/*": "${webRoot}/*"
       },
-      "preLaunchTask": "frontend: dev"
-    }
-  ],
-  "compounds": [
-    {
-      "name": "Full Stack: Debug All",
-      "configurations": [
-        "Backend: Launch (Silent)",
-        "Full Stack: Launch Chrome"
-      ],
-      "stopAll": true
+      "runtimeArgs": ["--incognito"],
+      "preLaunchTask": "Full Stack: Start Servers"
     }
   ]
 }
