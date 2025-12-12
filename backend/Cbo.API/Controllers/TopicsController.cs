@@ -30,7 +30,7 @@ public class TopicsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "Reader")]
+    [Authorize]
     public async Task<IActionResult> GetAll()
     {
         string? username = User.Identity?.Name;
@@ -56,7 +56,7 @@ public class TopicsController : ControllerBase
 
     [HttpGet]
     [Route("{id:int}")]
-    [Authorize(Roles = "Reader")]
+    [Authorize]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
         string? username = User.Identity?.Name;
@@ -80,7 +80,7 @@ public class TopicsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Writer")]
+    [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateTopicDto createTopicDto)
     {
         string? username = User.Identity?.Name;
@@ -118,7 +118,7 @@ public class TopicsController : ControllerBase
 
     [HttpPut]
     [Route("{id:int}")]
-    [Authorize(Roles = "Writer")]
+    [Authorize]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateTopicDto updateTopicDto)
     {
         string? username = User.Identity?.Name;
@@ -154,7 +154,7 @@ public class TopicsController : ControllerBase
 
     [HttpDelete]
     [Route("{id:int}")]
-    [Authorize(Roles = "Writer")]
+    [Authorize]
     public async Task<IActionResult> Delete([FromRoute] int id)
     {
         Topic? topicDomain = await _topicRepository.DeleteAsync(id);
@@ -169,7 +169,7 @@ public class TopicsController : ControllerBase
 
     [HttpGet]
     [Route("{topicId:int}/authors")]
-    [Authorize(Roles = "Reader")]
+    [Authorize]
     public async Task<IActionResult> GetAllAuthors([FromRoute] int topicId)
     {
         string? username = User.Identity?.Name;
@@ -196,7 +196,7 @@ public class TopicsController : ControllerBase
 
     [HttpGet]
     [Route("{topicId:int}/authors/{id:int}")]
-    [Authorize(Roles = "Reader")]
+    [Authorize]
     public async Task<IActionResult> GetAuthorById([FromRoute] int topicId, [FromRoute] int id)
     {
         string? username = User.Identity?.Name;
@@ -227,7 +227,7 @@ public class TopicsController : ControllerBase
 
     [HttpPost]
     [Route("{topicId:int}/authors")]
-    [Authorize(Roles = "Writer")]
+    [Authorize]
     public async Task<IActionResult> CreateAuthor([FromRoute] int topicId, [FromBody] CreateTopicAuthorDto createAuthorDto)
     {
         string? username = User.Identity?.Name;
@@ -273,7 +273,7 @@ public class TopicsController : ControllerBase
 
     [HttpDelete]
     [Route("{topicId:int}/authors/{id:int}")]
-    [Authorize(Roles = "Writer")]
+    [Authorize]
     public async Task<IActionResult> DeleteAuthor([FromRoute] int topicId, [FromRoute] int id)
     {
         string? username = User.Identity?.Name;

@@ -25,7 +25,6 @@ public class AuthController : ControllerBase
     [Route("Register")]
     public async Task<IActionResult> Register([FromBody] RegisterUserDto createUserDto)
     {
-        // TODO: Implement errors: email-already-in-use, username-already-in-use, invalid-email, weak password,
         var applicationUser = new ApplicationUser
         {
             UserName = createUserDto.Username,
@@ -37,14 +36,7 @@ public class AuthController : ControllerBase
 
         if (identityResult.Succeeded)
         {
-            string[] roles = ["Reader"];
-
-            identityResult = await _userManager.AddToRolesAsync(applicationUser, roles);
-
-            if (identityResult.Succeeded)
-            {
-                return Ok("Account created. You can now log in.");
-            }
+            return Ok("Account created. You can now log in.");
         }
 
         return BadRequest("Registration failed. Please check that your data.");
@@ -62,16 +54,11 @@ public class AuthController : ControllerBase
 
             if (checkPasswordResult)
             {
-                IList<string>? roles = await _userManager.GetRolesAsync(user);
+                string jwtToken = _tokenRepository.CreateJWTToken(user);
 
-                if (roles is not null)
-                {
-                    string jwtToken = _tokenRepository.CreateJWTToken(user, roles.ToList());
+                var response = new LoginResponseDto { JwtToken = jwtToken };
 
-                    var response = new LoginResponseDto { JwtToken = jwtToken };
-
-                    return Ok(response);
-                }
+                return Ok(response);
             }
         }
 

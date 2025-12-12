@@ -31,7 +31,7 @@ public class TournamentsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "Reader")]
+    [Authorize]
     public async Task<IActionResult> GetAll()
     {
         string? username = User.Identity?.Name;
@@ -57,7 +57,7 @@ public class TournamentsController : ControllerBase
 
     [HttpGet]
     [Route("{id:int}")]
-    [Authorize(Roles = "Reader")]
+    [Authorize]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
         string? username = User.Identity?.Name;
@@ -83,7 +83,7 @@ public class TournamentsController : ControllerBase
 
 
     [HttpPost]
-    [Authorize(Roles = "Writer")]
+    [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateTournamentDto createTournamentDto)
     {
         string? username = User.Identity?.Name;
@@ -116,7 +116,7 @@ public class TournamentsController : ControllerBase
 
     [HttpPut]
     [Route("{id:int}")]
-    [Authorize(Roles = "Writer")]
+    [Authorize]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateTournamentDto updateTournamentDto)
     {
         Tournament? tournamentDomain = _mapper.Map<Tournament>(updateTournamentDto);
@@ -133,7 +133,7 @@ public class TournamentsController : ControllerBase
 
     [HttpDelete]
     [Route("{id:int}")]
-    [Authorize(Roles = "Writer")]
+    [Authorize]
     public async Task<IActionResult> Delete([FromRoute] int id)
     {
         Tournament? tournamentDomain = await _tournamentRepository.DeleteAsync(id);
@@ -150,7 +150,7 @@ public class TournamentsController : ControllerBase
 
     [HttpGet]
     [Route("{tournamentId:int}/participants")]
-    [Authorize(Roles = "Reader")]
+    [Authorize]
     public async Task<IActionResult> GetAllParticipants([FromRoute] int tournamentId)
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
@@ -165,7 +165,7 @@ public class TournamentsController : ControllerBase
 
     [HttpGet]
     [Route("{tournamentId:int}/participants/{id:int}")]
-    [Authorize(Roles = "Reader")]
+    [Authorize]
     public async Task<IActionResult> GetParticipantById([FromRoute] int tournamentId, [FromRoute] int id)
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
@@ -184,7 +184,7 @@ public class TournamentsController : ControllerBase
 
     [HttpPost]
     [Route("{tournamentId:int}/participants")]
-    [Authorize(Roles = "Writer")]
+    [Authorize]
     public async Task<IActionResult> CreateParticipant([FromRoute] int tournamentId, [FromBody] CreateTournamentParticipantDto createParticipantDto)
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
@@ -213,7 +213,7 @@ public class TournamentsController : ControllerBase
 
     [HttpPut]
     [Route("{tournamentId:int}/participants/{id:int}")]
-    [Authorize(Roles = "Writer")]
+    [Authorize]
     public async Task<IActionResult> UpdateParticipant([FromRoute] int tournamentId, [FromRoute] int id, [FromBody] UpdateTournamentParticipantDto updateParticipantDto)
     {
         if (updateParticipantDto.Role == TournamentParticipantRole.Creator)
@@ -240,7 +240,7 @@ public class TournamentsController : ControllerBase
 
     [HttpDelete]
     [Route("{tournamentId:int}/participants/{id:int}")]
-    [Authorize(Roles = "Writer")]
+    [Authorize]
     public async Task<IActionResult> DeleteParticipant([FromRoute] int tournamentId, [FromRoute] int id)
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);

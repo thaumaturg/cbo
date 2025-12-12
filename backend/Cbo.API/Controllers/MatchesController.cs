@@ -23,7 +23,7 @@ public class MatchesController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "Reader")]
+    [Authorize]
     public async Task<IActionResult> GetAll()
     {
         List<Match> matchesDomain = await _matchRepository.GetAllAsync();
@@ -35,7 +35,7 @@ public class MatchesController : ControllerBase
 
     [HttpGet]
     [Route("{id:int}")]
-    [Authorize(Roles = "Reader")]
+    [Authorize]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
         Match? matchDomain = await _matchRepository.GetByIdAsync(id);

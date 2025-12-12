@@ -23,7 +23,7 @@ public class RoundsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "Reader")]
+    [Authorize]
     public async Task<IActionResult> GetAll()
     {
         List<Round> roundsDomain = await _roundRepository.GetAllAsync();
@@ -35,7 +35,7 @@ public class RoundsController : ControllerBase
 
     [HttpGet]
     [Route("{id:int}")]
-    [Authorize(Roles = "Reader")]
+    [Authorize]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
         Round? roundDomain = await _roundRepository.GetByIdAsync(id);
@@ -49,7 +49,7 @@ public class RoundsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Writer")]
+    [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateRoundDto createRoundDto)
     {
         Round roundDomain = _mapper.Map<Round>(createRoundDto);
@@ -68,7 +68,7 @@ public class RoundsController : ControllerBase
 
     [HttpPut]
     [Route("{id:int}")]
-    [Authorize(Roles = "Writer")]
+    [Authorize]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateRoundDto updateRoundDto)
     {
         Round? roundDomain = _mapper.Map<Round>(updateRoundDto);
@@ -85,7 +85,7 @@ public class RoundsController : ControllerBase
 
     [HttpDelete]
     [Route("{id:int}")]
-    [Authorize(Roles = "Writer")]
+    [Authorize]
     public async Task<IActionResult> Delete([FromRoute] int id)
     {
         Round? roundDomain = await _roundRepository.DeleteAsync(id);

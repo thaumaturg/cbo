@@ -15,27 +15,22 @@ public class TokenRepository : ITokenRepository
         _configuration = configuration;
     }
 
-    public string CreateJWTToken(ApplicationUser user, List<string> roles)
+    public string CreateJWTToken(ApplicationUser user)
     {
-        var issuedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        long issuedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         var claims = new List<Claim>
         {
             // Standard JWT claims
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(JwtRegisteredClaimNames.Iat, issuedAt.ToString(), ClaimValueTypes.Integer64),
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new(JwtRegisteredClaimNames.Iat, issuedAt.ToString(), ClaimValueTypes.Integer64),
 
             // Application-specific claims
-            new Claim(ClaimTypes.Name, user.UserName),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim("fullName", user.FullName ?? string.Empty)
+            new(ClaimTypes.Name, user.UserName),
+            new(ClaimTypes.Email, user.Email),
+            new("fullName", user.FullName ?? string.Empty)
         };
-
-        foreach (string role in roles)
-        {
-            claims.Add(new Claim(ClaimTypes.Role, role));
-        }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
