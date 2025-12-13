@@ -12,4 +12,5 @@ public class TournamentParticipant
     public required int ApplicationUserId { get; set; }
     public required ApplicationUser ApplicationUser { get; set; }
     public ICollection<MatchParticipant> MatchParticipants { get; set; } = [];
+    public ICollection<TournamentTopic> TournamentTopics { get; set; } = [];
 }

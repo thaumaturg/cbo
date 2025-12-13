@@ -418,6 +418,12 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .WithOne(mp => mp.TournamentParticipant)
                 .HasForeignKey(mp => mp.TournamentParticipantId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-many: TournamentParticipant -> TournamentTopics
+            entity.HasMany(tp => tp.TournamentTopics)
+                .WithOne(tt => tt.TournamentParticipant)
+                .HasForeignKey(tt => tt.TournamentParticipantId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // TournamentTopic
