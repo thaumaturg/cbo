@@ -26,6 +26,7 @@ public class Program
 
         builder.Services.AddScoped<ITournamentRepository, PostgresTournamentRepository>();
         builder.Services.AddScoped<ITournamentParticipantsRepository, PostgresTournamentParticipantsRepository>();
+        builder.Services.AddScoped<ITournamentTopicRepository, PostgresTournamentTopicRepository>();
         builder.Services.AddScoped<ITopicRepository, PostgresTopicRepository>();
         builder.Services.AddScoped<ITopicAuthorRepository, PostgresTopicAuthorRepository>();
         builder.Services.AddScoped<IMatchRepository, PostgresMatchRepository>();
