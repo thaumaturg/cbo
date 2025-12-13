@@ -31,7 +31,6 @@ const formData = ref({
 const formStatus = ref("idle"); // idle | loading | success | error
 const generalError = ref(null);
 const isLoading = ref(false);
-const veeFormRef = ref(null);
 const questionErrors = ref({});
 
 const questions = ref([
@@ -312,7 +311,7 @@ const handleCancel = () => {
     </div>
 
     <!-- Form -->
-    <VeeForm v-else ref="veeFormRef" @submit="onSubmit" @invalid-submit="onInvalidSubmit" class="space-y-8">
+    <VeeForm v-else @submit="onSubmit" @invalid-submit="onInvalidSubmit" class="space-y-8">
       <!-- Basic Information Card -->
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
