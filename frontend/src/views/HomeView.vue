@@ -1,17 +1,18 @@
 <script setup>
-import TournamentCard from "@/components/TournamentCard.vue";
-import TopicCard from "@/components/TopicCard.vue";
 import CreateNewButton from "@/components/CreateNewButton.vue";
+import TopicAuthorsDialog from "@/components/TopicAuthorsDialog.vue";
+import TopicCard from "@/components/TopicCard.vue";
+import TournamentCard from "@/components/TournamentCard.vue";
 import TournamentDialog from "@/components/TournamentDialog.vue";
 import TournamentParticipantsDialog from "@/components/TournamentParticipantsDialog.vue";
-import TopicAuthorsDialog from "@/components/TopicAuthorsDialog.vue";
-import Toast from "primevue/toast";
-import { tournamentService } from "@/services/tournament-service.js";
+import TournamentTopicsDialog from "@/components/TournamentTopicsDialog.vue";
 import { topicService } from "@/services/topic-service.js";
-import { ref, onMounted, watch } from "vue";
-import { useToast } from "primevue/usetoast";
-import { useRouter, useRoute } from "vue-router";
+import { tournamentService } from "@/services/tournament-service.js";
 import { useAuthStore } from "@/stores/auth.js";
+import Toast from "primevue/toast";
+import { useToast } from "primevue/usetoast";
+import { onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 const toast = useToast();
 const router = useRouter();
@@ -20,6 +21,7 @@ const authStore = useAuthStore();
 
 const showTournamentDialog = ref(false);
 const showParticipantsDialog = ref(false);
+const showTopicsDialog = ref(false);
 const selectedTournament = ref(null);
 const tournaments = ref([]);
 const isLoadingTournaments = ref(false);
@@ -98,7 +100,7 @@ watch(
       tournaments.value = [];
       topics.value = [];
     }
-  }
+  },
 );
 
 const handleTournamentSettings = (tournament) => {
@@ -110,6 +112,11 @@ const handleTournamentSettings = (tournament) => {
 const handleTournamentParticipants = (tournament) => {
   selectedTournament.value = tournament;
   showParticipantsDialog.value = true;
+};
+
+const handleTournamentTopics = (tournament) => {
+  selectedTournament.value = tournament;
+  showTopicsDialog.value = true;
 };
 
 const handleTournamentStart = (tournament) => {
@@ -298,6 +305,7 @@ const handleCreateTopic = () => {
     @tournament-updated="handleTournamentUpdated"
   />
   <TournamentParticipantsDialog v-model:visible="showParticipantsDialog" :tournament="selectedTournament" />
+  <TournamentTopicsDialog v-model:visible="showTopicsDialog" :tournament="selectedTournament" />
   <TopicAuthorsDialog v-model:visible="showAuthorsDialog" :topic="selectedTopic" />
 
   <main class="container mx-auto px-4 py-8">
@@ -333,6 +341,7 @@ const handleCreateTopic = () => {
             :tournament="tournament"
             @settings="handleTournamentSettings"
             @participants="handleTournamentParticipants"
+            @topics="handleTournamentTopics"
             @start="handleTournamentStart"
             @delete="handleTournamentDelete"
             class="w-full"

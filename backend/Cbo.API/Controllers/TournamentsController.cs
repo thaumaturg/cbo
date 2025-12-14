@@ -15,17 +15,23 @@ public class TournamentsController : ControllerBase
 {
     private readonly ITournamentRepository _tournamentRepository;
     private readonly ITournamentParticipantsRepository _participantsRepository;
+    private readonly ITournamentTopicRepository _tournamentTopicRepository;
+    private readonly ITopicAuthorRepository _topicAuthorRepository;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IMapper _mapper;
 
     public TournamentsController(
         ITournamentRepository tournamentRepository,
         ITournamentParticipantsRepository participantsRepository,
+        ITournamentTopicRepository tournamentTopicRepository,
+        ITopicAuthorRepository topicAuthorRepository,
         UserManager<ApplicationUser> userManager,
         IMapper mapper)
     {
         _tournamentRepository = tournamentRepository;
         _participantsRepository = participantsRepository;
+        _tournamentTopicRepository = tournamentTopicRepository;
+        _topicAuthorRepository = topicAuthorRepository;
         _userManager = userManager;
         _mapper = mapper;
     }
@@ -259,6 +265,119 @@ public class TournamentsController : ControllerBase
         GetTournamentParticipantDto participantDto = _mapper.Map<GetTournamentParticipantDto>(participantDomain);
 
         return Ok(participantDto);
+    }
+
+    #endregion
+
+    #region TournamentTopics
+
+    [HttpGet]
+    [Route("{tournamentId:int}/topics")]
+    [Authorize]
+    public async Task<IActionResult> GetMyTopics([FromRoute] int tournamentId)
+    {
+        string? username = User.Identity?.Name;
+        if (string.IsNullOrEmpty(username))
+            return Unauthorized("Unable to identify the current user.");
+
+        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
+        if (currentUser is null)
+            return Unauthorized("User not found in the system.");
+
+        Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
+        if (tournament is null)
+            return NotFound($"Tournament with ID {tournamentId} not found.");
+
+        TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUser.Id, tournamentId);
+        if (participant is null)
+            return Forbid();
+
+        List<TournamentTopic> topicsDomain = await _tournamentTopicRepository.GetAllByParticipantIdAsync(tournamentId, participant.Id);
+        List<GetTournamentTopicDto> topicsDto = _mapper.Map<List<GetTournamentTopicDto>>(topicsDomain);
+
+        return Ok(topicsDto);
+    }
+
+    [HttpGet]
+    [Route("{tournamentId:int}/topics/all")]
+    [Authorize]
+    public async Task<IActionResult> GetAllTopics([FromRoute] int tournamentId)
+    {
+        string? username = User.Identity?.Name;
+        if (string.IsNullOrEmpty(username))
+            return Unauthorized("Unable to identify the current user.");
+
+        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
+        if (currentUser is null)
+            return Unauthorized("User not found in the system.");
+
+        Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
+        if (tournament is null)
+            return NotFound($"Tournament with ID {tournamentId} not found.");
+
+        TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUser.Id, tournamentId);
+        if (participant is null)
+            return Forbid();
+
+        if (participant.Role != TournamentParticipantRole.Creator && participant.Role != TournamentParticipantRole.Organizer)
+            return Forbid();
+
+        List<TournamentTopic> topicsDomain = await _tournamentTopicRepository.GetAllByTournamentIdAsync(tournamentId);
+        List<GetTournamentTopicDto> topicsDto = _mapper.Map<List<GetTournamentTopicDto>>(topicsDomain);
+
+        return Ok(topicsDto);
+    }
+
+    [HttpPut]
+    [Route("{tournamentId:int}/topics")]
+    [Authorize]
+    public async Task<IActionResult> SetMyTopics([FromRoute] int tournamentId, [FromBody] List<UpdateTournamentTopicDto> topicsDto)
+    {
+        string? username = User.Identity?.Name;
+        if (string.IsNullOrEmpty(username))
+            return Unauthorized("Unable to identify the current user.");
+
+        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
+        if (currentUser is null)
+            return Unauthorized("User not found in the system.");
+
+        Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
+        if (tournament is null)
+            return NotFound($"Tournament with ID {tournamentId} not found.");
+
+        TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUser.Id, tournamentId);
+        if (participant is null)
+            return Forbid();
+
+        if (topicsDto.Count < tournament.TopicsPerParticipantMin)
+            return BadRequest($"Must assign at least {tournament.TopicsPerParticipantMin} topics.");
+
+        if (topicsDto.Count > tournament.TopicsPerParticipantMax)
+            return BadRequest($"Cannot assign more than {tournament.TopicsPerParticipantMax} topics.");
+
+        List<TournamentTopic> topicsDomain = [];
+        HashSet<int> seenTopicIds = [];
+
+        foreach (UpdateTournamentTopicDto dto in topicsDto)
+        {
+            if (!seenTopicIds.Add(dto.TopicId))
+                return BadRequest($"Duplicate topic ID {dto.TopicId} in the list.");
+
+            TopicAuthor? topicAuthor = await _topicAuthorRepository.GetByUserIdAndTopicIdAsync(currentUser.Id, dto.TopicId);
+            if (topicAuthor is null || !topicAuthor.IsOwner)
+                return BadRequest($"You must be the owner of topic with ID {dto.TopicId} to assign it.");
+
+            TournamentTopic topicDomain = _mapper.Map<TournamentTopic>(dto);
+            topicDomain.TournamentId = tournamentId;
+            topicDomain.TournamentParticipantId = participant.Id;
+
+            topicsDomain.Add(topicDomain);
+        }
+
+        List<TournamentTopic> result = await _tournamentTopicRepository.SetTopicsForParticipantAsync(tournamentId, participant.Id, topicsDomain);
+        List<GetTournamentTopicDto> resultDto = _mapper.Map<List<GetTournamentTopicDto>>(result);
+
+        return Ok(resultDto);
     }
 
     #endregion

@@ -17,26 +17,26 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["settings", "participants", "start", "delete"]);
+const emit = defineEmits(["settings", "participants", "topics", "start", "delete"]);
 
 const handleSettings = () => {
   emit("settings", props.tournament);
-  console.log("Settings clicked for tournament:", props.tournament.title);
 };
 
 const handleParticipants = () => {
   emit("participants", props.tournament);
-  console.log("Participants clicked for tournament:", props.tournament.title);
+};
+
+const handleTopics = () => {
+  emit("topics", props.tournament);
 };
 
 const handleStart = () => {
   emit("start", props.tournament);
-  console.log("Start clicked for tournament:", props.tournament.title);
 };
 
 const handleDelete = () => {
   emit("delete", props.tournament);
-  console.log("Delete clicked for tournament:", props.tournament.title);
 };
 </script>
 
@@ -76,6 +76,18 @@ const handleDelete = () => {
             v-tooltip.bottom="'Participants'"
             class="p-2"
             aria-label="Tournament Participants"
+          />
+
+          <Button
+            icon="pi pi-book"
+            severity="help"
+            outlined
+            rounded
+            size="small"
+            @click="handleTopics"
+            v-tooltip.bottom="'Topics'"
+            class="p-2"
+            aria-label="Tournament Topics"
           />
 
           <Button
