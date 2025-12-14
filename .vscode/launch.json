@@ -40,7 +40,7 @@
       "preLaunchTask": "frontend: dev"
     },
     {
-      "name": "Full Stack: Launch Chrome",
+      "name": "Full Stack: Launch Chrome (Watch)",
       "type": "chrome",
       "request": "launch",
       "url": "https://localhost:7053",
@@ -49,7 +49,19 @@
         "webpack:///src/*": "${webRoot}/*"
       },
       "runtimeArgs": ["--incognito"],
-      "preLaunchTask": "Full Stack: Start Servers"
+      "preLaunchTask": "Full Stack: Start Servers (Watch)"
+    },
+    {
+      "name": "Full Stack: Launch Chrome (Run)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "https://localhost:7053",
+      "webRoot": "${workspaceFolder}/frontend/src",
+      "sourceMapPathOverrides": {
+        "webpack:///src/*": "${webRoot}/*"
+      },
+      "runtimeArgs": ["--incognito"],
+      "preLaunchTask": "Full Stack: Start Servers (Run)"
     }
   ]
 }

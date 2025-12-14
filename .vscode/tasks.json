@@ -51,10 +51,27 @@
       "args": [
         "run",
         "--project",
-        "${workspaceFolder}/backend/Cbo.API/Cbo.API.csproj"
+        "${workspaceFolder}/backend/Cbo.API/Cbo.API.csproj",
+        "--launch-profile",
+        "https"
       ],
-      "problemMatcher": "$msCompile",
-      "isBackground": true
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "dotnet-run",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Building\\.\\.\\.",
+          "endsPattern": "Now listening on"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "dev"
+      }
     },
     {
       "label": "backend: ef migrations add",
@@ -160,8 +177,14 @@
       }
     },
     {
-      "label": "Full Stack: Start Servers",
+      "label": "Full Stack: Start Servers (Watch)",
       "dependsOn": ["backend: watch", "frontend: dev"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Full Stack: Start Servers (Run)",
+      "dependsOn": ["backend: run", "frontend: dev"],
       "dependsOrder": "sequence",
       "problemMatcher": []
     }
