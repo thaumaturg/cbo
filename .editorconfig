@@ -9,7 +9,7 @@ indent_size = 4
 trim_trailing_whitespace = true
 guidelines = 120
 
-[*.json]
+[*.{json,md}]
 indent_size = 2
 
 [*.sh]

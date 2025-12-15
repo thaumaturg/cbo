@@ -1,19 +1,5 @@
 # 🚧 Under Construction 🚧
 
-## TODO
-
-- .NET 10, slnx
-- AsNoTracking() for RO ops
-- ditch AutoMapper
-- backend validation
-- pagination and filtering
-- Resource-based authorization
-- Informative Error Messages
-- Server-Sent Events
-- User Profile
-- Move to GUID
-- Email (confirm email, reset password)
-
 # Competitive Bracket Organizer
 
 ## Setup
