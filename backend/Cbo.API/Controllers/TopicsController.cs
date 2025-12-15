@@ -98,9 +98,7 @@ public class TopicsController : ControllerBase
         {
             IsOwner = true,
             IsAuthor = createTopicDto.IsAuthor,
-            ApplicationUserId = currentUser.Id,
-            ApplicationUser = currentUser,
-            Topic = topicDomain
+            ApplicationUserId = currentUser.Id
         });
 
         topicDomain = await _topicRepository.CreateAsync(topicDomain);

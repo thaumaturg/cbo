@@ -104,13 +104,9 @@ public class TournamentsController : ControllerBase
 
         tournamentDomain.TournamentParticipants.Add(new TournamentParticipant
         {
-            Id = 0, // Will be assigned by database
             Role = TournamentParticipantRole.Creator,
             PointsSum = null,
-            TournamentId = 0, // Will be set automatically by EF Core
             ApplicationUserId = creator.Id,
-            Tournament = null!, // Navigation property, not needed for creation
-            ApplicationUser = null! // Navigation property, not needed for creation
         });
 
         tournamentDomain = await _tournamentRepository.CreateAsync(tournamentDomain);

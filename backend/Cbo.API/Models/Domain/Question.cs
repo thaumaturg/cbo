@@ -2,7 +2,7 @@ namespace Cbo.API.Models.Domain;
 
 public class Question
 {
-    public required int Id { get; set; }
+    public int Id { get; set; }
     public required int QuestionNumber { get; set; }
     public required int CostPositive { get; set; }
     public required int CostNegative { get; set; }
