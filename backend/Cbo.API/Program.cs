@@ -1,10 +1,13 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using Cbo.API.Authorization;
 using Cbo.API.Data;
 using Cbo.API.Mappings;
 using Cbo.API.Models.Domain;
 using Cbo.API.Repositories;
+using Cbo.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -33,6 +36,12 @@ public class Program
         builder.Services.AddScoped<IRoundRepository, PostgresRoundRepository>();
         builder.Services.AddScoped<IRoundAnswerRepository, PostgresRoundAnswerRepository>();
         builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+
+        builder.Services.AddScoped<IAuthorizationHandler, TopicAuthorizationHandler>();
+        builder.Services.AddScoped<IAuthorizationHandler, TournamentAuthorizationHandler>();
+
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 

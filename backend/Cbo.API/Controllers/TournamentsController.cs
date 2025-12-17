@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
+using Cbo.API.Authorization;
 using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
+using Cbo.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -16,23 +18,29 @@ public class TournamentsController : ControllerBase
     private readonly ITournamentRepository _tournamentRepository;
     private readonly ITournamentParticipantsRepository _participantsRepository;
     private readonly ITournamentTopicRepository _tournamentTopicRepository;
-    private readonly ITopicAuthorRepository _topicAuthorRepository;
+    private readonly ITopicRepository _topicRepository;
+    private readonly ICurrentUserService _currentUserService;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IAuthorizationService _authorizationService;
     private readonly IMapper _mapper;
 
     public TournamentsController(
         ITournamentRepository tournamentRepository,
         ITournamentParticipantsRepository participantsRepository,
         ITournamentTopicRepository tournamentTopicRepository,
-        ITopicAuthorRepository topicAuthorRepository,
+        ITopicRepository topicRepository,
+        ICurrentUserService currentUserService,
         UserManager<ApplicationUser> userManager,
+        IAuthorizationService authorizationService,
         IMapper mapper)
     {
         _tournamentRepository = tournamentRepository;
         _participantsRepository = participantsRepository;
         _tournamentTopicRepository = tournamentTopicRepository;
-        _topicAuthorRepository = topicAuthorRepository;
+        _topicRepository = topicRepository;
+        _currentUserService = currentUserService;
         _userManager = userManager;
+        _authorizationService = authorizationService;
         _mapper = mapper;
     }
 
@@ -40,13 +48,7 @@ public class TournamentsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetAll()
     {
-        string? username = User.Identity?.Name;
-        if (string.IsNullOrEmpty(username))
-            return Unauthorized("Unable to identify the current user.");
-
-        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
-        if (currentUser is null)
-            return Unauthorized("User not found in the system.");
+        ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
         List<Tournament> tournamentsDomain = await _tournamentRepository.GetAllByUserIdAsync(currentUser.Id);
 
@@ -66,18 +68,16 @@ public class TournamentsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
-        string? username = User.Identity?.Name;
-        if (string.IsNullOrEmpty(username))
-            return Unauthorized("Unable to identify the current user.");
-
-        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
-        if (currentUser is null)
-            return Unauthorized("User not found in the system.");
-
         Tournament? tournamentDomain = await _tournamentRepository.GetByIdAsync(id);
 
         if (tournamentDomain is null)
             return NotFound();
+
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, tournamentDomain, TournamentOperations.Read);
+        if (!authResult.Succeeded)
+            return NotFound();
+
+        ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
         GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentDomain);
 
@@ -92,13 +92,7 @@ public class TournamentsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateTournamentDto createTournamentDto)
     {
-        string? username = User.Identity?.Name;
-        if (string.IsNullOrEmpty(username))
-            return Unauthorized("Unable to identify the current user.");
-
-        ApplicationUser? creator = await _userManager.FindByNameAsync(username);
-        if (creator is null)
-            return Unauthorized("User not found in the system.");
+        ApplicationUser creator = await _currentUserService.GetRequiredCurrentUserAsync();
 
         Tournament tournamentDomain = _mapper.Map<Tournament>(createTournamentDto);
 
@@ -121,6 +115,14 @@ public class TournamentsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateTournamentDto updateTournamentDto)
     {
+        Tournament? existingTournament = await _tournamentRepository.GetByIdAsync(id);
+        if (existingTournament is null)
+            return NotFound();
+
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, existingTournament, TournamentOperations.Update);
+        if (!authResult.Succeeded)
+            return NotFound();
+
         Tournament? tournamentDomain = _mapper.Map<Tournament>(updateTournamentDto);
 
         tournamentDomain = await _tournamentRepository.UpdateAsync(id, tournamentDomain);
@@ -138,6 +140,14 @@ public class TournamentsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Delete([FromRoute] int id)
     {
+        Tournament? existingTournament = await _tournamentRepository.GetByIdAsync(id);
+        if (existingTournament is null)
+            return NotFound();
+
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, existingTournament, TournamentOperations.Delete);
+        if (!authResult.Succeeded)
+            return NotFound();
+
         Tournament? tournamentDomain = await _tournamentRepository.DeleteAsync(id);
 
         if (tournamentDomain is null)
@@ -157,7 +167,11 @@ public class TournamentsController : ControllerBase
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
-            return NotFound($"Tournament with ID {tournamentId} not found.");
+            return NotFound();
+
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, tournament, TournamentOperations.Read);
+        if (!authResult.Succeeded)
+            return NotFound();
 
         List<TournamentParticipant> participantsDomain = await _participantsRepository.GetAllByTournamentIdAsync(tournamentId);
         List<GetTournamentParticipantDto> participantsDto = _mapper.Map<List<GetTournamentParticipantDto>>(participantsDomain);
@@ -172,7 +186,11 @@ public class TournamentsController : ControllerBase
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
-            return NotFound($"Tournament with ID {tournamentId} not found.");
+            return NotFound();
+
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, tournament, TournamentOperations.Read);
+        if (!authResult.Succeeded)
+            return NotFound();
 
         TournamentParticipant? participantDomain = await _participantsRepository.GetByParticipantIdAndTournamentIdAsync(id, tournamentId);
 
@@ -191,7 +209,11 @@ public class TournamentsController : ControllerBase
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
-            return NotFound($"Tournament with ID {tournamentId} not found.");
+            return NotFound();
+
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, tournament, TournamentOperations.ManageParticipants);
+        if (!authResult.Succeeded)
+            return NotFound();
 
         ApplicationUser? user = await _userManager.FindByNameAsync(createParticipantDto.Username);
         if (user is null)
@@ -223,7 +245,11 @@ public class TournamentsController : ControllerBase
 
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
-            return NotFound($"Tournament with ID {tournamentId} not found.");
+            return NotFound();
+
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, tournament, TournamentOperations.ManageParticipants);
+        if (!authResult.Succeeded)
+            return NotFound();
 
         TournamentParticipant? existingParticipant = await _participantsRepository.GetByParticipantIdAndTournamentIdAsync(id, tournamentId);
         if (existingParticipant is null)
@@ -247,7 +273,11 @@ public class TournamentsController : ControllerBase
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
-            return NotFound($"Tournament with ID {tournamentId} not found.");
+            return NotFound();
+
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, tournament, TournamentOperations.ManageParticipants);
+        if (!authResult.Succeeded)
+            return NotFound();
 
         TournamentParticipant? existingParticipant = await _participantsRepository.GetByParticipantIdAndTournamentIdAsync(id, tournamentId);
         if (existingParticipant is null)
@@ -272,23 +302,19 @@ public class TournamentsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetMyTopics([FromRoute] int tournamentId)
     {
-        string? username = User.Identity?.Name;
-        if (string.IsNullOrEmpty(username))
-            return Unauthorized("Unable to identify the current user.");
-
-        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
-        if (currentUser is null)
-            return Unauthorized("User not found in the system.");
-
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
-            return NotFound($"Tournament with ID {tournamentId} not found.");
+            return NotFound();
+
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, tournament, TournamentOperations.Read);
+        if (!authResult.Succeeded)
+            return NotFound();
+
+        ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
         TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUser.Id, tournamentId);
-        if (participant is null)
-            return Forbid();
 
-        List<TournamentTopic> topicsDomain = await _tournamentTopicRepository.GetAllByParticipantIdAsync(tournamentId, participant.Id);
+        List<TournamentTopic> topicsDomain = await _tournamentTopicRepository.GetAllByParticipantIdAsync(tournamentId, participant!.Id);
         List<GetTournamentTopicDto> topicsDto = _mapper.Map<List<GetTournamentTopicDto>>(topicsDomain);
 
         return Ok(topicsDto);
@@ -299,24 +325,13 @@ public class TournamentsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetAllTopics([FromRoute] int tournamentId)
     {
-        string? username = User.Identity?.Name;
-        if (string.IsNullOrEmpty(username))
-            return Unauthorized("Unable to identify the current user.");
-
-        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
-        if (currentUser is null)
-            return Unauthorized("User not found in the system.");
-
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
-            return NotFound($"Tournament with ID {tournamentId} not found.");
+            return NotFound();
 
-        TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUser.Id, tournamentId);
-        if (participant is null)
-            return Forbid();
-
-        if (participant.Role != TournamentParticipantRole.Creator && participant.Role != TournamentParticipantRole.Organizer)
-            return Forbid();
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, tournament, TournamentOperations.ViewAllTopics);
+        if (!authResult.Succeeded)
+            return NotFound();
 
         List<TournamentTopic> topicsDomain = await _tournamentTopicRepository.GetAllByTournamentIdAsync(tournamentId);
         List<GetTournamentTopicDto> topicsDto = _mapper.Map<List<GetTournamentTopicDto>>(topicsDomain);
@@ -329,21 +344,17 @@ public class TournamentsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> SetMyTopics([FromRoute] int tournamentId, [FromBody] List<UpdateTournamentTopicDto> topicsDto)
     {
-        string? username = User.Identity?.Name;
-        if (string.IsNullOrEmpty(username))
-            return Unauthorized("Unable to identify the current user.");
-
-        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
-        if (currentUser is null)
-            return Unauthorized("User not found in the system.");
-
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
-            return NotFound($"Tournament with ID {tournamentId} not found.");
+            return NotFound();
+
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, tournament, TournamentOperations.Read);
+        if (!authResult.Succeeded)
+            return NotFound();
+
+        ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
         TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUser.Id, tournamentId);
-        if (participant is null)
-            return Forbid();
 
         if (topicsDto.Count < tournament.TopicsPerParticipantMin)
             return BadRequest($"Must assign at least {tournament.TopicsPerParticipantMin} topics.");
@@ -359,18 +370,22 @@ public class TournamentsController : ControllerBase
             if (!seenTopicIds.Add(dto.TopicId))
                 return BadRequest($"Duplicate topic ID {dto.TopicId} in the list.");
 
-            TopicAuthor? topicAuthor = await _topicAuthorRepository.GetByUserIdAndTopicIdAsync(currentUser.Id, dto.TopicId);
-            if (topicAuthor is null || !topicAuthor.IsOwner)
+            Topic? topic = await _topicRepository.GetByIdAsync(dto.TopicId);
+            if (topic is null)
+                return BadRequest($"Topic with ID {dto.TopicId} not found.");
+
+            AuthorizationResult topicAuthResult = await _authorizationService.AuthorizeAsync(User, topic, TopicOperations.Read);
+            if (!topicAuthResult.Succeeded)
                 return BadRequest($"You must be the owner of topic with ID {dto.TopicId} to assign it.");
 
             TournamentTopic topicDomain = _mapper.Map<TournamentTopic>(dto);
             topicDomain.TournamentId = tournamentId;
-            topicDomain.TournamentParticipantId = participant.Id;
+            topicDomain.TournamentParticipantId = participant!.Id;
 
             topicsDomain.Add(topicDomain);
         }
 
-        List<TournamentTopic> result = await _tournamentTopicRepository.SetTopicsForParticipantAsync(tournamentId, participant.Id, topicsDomain);
+        List<TournamentTopic> result = await _tournamentTopicRepository.SetTopicsForParticipantAsync(tournamentId, participant!.Id, topicsDomain);
         List<GetTournamentTopicDto> resultDto = _mapper.Map<List<GetTournamentTopicDto>>(result);
 
         return Ok(resultDto);

@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using Cbo.API.Authorization;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
+using Cbo.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -14,18 +16,24 @@ public class TopicsController : ControllerBase
 {
     private readonly ITopicRepository _topicRepository;
     private readonly ITopicAuthorRepository _topicAuthorRepository;
+    private readonly ICurrentUserService _currentUserService;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IAuthorizationService _authorizationService;
     private readonly IMapper _mapper;
 
     public TopicsController(
         ITopicRepository topicRepository,
         ITopicAuthorRepository topicAuthorRepository,
+        ICurrentUserService currentUserService,
         UserManager<ApplicationUser> userManager,
+        IAuthorizationService authorizationService,
         IMapper mapper)
     {
         _topicRepository = topicRepository;
         _topicAuthorRepository = topicAuthorRepository;
+        _currentUserService = currentUserService;
         _userManager = userManager;
+        _authorizationService = authorizationService;
         _mapper = mapper;
     }
 
@@ -33,13 +41,7 @@ public class TopicsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetAll()
     {
-        string? username = User.Identity?.Name;
-        if (string.IsNullOrEmpty(username))
-            return Unauthorized("Unable to identify the current user.");
-
-        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
-        if (currentUser is null)
-            return Unauthorized("User not found in the system.");
+        ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
         List<Topic> topicsDomain = await _topicRepository.GetAllByUserIdAsync(currentUser.Id);
 
@@ -59,18 +61,16 @@ public class TopicsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
-        string? username = User.Identity?.Name;
-        if (string.IsNullOrEmpty(username))
-            return Unauthorized("Unable to identify the current user.");
-
-        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
-        if (currentUser is null)
-            return Unauthorized("User not found in the system.");
-
         Topic? topicDomain = await _topicRepository.GetByIdIncludeQuestionsAsync(id);
 
         if (topicDomain is null)
             return NotFound();
+
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, topicDomain, TopicOperations.Read);
+        if (!authResult.Succeeded)
+            return NotFound();
+
+        ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
         GetTopicDto getTopicDto = _mapper.Map<GetTopicDto>(topicDomain);
         TopicAuthor? topicAuthor = topicDomain.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUser.Id);
@@ -83,13 +83,7 @@ public class TopicsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateTopicDto createTopicDto)
     {
-        string? username = User.Identity?.Name;
-        if (string.IsNullOrEmpty(username))
-            return Unauthorized("Unable to identify the current user.");
-
-        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
-        if (currentUser is null)
-            return Unauthorized("User not found in the system.");
+        ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
         Topic topicDomain = _mapper.Map<Topic>(createTopicDto);
 
@@ -119,13 +113,14 @@ public class TopicsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateTopicDto updateTopicDto)
     {
-        string? username = User.Identity?.Name;
-        if (string.IsNullOrEmpty(username))
-            return Unauthorized("Unable to identify the current user.");
+        Topic? existingTopic = await _topicRepository.GetByIdAsync(id);
+        if (existingTopic is null)
+            return NotFound();
 
-        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
-        if (currentUser is null)
-            return Unauthorized("User not found in the system.");
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, existingTopic, TopicOperations.Update);
+        if (!authResult.Succeeded)
+            return NotFound();
+        ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
         Topic topicDomain = _mapper.Map<Topic>(updateTopicDto);
         List<Question> incomingQuestions = _mapper.Map<List<Question>>(updateTopicDto.Questions);
@@ -155,6 +150,14 @@ public class TopicsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Delete([FromRoute] int id)
     {
+        Topic? existingTopic = await _topicRepository.GetByIdAsync(id);
+        if (existingTopic is null)
+            return NotFound();
+
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, existingTopic, TopicOperations.Delete);
+        if (!authResult.Succeeded)
+            return NotFound();
+
         Topic? topicDomain = await _topicRepository.DeleteAsync(id);
 
         if (topicDomain is null)
@@ -170,21 +173,13 @@ public class TopicsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetAllAuthors([FromRoute] int topicId)
     {
-        string? username = User.Identity?.Name;
-        if (string.IsNullOrEmpty(username))
-            return Unauthorized("Unable to identify the current user.");
-
-        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
-        if (currentUser is null)
-            return Unauthorized("User not found in the system.");
-
         Topic? topic = await _topicRepository.GetByIdAsync(topicId);
         if (topic is null)
-            return NotFound($"Topic with ID {topicId} not found.");
+            return NotFound();
 
-        TopicAuthor? ownerCheck = await _topicAuthorRepository.GetByUserIdAndTopicIdAsync(currentUser.Id, topicId);
-        if (ownerCheck is null || !ownerCheck.IsOwner)
-            return Forbid();
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, topic, TopicOperations.ManageAuthors);
+        if (!authResult.Succeeded)
+            return NotFound();
 
         List<TopicAuthor> authorsDomain = await _topicAuthorRepository.GetAllByTopicIdAsync(topicId);
         List<GetTopicAuthorDto> authorsDto = _mapper.Map<List<GetTopicAuthorDto>>(authorsDomain);
@@ -197,21 +192,13 @@ public class TopicsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetAuthorById([FromRoute] int topicId, [FromRoute] int id)
     {
-        string? username = User.Identity?.Name;
-        if (string.IsNullOrEmpty(username))
-            return Unauthorized("Unable to identify the current user.");
-
-        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
-        if (currentUser is null)
-            return Unauthorized("User not found in the system.");
-
         Topic? topic = await _topicRepository.GetByIdAsync(topicId);
         if (topic is null)
-            return NotFound($"Topic with ID {topicId} not found.");
+            return NotFound();
 
-        TopicAuthor? ownerCheck = await _topicAuthorRepository.GetByUserIdAndTopicIdAsync(currentUser.Id, topicId);
-        if (ownerCheck is null || !ownerCheck.IsOwner)
-            return Forbid();
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, topic, TopicOperations.ManageAuthors);
+        if (!authResult.Succeeded)
+            return NotFound();
 
         TopicAuthor? authorDomain = await _topicAuthorRepository.GetByAuthorIdAndTopicIdAsync(id, topicId);
 
@@ -228,21 +215,13 @@ public class TopicsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> CreateAuthor([FromRoute] int topicId, [FromBody] CreateTopicAuthorDto createAuthorDto)
     {
-        string? username = User.Identity?.Name;
-        if (string.IsNullOrEmpty(username))
-            return Unauthorized("Unable to identify the current user.");
-
-        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
-        if (currentUser is null)
-            return Unauthorized("User not found in the system.");
-
         Topic? topic = await _topicRepository.GetByIdAsync(topicId);
         if (topic is null)
-            return NotFound($"Topic with ID {topicId} not found.");
+            return NotFound();
 
-        TopicAuthor? ownerCheck = await _topicAuthorRepository.GetByUserIdAndTopicIdAsync(currentUser.Id, topicId);
-        if (ownerCheck is null || !ownerCheck.IsOwner)
-            return Forbid();
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, topic, TopicOperations.ManageAuthors);
+        if (!authResult.Succeeded)
+            return NotFound();
 
         ApplicationUser? user = await _userManager.FindByNameAsync(createAuthorDto.Username);
         if (user is null)
@@ -274,21 +253,13 @@ public class TopicsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> DeleteAuthor([FromRoute] int topicId, [FromRoute] int id)
     {
-        string? username = User.Identity?.Name;
-        if (string.IsNullOrEmpty(username))
-            return Unauthorized("Unable to identify the current user.");
-
-        ApplicationUser? currentUser = await _userManager.FindByNameAsync(username);
-        if (currentUser is null)
-            return Unauthorized("User not found in the system.");
-
         Topic? topic = await _topicRepository.GetByIdAsync(topicId);
         if (topic is null)
-            return NotFound($"Topic with ID {topicId} not found.");
+            return NotFound();
 
-        TopicAuthor? ownerCheck = await _topicAuthorRepository.GetByUserIdAndTopicIdAsync(currentUser.Id, topicId);
-        if (ownerCheck is null || !ownerCheck.IsOwner)
-            return Forbid();
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, topic, TopicOperations.ManageAuthors);
+        if (!authResult.Succeeded)
+            return NotFound();
 
         TopicAuthor? existingAuthor = await _topicAuthorRepository.GetByAuthorIdAndTopicIdAsync(id, topicId);
         if (existingAuthor is null)
