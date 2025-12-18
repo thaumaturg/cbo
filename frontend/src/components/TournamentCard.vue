@@ -55,6 +55,7 @@ const handleDelete = () => {
 
         <div class="flex items-center gap-3">
           <Button
+            v-if="tournament.currentUserRole === 'Creator'"
             icon="pi pi-cog"
             severity="secondary"
             outlined
@@ -91,6 +92,7 @@ const handleDelete = () => {
           />
 
           <Button
+            v-if="tournament.currentUserRole === 'Creator'"
             icon="pi pi-play"
             severity="success"
             outlined
