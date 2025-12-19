@@ -13,4 +13,5 @@ public static class DefaultSettings
     public const int TopicsPerParticipantMax = 10;
     public const int TopicsPerParticipantMin = 6;
     public const int TopicsPerMatch = 4;
+    public const int OrganizersPerTournamentMax = 3;
 }
