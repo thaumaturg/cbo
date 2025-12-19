@@ -1,6 +1,8 @@
 <script setup>
+import Badge from "primevue/badge";
 import Button from "primevue/button";
 import Card from "primevue/card";
+import { computed } from "vue";
 
 const props = defineProps({
   tournament: {
@@ -8,16 +10,30 @@ const props = defineProps({
     required: true,
     default: () => ({
       id: null,
-      title: "Tournament Name",
-      description: "",
-      currentStage: "",
+      title: null,
+      description: null,
+      currentStage: null,
       startedAt: null,
       endedAt: null,
+      currentUserRole: null,
     }),
   },
 });
 
 const emit = defineEmits(["settings", "participants", "topics", "start", "delete"]);
+
+const isInPreparations = computed(() => props.tournament.currentStage === "Preparations");
+
+const stageBadgeSeverity = computed(() => {
+  switch (props.tournament.currentStage) {
+    case "Preparations":
+      return "secondary";
+    case "Qualifications":
+      return "info";
+    default:
+      return "success";
+  }
+});
 
 const handleSettings = () => {
   emit("settings", props.tournament);
@@ -45,9 +61,12 @@ const handleDelete = () => {
     <template #content>
       <div class="p-4">
         <div class="mb-4">
-          <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
-            {{ tournament.title }}
-          </h3>
+          <div class="flex items-center gap-2 mb-1">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+              {{ tournament.title }}
+            </h3>
+            <Badge v-if="!isInPreparations" :value="tournament.currentStage" :severity="stageBadgeSeverity" />
+          </div>
           <p v-if="tournament.description" class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
             {{ tournament.description }}
           </p>
@@ -92,7 +111,7 @@ const handleDelete = () => {
           />
 
           <Button
-            v-if="tournament.currentUserRole === 'Creator'"
+            v-if="tournament.currentUserRole === 'Creator' && isInPreparations"
             icon="pi pi-play"
             severity="success"
             outlined

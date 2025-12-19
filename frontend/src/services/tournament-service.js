@@ -259,4 +259,24 @@ export const tournamentService = {
       };
     }
   },
+
+  /**
+   * Advance tournament to the next stage
+   * @param {number} tournamentId - Tournament ID
+   * @param {string} stage - Target stage
+   * @returns {Promise} - API response with updated tournament
+   */
+  async advanceStage(tournamentId, stage) {
+    try {
+      const response = await api.patch(`/Tournaments/${tournamentId}`, {
+        stage: stage,
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data || "Failed to advance tournament stage. Please try again.",
+      };
+    }
+  },
 };
