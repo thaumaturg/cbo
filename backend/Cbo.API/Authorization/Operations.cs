@@ -26,4 +26,6 @@ public static class TournamentOperations
         new() { Name = nameof(ManageParticipants) };
     public static readonly OperationAuthorizationRequirement ViewAllTopics =
         new() { Name = nameof(ViewAllTopics) };
+    public static readonly OperationAuthorizationRequirement AdvanceStage =
+        new() { Name = nameof(AdvanceStage) };
 }
