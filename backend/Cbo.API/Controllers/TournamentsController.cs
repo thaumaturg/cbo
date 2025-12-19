@@ -158,6 +158,65 @@ public class TournamentsController : ControllerBase
         return Ok(tournamentDto);
     }
 
+    [HttpPatch]
+    [Route("{id:int}")]
+    [Authorize]
+    public async Task<IActionResult> AdvanceStage([FromRoute] int id, [FromBody] UpdateTournamentStageDto advanceStageDto)
+    {
+        if (advanceStageDto.Stage != TournamentStage.Qualifications)
+            return BadRequest("Only advancing to Qualifications stage is currently supported.");
+
+        Tournament? existingTournament = await _tournamentRepository.GetByIdAsync(id);
+        if (existingTournament is null)
+            return NotFound();
+
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, existingTournament, TournamentOperations.AdvanceStage);
+        if (!authResult.Succeeded)
+            return NotFound();
+
+        if (existingTournament.CurrentStage != TournamentStage.Preparations)
+            return BadRequest("Tournament can only advance to Qualifications from Preparations stage.");
+
+        List<TournamentParticipant> allParticipants = await _participantsRepository.GetAllByTournamentIdAsync(id);
+
+        List<TournamentParticipant> players = allParticipants
+            .Where(p => p.Role == TournamentParticipantRole.Player)
+            .ToList();
+
+        if (players.Count != existingTournament.ParticipantsPerTournament)
+            return BadRequest($"Tournament requires exactly {existingTournament.ParticipantsPerTournament} players. Currently has {players.Count}.");
+
+        List<TournamentTopic> allTopics = await _tournamentTopicRepository.GetAllByTournamentIdAsync(id);
+
+        foreach (TournamentParticipant participant in allParticipants)
+        {
+            int topicCount = allTopics.Count(t => t.TournamentParticipantId == participant.Id);
+
+            if (participant.Role == TournamentParticipantRole.Player)
+            {
+                if (topicCount < existingTournament.TopicsPerParticipantMin)
+                    return BadRequest($"Player '{participant.ApplicationUser?.UserName ?? participant.Id.ToString()}' has {topicCount} topics, but needs at least {existingTournament.TopicsPerParticipantMin}.");
+
+                if (topicCount > existingTournament.TopicsPerParticipantMax)
+                    return BadRequest($"Player '{participant.ApplicationUser?.UserName ?? participant.Id.ToString()}' has {topicCount} topics, but maximum allowed is {existingTournament.TopicsPerParticipantMax}.");
+            }
+            else
+            {
+                if (topicCount > existingTournament.TopicsPerParticipantMax)
+                    return BadRequest($"Participant '{participant.ApplicationUser?.UserName ?? participant.Id.ToString()}' has {topicCount} topics, but maximum allowed is {existingTournament.TopicsPerParticipantMax}.");
+            }
+        }
+
+        Tournament? tournamentDomain = await _tournamentRepository.UpdateStageAsync(id, advanceStageDto.Stage);
+
+        if (tournamentDomain is null)
+            return NotFound();
+
+        GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentDomain);
+
+        return Ok(tournamentDto);
+    }
+
     #region TournamentParticipants
 
     [HttpGet]
