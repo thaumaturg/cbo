@@ -5,7 +5,7 @@ public class MatchParticipant
     public int Id { get; set; }
     public required int TournamentParticipantId { get; set; }
     public required TournamentParticipant TournamentParticipant { get; set; }
-    public required int MatchId { get; set; }
+    public int MatchId { get; set; }
     public required Match Match { get; set; }
     public int? PromotedFromId { get; set; }
     public MatchParticipant? PromotedFrom { get; set; }
