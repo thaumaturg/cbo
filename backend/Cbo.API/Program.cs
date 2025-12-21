@@ -42,6 +42,7 @@ public class Program
 
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+        builder.Services.AddScoped<IMatchGenerationService, MatchGenerationService>();
 
         builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
