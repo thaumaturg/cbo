@@ -4,7 +4,7 @@ public static class DefaultSettings
 {
     public const int ParticipantsPerMatchMax = 4;
     public const int ParticipantsPerMatchMin = 2;
-    public const int ParticipantsPerTournament = 12;
+    public const int PlayersPerTournament = 14;
     public const int QuestionsCostMax = 50;
     public const int QuestionsCostMin = 50;
     public const int QuestionsPerTopicMax = 5;

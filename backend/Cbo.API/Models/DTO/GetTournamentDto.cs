@@ -11,7 +11,7 @@ public record GetTournamentDto
     public required DateTime CreatedAt { get; set; }
     public DateTime? StartedAt { get; set; }
     public DateTime? EndedAt { get; set; }
-    public required int ParticipantsPerTournament { get; set; }
+    public required int PlayersPerTournament { get; set; }
     public required int TopicsPerParticipantMax { get; set; }
     public required int TopicsPerParticipantMin { get; set; }
     public TournamentParticipantRole? CurrentUserRole { get; set; }

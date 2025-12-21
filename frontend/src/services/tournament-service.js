@@ -39,7 +39,7 @@ export const tournamentService = {
    * @param {Object} tournamentData - Tournament data
    * @param {string} tournamentData.title - Tournament title
    * @param {string} [tournamentData.description] - Tournament description (optional)
-   * @param {number} [tournamentData.participantsPerTournament] - Maximum participants in tournament (optional)
+   * @param {number} [tournamentData.playersPerTournament] - Maximum players in tournament (optional)
    * @param {number} [tournamentData.topicsPerParticipantMax] - Maximum topics per participant (optional)
    * @param {number} [tournamentData.topicsPerParticipantMin] - Minimum topics per participant (optional)
    * @returns {Promise} - API response with created tournament
@@ -49,7 +49,7 @@ export const tournamentService = {
       const response = await api.post("/Tournaments", {
         title: tournamentData.title,
         description: tournamentData.description,
-        participantsPerTournament: tournamentData.participantsPerTournament,
+        playersPerTournament: tournamentData.playersPerTournament,
         topicsPerParticipantMax: tournamentData.topicsPerParticipantMax,
         topicsPerParticipantMin: tournamentData.topicsPerParticipantMin,
       });
@@ -68,7 +68,7 @@ export const tournamentService = {
    * @param {Object} tournamentData - Updated tournament data
    * @param {string} tournamentData.title - Tournament title
    * @param {string} [tournamentData.description] - Tournament description (optional)
-   * @param {number} [tournamentData.participantsPerTournament] - Maximum participants in tournament (optional)
+   * @param {number} [tournamentData.playersPerTournament] - Maximum players in tournament (optional)
    * @param {number} [tournamentData.topicsPerParticipantMax] - Maximum topics per participant (optional)
    * @param {number} [tournamentData.topicsPerParticipantMin] - Minimum topics per participant (optional)
    * @returns {Promise} - API response with updated tournament
@@ -78,7 +78,7 @@ export const tournamentService = {
       const response = await api.put(`/Tournaments/${tournamentId}`, {
         title: tournamentData.title,
         description: tournamentData.description,
-        participantsPerTournament: tournamentData.participantsPerTournament,
+        playersPerTournament: tournamentData.playersPerTournament,
         topicsPerParticipantMax: tournamentData.topicsPerParticipantMax,
         topicsPerParticipantMin: tournamentData.topicsPerParticipantMin,
       });

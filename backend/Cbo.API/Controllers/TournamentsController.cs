@@ -92,6 +92,12 @@ public class TournamentsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateTournamentDto createTournamentDto)
     {
+        if (createTournamentDto.PlayersPerTournament.HasValue &&
+            createTournamentDto.PlayersPerTournament.Value != DefaultSettings.PlayersPerTournament)
+        {
+            return BadRequest($"Only {DefaultSettings.PlayersPerTournament} players per tournament is currently supported.");
+        }
+
         ApplicationUser creator = await _currentUserService.GetRequiredCurrentUserAsync();
 
         Tournament tournamentDomain = _mapper.Map<Tournament>(createTournamentDto);
@@ -115,6 +121,12 @@ public class TournamentsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateTournamentDto updateTournamentDto)
     {
+        if (updateTournamentDto.PlayersPerTournament.HasValue &&
+            updateTournamentDto.PlayersPerTournament.Value != DefaultSettings.PlayersPerTournament)
+        {
+            return BadRequest($"Only {DefaultSettings.PlayersPerTournament} players per tournament is currently supported.");
+        }
+
         Tournament? existingTournament = await _tournamentRepository.GetByIdAsync(id);
         if (existingTournament is null)
             return NotFound();
@@ -181,10 +193,11 @@ public class TournamentsController : ControllerBase
 
         List<TournamentParticipant> players = allParticipants
             .Where(p => p.Role == TournamentParticipantRole.Player)
+            .OrderBy(p => p.Id)
             .ToList();
 
-        if (players.Count != existingTournament.ParticipantsPerTournament)
-            return BadRequest($"Tournament requires exactly {existingTournament.ParticipantsPerTournament} players. Currently has {players.Count}.");
+        if (players.Count != existingTournament.PlayersPerTournament)
+            return BadRequest($"Tournament requires exactly {existingTournament.PlayersPerTournament} players. Currently has {players.Count}.");
 
         List<TournamentTopic> allTopics = await _tournamentTopicRepository.GetAllByTournamentIdAsync(id);
 
