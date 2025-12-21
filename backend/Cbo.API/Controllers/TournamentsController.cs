@@ -19,7 +19,9 @@ public class TournamentsController : ControllerBase
     private readonly ITournamentParticipantsRepository _participantsRepository;
     private readonly ITournamentTopicRepository _tournamentTopicRepository;
     private readonly ITopicRepository _topicRepository;
+    private readonly IMatchRepository _matchRepository;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IMatchGenerationService _matchGenerationService;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IAuthorizationService _authorizationService;
     private readonly IMapper _mapper;
@@ -29,7 +31,9 @@ public class TournamentsController : ControllerBase
         ITournamentParticipantsRepository participantsRepository,
         ITournamentTopicRepository tournamentTopicRepository,
         ITopicRepository topicRepository,
+        IMatchRepository matchRepository,
         ICurrentUserService currentUserService,
+        IMatchGenerationService matchGenerationService,
         UserManager<ApplicationUser> userManager,
         IAuthorizationService authorizationService,
         IMapper mapper)
@@ -38,7 +42,9 @@ public class TournamentsController : ControllerBase
         _participantsRepository = participantsRepository;
         _tournamentTopicRepository = tournamentTopicRepository;
         _topicRepository = topicRepository;
+        _matchRepository = matchRepository;
         _currentUserService = currentUserService;
+        _matchGenerationService = matchGenerationService;
         _userManager = userManager;
         _authorizationService = authorizationService;
         _mapper = mapper;
@@ -219,6 +225,9 @@ public class TournamentsController : ControllerBase
                     return BadRequest($"Participant '{participant.ApplicationUser?.UserName ?? participant.Id.ToString()}' has {topicCount} topics, but maximum allowed is {existingTournament.TopicsPerParticipantMax}.");
             }
         }
+
+        List<Match> matches = _matchGenerationService.GenerateQualificationMatches(existingTournament, players);
+        await _matchRepository.CreateBulkAsync(matches);
 
         Tournament? tournamentDomain = await _tournamentRepository.UpdateStageAsync(id, advanceStageDto.Stage);
 
