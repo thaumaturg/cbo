@@ -221,10 +221,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
             entity.Property(ra => ra.IsAnswerAccepted)
                 .IsRequired();
 
-            entity.Property(ra => ra.AnsweredAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .ValueGeneratedOnAdd();
-
             entity.Property(ra => ra.RoundId)
                 .IsRequired();
 
