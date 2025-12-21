@@ -22,4 +22,11 @@ public class PostgresMatchRepository : IMatchRepository
     {
         return await _dbContext.Matches.FirstOrDefaultAsync(x => x.Id == id);
     }
+
+    public async Task<List<Match>> CreateBulkAsync(List<Match> matches)
+    {
+        await _dbContext.Matches.AddRangeAsync(matches);
+        await _dbContext.SaveChangesAsync();
+        return matches;
+    }
 }
