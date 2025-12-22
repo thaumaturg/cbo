@@ -39,7 +39,7 @@ export const tournamentService = {
    * @param {Object} tournamentData - Tournament data
    * @param {string} tournamentData.title - Tournament title
    * @param {string} [tournamentData.description] - Tournament description (optional)
-   * @param {number} [tournamentData.participantsPerTournament] - Maximum participants in tournament (optional)
+   * @param {number} [tournamentData.playersPerTournament] - Maximum players in tournament (optional)
    * @param {number} [tournamentData.topicsPerParticipantMax] - Maximum topics per participant (optional)
    * @param {number} [tournamentData.topicsPerParticipantMin] - Minimum topics per participant (optional)
    * @returns {Promise} - API response with created tournament
@@ -49,7 +49,7 @@ export const tournamentService = {
       const response = await api.post("/Tournaments", {
         title: tournamentData.title,
         description: tournamentData.description,
-        participantsPerTournament: tournamentData.participantsPerTournament,
+        playersPerTournament: tournamentData.playersPerTournament,
         topicsPerParticipantMax: tournamentData.topicsPerParticipantMax,
         topicsPerParticipantMin: tournamentData.topicsPerParticipantMin,
       });
@@ -68,7 +68,7 @@ export const tournamentService = {
    * @param {Object} tournamentData - Updated tournament data
    * @param {string} tournamentData.title - Tournament title
    * @param {string} [tournamentData.description] - Tournament description (optional)
-   * @param {number} [tournamentData.participantsPerTournament] - Maximum participants in tournament (optional)
+   * @param {number} [tournamentData.playersPerTournament] - Maximum players in tournament (optional)
    * @param {number} [tournamentData.topicsPerParticipantMax] - Maximum topics per participant (optional)
    * @param {number} [tournamentData.topicsPerParticipantMin] - Minimum topics per participant (optional)
    * @returns {Promise} - API response with updated tournament
@@ -78,7 +78,7 @@ export const tournamentService = {
       const response = await api.put(`/Tournaments/${tournamentId}`, {
         title: tournamentData.title,
         description: tournamentData.description,
-        participantsPerTournament: tournamentData.participantsPerTournament,
+        playersPerTournament: tournamentData.playersPerTournament,
         topicsPerParticipantMax: tournamentData.topicsPerParticipantMax,
         topicsPerParticipantMin: tournamentData.topicsPerParticipantMin,
       });
@@ -256,6 +256,26 @@ export const tournamentService = {
       return {
         success: false,
         error: error.response?.data || "Failed to update topics. Please try again.",
+      };
+    }
+  },
+
+  /**
+   * Advance tournament to the next stage
+   * @param {number} tournamentId - Tournament ID
+   * @param {string} stage - Target stage
+   * @returns {Promise} - API response with updated tournament
+   */
+  async advanceStage(tournamentId, stage) {
+    try {
+      const response = await api.patch(`/Tournaments/${tournamentId}`, {
+        stage: stage,
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data || "Failed to advance tournament stage. Please try again.",
       };
     }
   },

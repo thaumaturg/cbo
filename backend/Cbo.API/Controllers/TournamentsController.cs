@@ -19,7 +19,9 @@ public class TournamentsController : ControllerBase
     private readonly ITournamentParticipantsRepository _participantsRepository;
     private readonly ITournamentTopicRepository _tournamentTopicRepository;
     private readonly ITopicRepository _topicRepository;
+    private readonly IMatchRepository _matchRepository;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IMatchGenerationService _matchGenerationService;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IAuthorizationService _authorizationService;
     private readonly IMapper _mapper;
@@ -29,7 +31,9 @@ public class TournamentsController : ControllerBase
         ITournamentParticipantsRepository participantsRepository,
         ITournamentTopicRepository tournamentTopicRepository,
         ITopicRepository topicRepository,
+        IMatchRepository matchRepository,
         ICurrentUserService currentUserService,
+        IMatchGenerationService matchGenerationService,
         UserManager<ApplicationUser> userManager,
         IAuthorizationService authorizationService,
         IMapper mapper)
@@ -38,7 +42,9 @@ public class TournamentsController : ControllerBase
         _participantsRepository = participantsRepository;
         _tournamentTopicRepository = tournamentTopicRepository;
         _topicRepository = topicRepository;
+        _matchRepository = matchRepository;
         _currentUserService = currentUserService;
+        _matchGenerationService = matchGenerationService;
         _userManager = userManager;
         _authorizationService = authorizationService;
         _mapper = mapper;
@@ -92,6 +98,12 @@ public class TournamentsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateTournamentDto createTournamentDto)
     {
+        if (createTournamentDto.PlayersPerTournament.HasValue &&
+            createTournamentDto.PlayersPerTournament.Value != DefaultSettings.PlayersPerTournament)
+        {
+            return BadRequest($"Only {DefaultSettings.PlayersPerTournament} players per tournament is currently supported.");
+        }
+
         ApplicationUser creator = await _currentUserService.GetRequiredCurrentUserAsync();
 
         Tournament tournamentDomain = _mapper.Map<Tournament>(createTournamentDto);
@@ -115,6 +127,12 @@ public class TournamentsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateTournamentDto updateTournamentDto)
     {
+        if (updateTournamentDto.PlayersPerTournament.HasValue &&
+            updateTournamentDto.PlayersPerTournament.Value != DefaultSettings.PlayersPerTournament)
+        {
+            return BadRequest($"Only {DefaultSettings.PlayersPerTournament} players per tournament is currently supported.");
+        }
+
         Tournament? existingTournament = await _tournamentRepository.GetByIdAsync(id);
         if (existingTournament is null)
             return NotFound();
@@ -149,6 +167,69 @@ public class TournamentsController : ControllerBase
             return NotFound();
 
         Tournament? tournamentDomain = await _tournamentRepository.DeleteAsync(id);
+
+        if (tournamentDomain is null)
+            return NotFound();
+
+        GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentDomain);
+
+        return Ok(tournamentDto);
+    }
+
+    [HttpPatch]
+    [Route("{id:int}")]
+    [Authorize]
+    public async Task<IActionResult> AdvanceStage([FromRoute] int id, [FromBody] UpdateTournamentStageDto advanceStageDto)
+    {
+        if (advanceStageDto.Stage != TournamentStage.Qualifications)
+            return BadRequest("Only advancing to Qualifications stage is currently supported.");
+
+        Tournament? existingTournament = await _tournamentRepository.GetByIdAsync(id);
+        if (existingTournament is null)
+            return NotFound();
+
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, existingTournament, TournamentOperations.AdvanceStage);
+        if (!authResult.Succeeded)
+            return NotFound();
+
+        if (existingTournament.CurrentStage != TournamentStage.Preparations)
+            return BadRequest("Tournament can only advance to Qualifications from Preparations stage.");
+
+        List<TournamentParticipant> allParticipants = await _participantsRepository.GetAllByTournamentIdAsync(id);
+
+        List<TournamentParticipant> players = allParticipants
+            .Where(p => p.Role == TournamentParticipantRole.Player)
+            .OrderBy(p => p.Id)
+            .ToList();
+
+        if (players.Count != existingTournament.PlayersPerTournament)
+            return BadRequest($"Tournament requires exactly {existingTournament.PlayersPerTournament} players. Currently has {players.Count}.");
+
+        List<TournamentTopic> allTopics = await _tournamentTopicRepository.GetAllByTournamentIdAsync(id);
+
+        foreach (TournamentParticipant participant in allParticipants)
+        {
+            int topicCount = allTopics.Count(t => t.TournamentParticipantId == participant.Id);
+
+            if (participant.Role == TournamentParticipantRole.Player)
+            {
+                if (topicCount < existingTournament.TopicsPerParticipantMin)
+                    return BadRequest($"Player '{participant.ApplicationUser?.UserName ?? participant.Id.ToString()}' has {topicCount} topics, but needs at least {existingTournament.TopicsPerParticipantMin}.");
+
+                if (topicCount > existingTournament.TopicsPerParticipantMax)
+                    return BadRequest($"Player '{participant.ApplicationUser?.UserName ?? participant.Id.ToString()}' has {topicCount} topics, but maximum allowed is {existingTournament.TopicsPerParticipantMax}.");
+            }
+            else
+            {
+                if (topicCount > existingTournament.TopicsPerParticipantMax)
+                    return BadRequest($"Participant '{participant.ApplicationUser?.UserName ?? participant.Id.ToString()}' has {topicCount} topics, but maximum allowed is {existingTournament.TopicsPerParticipantMax}.");
+            }
+        }
+
+        List<Match> matches = _matchGenerationService.GenerateQualificationMatches(existingTournament, players);
+        await _matchRepository.CreateBulkAsync(matches);
+
+        Tournament? tournamentDomain = await _tournamentRepository.UpdateStageAsync(id, advanceStageDto.Stage);
 
         if (tournamentDomain is null)
             return NotFound();
@@ -207,6 +288,9 @@ public class TournamentsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> CreateParticipant([FromRoute] int tournamentId, [FromBody] CreateTournamentParticipantDto createParticipantDto)
     {
+        if (createParticipantDto.Role == TournamentParticipantRole.Creator)
+            return BadRequest("Cannot add a creator. Tournament can only have one creator.");
+
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
             return NotFound();
@@ -214,6 +298,14 @@ public class TournamentsController : ControllerBase
         AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, tournament, TournamentOperations.ManageParticipants);
         if (!authResult.Succeeded)
             return NotFound();
+
+        if (createParticipantDto.Role == TournamentParticipantRole.Organizer)
+        {
+            List<TournamentParticipant> allParticipants = await _participantsRepository.GetAllByTournamentIdAsync(tournamentId);
+            int organizerCount = allParticipants.Count(p => p.Role == TournamentParticipantRole.Organizer);
+            if (organizerCount >= DefaultSettings.OrganizersPerTournamentMax)
+                return BadRequest($"Tournament can have at most {DefaultSettings.OrganizersPerTournamentMax} organizers.");
+        }
 
         ApplicationUser? user = await _userManager.FindByNameAsync(createParticipantDto.Username);
         if (user is null)
@@ -241,7 +333,7 @@ public class TournamentsController : ControllerBase
     public async Task<IActionResult> UpdateParticipant([FromRoute] int tournamentId, [FromRoute] int id, [FromBody] UpdateTournamentParticipantDto updateParticipantDto)
     {
         if (updateParticipantDto.Role == TournamentParticipantRole.Creator)
-            return BadRequest($"Cannot promote to a creator role.");
+            return BadRequest("Cannot promote to a creator role.");
 
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
@@ -254,6 +346,14 @@ public class TournamentsController : ControllerBase
         TournamentParticipant? existingParticipant = await _participantsRepository.GetByParticipantIdAndTournamentIdAsync(id, tournamentId);
         if (existingParticipant is null)
             return NotFound();
+
+        if (updateParticipantDto.Role == TournamentParticipantRole.Organizer && existingParticipant.Role != TournamentParticipantRole.Organizer)
+        {
+            List<TournamentParticipant> allParticipants = await _participantsRepository.GetAllByTournamentIdAsync(tournamentId);
+            int organizerCount = allParticipants.Count(p => p.Role == TournamentParticipantRole.Organizer);
+            if (organizerCount >= DefaultSettings.OrganizersPerTournamentMax)
+                return BadRequest($"Tournament can have at most {DefaultSettings.OrganizersPerTournamentMax} organizers.");
+        }
 
         TournamentParticipant? participantDomain = _mapper.Map<TournamentParticipant>(updateParticipantDto);
         participantDomain = await _participantsRepository.UpdateAsync(id, participantDomain!);

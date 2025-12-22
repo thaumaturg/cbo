@@ -1,12 +1,12 @@
 <script setup>
-import { ref, computed, watch, nextTick } from "vue";
-import Dialog from "primevue/dialog";
-import InputText from "primevue/inputtext";
-import Textarea from "primevue/textarea";
-import Button from "primevue/button";
-import Message from "primevue/message";
-import InputNumber from "primevue/inputnumber";
 import { tournamentService } from "@/services/tournament-service.js";
+import Button from "primevue/button";
+import Dialog from "primevue/dialog";
+import InputNumber from "primevue/inputnumber";
+import InputText from "primevue/inputtext";
+import Message from "primevue/message";
+import Textarea from "primevue/textarea";
+import { computed, nextTick, ref, watch } from "vue";
 
 const props = defineProps({
   visible: {
@@ -27,7 +27,7 @@ const props = defineProps({
 const emit = defineEmits(["update:visible", "tournament-created", "tournament-updated"]);
 
 const DEFAULT_VALUES = {
-  participantsPerTournament: 12,
+  playersPerTournament: 14,
   topicsPerParticipantMax: 10,
   topicsPerParticipantMin: 6,
 };
@@ -35,7 +35,7 @@ const DEFAULT_VALUES = {
 const formData = ref({
   title: "",
   description: "",
-  participantsPerTournament: DEFAULT_VALUES.participantsPerTournament,
+  playersPerTournament: DEFAULT_VALUES.playersPerTournament,
   topicsPerParticipantMax: DEFAULT_VALUES.topicsPerParticipantMax,
   topicsPerParticipantMin: DEFAULT_VALUES.topicsPerParticipantMin,
 });
@@ -50,7 +50,7 @@ const populateForm = async (tournament = null) => {
   const values = {
     title: tournament?.title || "",
     description: tournament?.description || "",
-    participantsPerTournament: tournament?.participantsPerTournament ?? DEFAULT_VALUES.participantsPerTournament,
+    playersPerTournament: tournament?.playersPerTournament ?? DEFAULT_VALUES.playersPerTournament,
     topicsPerParticipantMax: tournament?.topicsPerParticipantMax ?? DEFAULT_VALUES.topicsPerParticipantMax,
     topicsPerParticipantMin: tournament?.topicsPerParticipantMin ?? DEFAULT_VALUES.topicsPerParticipantMin,
   };
@@ -80,13 +80,12 @@ watch(
       generalError.value = null;
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 const closeDialog = () => {
   emit("update:visible", false);
 };
-
 
 const onSubmit = async (values) => {
   formStatus.value = "loading";
@@ -96,7 +95,7 @@ const onSubmit = async (values) => {
     const tournamentData = {
       title: values.title,
       description: values.description || null,
-      participantsPerTournament: formData.value.participantsPerTournament,
+      playersPerTournament: formData.value.playersPerTournament,
       topicsPerParticipantMax: formData.value.topicsPerParticipantMax,
       topicsPerParticipantMin: formData.value.topicsPerParticipantMin,
     };
@@ -171,15 +170,16 @@ const onSubmit = async (values) => {
         <h3 class="text-lg font-semibold mb-4">Tournament Settings</h3>
 
         <div class="grid grid-cols-2 gap-4">
-          <!-- Participants Per Tournament -->
+          <!-- Players Per Tournament -->
           <div class="flex flex-col gap-1">
-            <label for="participantsPerTournament" class="font-semibold text-sm">Participants Per Tournament</label>
+            <label for="playersPerTournament" class="font-semibold text-sm">Players Per Tournament</label>
             <InputNumber
-              v-model="formData.participantsPerTournament"
-              inputId="participantsPerTournament"
-              :min="2"
-              :max="1000"
+              v-model="formData.playersPerTournament"
+              inputId="playersPerTournament"
+              :min="14"
+              :max="14"
               showButtons
+              disabled
             />
           </div>
 
@@ -223,7 +223,11 @@ const onSubmit = async (values) => {
       <!-- Action Buttons -->
       <div class="flex justify-end gap-2">
         <Button type="button" label="Cancel" severity="secondary" @click="closeDialog" :disabled="isFormProcessing" />
-        <Button type="submit" :label="mode === 'create' ? 'Create Tournament' : 'Save Changes'" :disabled="isFormProcessing" />
+        <Button
+          type="submit"
+          :label="mode === 'create' ? 'Create Tournament' : 'Save Changes'"
+          :disabled="isFormProcessing"
+        />
       </div>
     </VeeForm>
   </Dialog>

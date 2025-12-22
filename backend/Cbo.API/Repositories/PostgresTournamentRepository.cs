@@ -1,4 +1,5 @@
 ﻿using Cbo.API.Data;
+using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,9 +42,24 @@ public class PostgresTournamentRepository : ITournamentRepository
 
         existingTournament.Title = updatedTournament.Title;
         existingTournament.Description = updatedTournament.Description;
-        existingTournament.ParticipantsPerTournament = updatedTournament.ParticipantsPerTournament;
+        existingTournament.PlayersPerTournament = updatedTournament.PlayersPerTournament;
         existingTournament.TopicsPerParticipantMax = updatedTournament.TopicsPerParticipantMax;
         existingTournament.TopicsPerParticipantMin = updatedTournament.TopicsPerParticipantMin;
+
+        await _dbContext.SaveChangesAsync();
+
+        return existingTournament;
+    }
+
+    public async Task<Tournament?> UpdateStageAsync(int id, TournamentStage stage)
+    {
+        Tournament? existingTournament = await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
+
+        if (existingTournament is null)
+            return null;
+
+        existingTournament.CurrentStage = stage;
+        existingTournament.StartedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync();
 

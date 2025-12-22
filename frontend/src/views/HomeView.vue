@@ -119,9 +119,43 @@ const handleTournamentTopics = (tournament) => {
   showTopicsDialog.value = true;
 };
 
-const handleTournamentStart = (tournament) => {
-  console.log("Starting tournament:", tournament.title);
-  // start the tournament or navigate to tournament page
+const handleTournamentStart = async (tournament) => {
+  if (!authStore.isAuthenticated) {
+    return;
+  }
+
+  const tournamentTitle = tournament.title;
+  if (!confirm(`Are you sure you want to start "${tournamentTitle}"? This will advance the tournament to the Qualifications stage.`)) {
+    return;
+  }
+
+  const result = await tournamentService.advanceStage(tournament.id, "Qualifications");
+
+  if (result.success) {
+    // Update the tournament in the list
+    const index = tournaments.value.findIndex((t) => t.id === tournament.id);
+    if (index > -1) {
+      tournaments.value[index] = { ...tournaments.value[index], ...result.data };
+    }
+
+    toast.add({
+      severity: "success",
+      summary: "Tournament Started",
+      detail: `"${tournamentTitle}" has been advanced to Qualifications stage!`,
+      life: 3000,
+    });
+
+    // Background validation - ensure UI is in sync
+    await fetchTournaments();
+  } else {
+    console.error("Failed to start tournament:", result.error);
+    toast.add({
+      severity: "error",
+      summary: "Failed to Start Tournament",
+      detail: result.error,
+      life: 5000,
+    });
+  }
 };
 
 const handleTournamentDelete = async (tournament) => {

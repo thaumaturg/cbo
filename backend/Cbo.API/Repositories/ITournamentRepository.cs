@@ -1,4 +1,5 @@
-﻿using Cbo.API.Models.Domain;
+﻿using Cbo.API.Models.Constants;
+using Cbo.API.Models.Domain;
 
 namespace Cbo.API.Repositories;
 
@@ -8,5 +9,6 @@ public interface ITournamentRepository
     Task<Tournament?> GetByIdAsync(int id);
     Task<Tournament> CreateAsync(Tournament tournament);
     Task<Tournament?> UpdateAsync(int id, Tournament updatedTournament);
+    Task<Tournament?> UpdateStageAsync(int id, TournamentStage stage);
     Task<Tournament?> DeleteAsync(int id);
 }
