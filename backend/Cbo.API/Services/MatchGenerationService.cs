@@ -42,7 +42,6 @@ public class MatchGenerationService : IMatchGenerationService
                 NumberInStage = matchNumber,
                 CreatedOnStage = TournamentStage.Qualifications,
                 Type = Models.Constants.MatchType.Qualification,
-                IsFinished = false,
                 Tournament = tournament
             };
 

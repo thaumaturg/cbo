@@ -9,7 +9,6 @@ public class Match
     public required int NumberInStage { get; set; }
     public required TournamentStage CreatedOnStage { get; set; }
     public required Constants.MatchType Type { get; set; }
-    public bool IsFinished { get; set; }
     public int TournamentId { get; set; }
     public required Tournament Tournament { get; set; }
     public ICollection<Round> Rounds { get; set; } = [];

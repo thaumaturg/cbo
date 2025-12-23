@@ -69,9 +69,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .IsRequired()
                 .HasConversion<string>();
 
-            entity.Property(m => m.IsFinished)
-                .IsRequired();
-
             entity.Property(m => m.TournamentId)
                 .IsRequired();
 

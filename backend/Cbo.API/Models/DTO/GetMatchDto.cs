@@ -9,6 +9,5 @@ public record GetMatchDto
     public required int NumberInStage { get; set; }
     public required TournamentStage CreatedOnStage { get; set; }
     public required Constants.MatchType Type { get; set; }
-    public required bool IsFinished { get; set; }
     public required int TournamentId { get; set; }
 }
