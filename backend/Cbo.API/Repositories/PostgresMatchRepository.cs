@@ -23,6 +23,18 @@ public class PostgresMatchRepository : IMatchRepository
         return await _dbContext.Matches.FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    public async Task<List<Match>> GetAllByTournamentIdAsync(int tournamentId)
+    {
+        return await _dbContext.Matches
+            .Where(m => m.TournamentId == tournamentId)
+            .Include(m => m.MatchParticipants)
+                .ThenInclude(mp => mp.TournamentParticipant)
+                    .ThenInclude(tp => tp.ApplicationUser)
+            .Include(m => m.Rounds)
+            .OrderBy(m => m.NumberInTournament)
+            .ToListAsync();
+    }
+
     public async Task<List<Match>> CreateBulkAsync(List<Match> matches)
     {
         await _dbContext.Matches.AddRangeAsync(matches);
