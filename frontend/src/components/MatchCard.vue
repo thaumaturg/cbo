@@ -32,8 +32,7 @@ const matchTitle = computed(() => {
 
 const roundsCount = computed(() => props.match.rounds?.length || 0);
 
-const handleManageRounds = () => {
-  // Placeholder for future rounds management feature
+const handleRounds = () => {
   toast.add({
     severity: "info",
     summary: "Coming Soon",
@@ -91,7 +90,7 @@ const handleManageRounds = () => {
         </DataTable>
 
         <div class="mt-4 flex justify-start">
-          <Button label="Rounds" icon="pi pi-list" severity="info" size="small" outlined @click="handleManageRounds" />
+          <Button label="Rounds" icon="pi pi-list" severity="info" size="small" outlined @click="handleRounds" />
         </div>
       </div>
     </template>
