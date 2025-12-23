@@ -279,4 +279,21 @@ export const tournamentService = {
       };
     }
   },
+
+  /**
+   * Get all matches for a tournament
+   * @param {number} tournamentId - Tournament ID
+   * @returns {Promise} - API response with matches list
+   */
+  async getMatches(tournamentId) {
+    try {
+      const response = await api.get(`/Tournaments/${tournamentId}/matches`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data || "Failed to fetch matches. Please try again.",
+      };
+    }
+  },
 };
