@@ -10,4 +10,6 @@ public record GetMatchDto
     public required TournamentStage CreatedOnStage { get; set; }
     public required Constants.MatchType Type { get; set; }
     public required int TournamentId { get; set; }
+    public required List<GetMatchParticipantDto> MatchParticipants { get; set; }
+    public required List<GetRoundDto> Rounds { get; set; }
 }

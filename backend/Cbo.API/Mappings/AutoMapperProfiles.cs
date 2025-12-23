@@ -33,5 +33,8 @@ public class AutoMapperProfiles : Profile
             .ForMember(dest => dest.TopicTitle, opt => opt.MapFrom(src => src.Topic.Title))
             .ForMember(dest => dest.ParticipantUsername, opt => opt.MapFrom(src => src.TournamentParticipant.ApplicationUser.UserName));
         CreateMap<UpdateTournamentTopicDto, TournamentTopic>();
+        CreateMap<Match, GetMatchDto>();
+        CreateMap<MatchParticipant, GetMatchParticipantDto>()
+            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.TournamentParticipant.ApplicationUser.UserName));
     }
 }
