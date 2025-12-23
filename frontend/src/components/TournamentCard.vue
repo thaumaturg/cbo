@@ -3,6 +3,7 @@ import Badge from "primevue/badge";
 import Button from "primevue/button";
 import Card from "primevue/card";
 import { computed } from "vue";
+import { RouterLink } from "vue-router";
 
 const props = defineProps({
   tournament: {
@@ -62,9 +63,12 @@ const handleDelete = () => {
       <div class="p-4">
         <div class="mb-4">
           <div class="flex items-center gap-2 mb-1">
-            <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            <RouterLink
+              :to="{ name: 'tournament-view', params: { id: tournament.id } }"
+              class="text-xl font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
+            >
               {{ tournament.title }}
-            </h3>
+            </RouterLink>
             <Badge v-if="!isInPreparations" :value="tournament.currentStage" :severity="stageBadgeSeverity" />
           </div>
           <p v-if="tournament.description" class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
