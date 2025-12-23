@@ -28,7 +28,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
     {
         base.OnModelCreating(modelBuilder);
 
-        // Application User
         modelBuilder.Entity<ApplicationUser>(entity =>
         {
             entity.Property(au => au.FullName)
@@ -47,7 +46,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // Match
         modelBuilder.Entity<Match>(entity =>
         {
             entity.HasKey(m => m.Id);
@@ -91,7 +89,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // MatchParticipant
         modelBuilder.Entity<MatchParticipant>(entity =>
         {
             entity.HasKey(mp => mp.Id);
@@ -133,7 +130,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // Question
         modelBuilder.Entity<Question>(entity =>
         {
             entity.HasKey(q => q.Id);
@@ -171,7 +167,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .HasForeignKey(ra => ra.QuestionId);
         });
 
-        // Round
         modelBuilder.Entity<Round>(entity =>
         {
             entity.HasKey(r => r.Id);
@@ -207,7 +202,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // RoundAnswer
         modelBuilder.Entity<RoundAnswer>(entity =>
         {
             entity.HasKey(ra => ra.Id);
@@ -246,7 +240,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // Topic
         modelBuilder.Entity<Topic>(entity =>
         {
             entity.HasKey(t => t.Id);
@@ -285,7 +278,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // TopicAuthor
         modelBuilder.Entity<TopicAuthor>(entity =>
         {
             entity.HasKey(ta => ta.Id);
@@ -318,7 +310,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // Tournament
         modelBuilder.Entity<Tournament>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -375,7 +366,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // TournamentParticipant
         modelBuilder.Entity<TournamentParticipant>(entity =>
         {
             entity.HasKey(tp => tp.Id);
@@ -419,7 +409,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // TournamentTopic
         modelBuilder.Entity<TournamentTopic>(entity =>
         {
             entity.HasKey(tt => tt.Id);
