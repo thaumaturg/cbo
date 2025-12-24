@@ -87,8 +87,9 @@ public partial class TournamentsController
         if (existingRound is null)
             return NotFound($"Round {roundNumber} not found for this match.");
 
-        if (existingRound.TopicId != updateRoundDto.TopicId)
-            return BadRequest("Cannot change topic of an existing round. Delete the round first and create a new one.");
+        if (existingRound.TopicId != updateRoundDto.TopicId ||
+            existingRound.NumberInMatch != updateRoundDto.NumberInMatch)
+            return BadRequest("Cannot change an existing round. Delete the round first and create a new one.");
 
         await _roundRepository.DeleteAnswersByRoundIdAsync(existingRound.Id);
 
