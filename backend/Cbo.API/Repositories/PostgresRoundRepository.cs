@@ -37,34 +37,11 @@ public class PostgresRoundRepository : IRoundRepository
             .FirstOrDefaultAsync(r => r.MatchId == matchId && r.NumberInMatch == numberInMatch);
     }
 
-    public async Task<Round> CreateWithAnswersAsync(Round round, List<RoundAnswer> answers)
+    public async Task<Round> CreateAsync(Round round)
     {
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
-
-        try
-        {
-            await _dbContext.Rounds.AddAsync(round);
-            await _dbContext.SaveChangesAsync();
-
-            foreach (var answer in answers)
-            {
-                answer.RoundId = round.Id;
-            }
-
-            if (answers.Count > 0)
-            {
-                await _dbContext.RoundAnswers.AddRangeAsync(answers);
-                await _dbContext.SaveChangesAsync();
-            }
-
-            await transaction.CommitAsync();
-            return round;
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
+        await _dbContext.Rounds.AddAsync(round);
+        await _dbContext.SaveChangesAsync();
+        return round;
     }
 
     public async Task DeleteAnswersByRoundIdAsync(int roundId)

@@ -43,17 +43,12 @@ public partial class TournamentsController
         if (answersValidationError is not null)
             return BadRequest(answersValidationError);
 
-        Round round = new()
-        {
-            NumberInMatch = createRoundDto.NumberInMatch,
-            TopicId = createRoundDto.TopicId,
-            Topic = topic,
-            MatchId = matchId,
-            Match = match
-        };
+        Round round = _mapper.Map<Round>(createRoundDto);
+        round.MatchId = matchId;
+        round.Match = match;
+        round.Topic = topic;
 
-        List<RoundAnswer> answers = _mapper.Map<List<RoundAnswer>>(createRoundDto.Answers);
-        await _roundRepository.CreateWithAnswersAsync(round, answers);
+        await _roundRepository.CreateAsync(round);
 
         Round? createdRound = await _roundRepository.GetByIdWithDetailsAsync(round.Id);
         GetRoundDto roundDto = _mapper.Map<GetRoundDto>(createdRound);
