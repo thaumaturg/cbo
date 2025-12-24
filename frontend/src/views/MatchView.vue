@@ -12,10 +12,9 @@ import Select from "primevue/select";
 import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
 import { computed, onMounted, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { RouterLink, useRoute } from "vue-router";
 
 const route = useRoute();
-const router = useRouter();
 const toast = useToast();
 
 const tournamentId = computed(() => parseInt(route.params.tournamentId));
@@ -315,9 +314,10 @@ const deleteRound = async (roundIndex) => {
   }
 };
 
-const goBack = () => {
-  router.push({ name: "tournament-view", params: { id: tournamentId.value } });
-};
+const backRoute = computed(() => ({
+  name: "tournament-view",
+  params: { tournamentId: tournamentId.value },
+}));
 
 onMounted(() => {
   fetchData();
@@ -331,7 +331,9 @@ onMounted(() => {
     <!-- Header -->
     <div class="mb-8">
       <div class="flex items-center gap-4 mb-2">
-        <Button icon="pi pi-arrow-left" severity="secondary" text rounded @click="goBack" />
+        <RouterLink :to="backRoute" custom v-slot="{ navigate }">
+          <Button icon="pi pi-arrow-left" severity="secondary" text rounded @click="navigate" />
+        </RouterLink>
         <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ matchTitle }} - Rounds</h1>
       </div>
       <p class="text-gray-600 dark:text-gray-400 ml-14">Manage rounds and record participant answers</p>
@@ -350,7 +352,9 @@ onMounted(() => {
       <div class="text-gray-500 dark:text-gray-400">
         <i class="pi pi-exclamation-triangle text-5xl mb-4 block text-red-500"></i>
         <p class="text-xl mb-4">{{ loadError }}</p>
-        <Button label="Go Back" icon="pi pi-arrow-left" @click="goBack" />
+        <RouterLink :to="backRoute" custom v-slot="{ navigate }">
+          <Button label="Go Back" icon="pi pi-arrow-left" @click="navigate" />
+        </RouterLink>
       </div>
     </div>
 
