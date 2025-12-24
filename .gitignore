@@ -712,3 +712,7 @@ FodyWeavers.xsd
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,visualstudiocode,aspnetcore,windows,node,vue
 
 appsettings.Development.json
+
+# Development certificates
+localhost.crt
+localhost.key

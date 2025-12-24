@@ -41,39 +41,20 @@ dotnet ef database update
 
 To enable secure communication between the Vue frontend and .NET backend, you'll need to set up an SSL certificate for localhost.
 
-#### Step 1: Trust the .NET Development Certificate
-
-First, ensure the ASP.NET Core HTTPS development certificate is trusted:
+**Step 1:** Trust the .NET development certificate (may prompt for admin/sudo password):
 
 ```bash
 dotnet dev-certs https --trust
 ```
 
-#### Step 2: Export the Certificate for Vue
+**Step 2:** Export the certificate for the Vue dev server:
 
-1. Open the Certificate Manager by typing "certificates" into the Windows start menu and selecting
-   **Manage user certificates**
-2. Navigate to **Personal → Certificates**
-3. Locate the certificate with "Friendly Name" of **ASP.NET Core HTTPS development certificate**
-4. Right-click it and select **All Tasks → Export...**
-5. In the export wizard:
-   - Choose **Yes, export the private key**
-   - Select **.pfx** format and leave default options
-   - Set a password (e.g., "secret" - remember this for step 3)
-   - Save as `frontend/localhost.pfx`
-
-#### Step 3: Update Vite Configuration
-
-Open `frontend/vite.config.js` and update the passphrase to match the password you set when exporting the certificate:
-
-```javascript
-const httpsSettings = fs.existsSync(developmentCertificateName)
-  ? {
-      pfx: fs.readFileSync(developmentCertificateName),
-      passphrase: "YOUR_ACTUAL_PASSPHRASE_HERE", // Replace with your actual password
-    }
-  : {};
+```bash
+cd frontend
+dotnet dev-certs https --export-path localhost.crt --format Pem --no-password
 ```
+
+This creates `localhost.crt` and `localhost.key` files that Vite will automatically use.
 
 ## Build and Run
 
