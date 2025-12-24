@@ -1,5 +1,6 @@
 import { useAuthStore } from "@/stores/auth.js";
 import HomeView from "@/views/HomeView.vue";
+import RoundsView from "@/views/RoundsView.vue";
 import TopicView from "@/views/TopicView.vue";
 import TournamentView from "@/views/TournamentView.vue";
 import { createRouter, createWebHistory } from "vue-router";
@@ -28,6 +29,12 @@ const router = createRouter({
       path: "/tournaments/:id",
       name: "tournament-view",
       component: TournamentView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/tournaments/:tournamentId/matches/:matchId/rounds",
+      name: "rounds-view",
+      component: RoundsView,
       meta: { requiresAuth: true },
     },
     {

@@ -38,11 +38,12 @@ const matchTitle = computed(() => {
 const roundsCount = computed(() => props.match.roundsCount ?? 0);
 
 const handleRounds = () => {
-  toast.add({
-    severity: "info",
-    summary: "Coming Soon",
-    detail: "Rounds management feature will be available soon.",
-    life: 3000,
+  router.push({
+    name: "rounds-view",
+    params: {
+      tournamentId: props.tournamentId,
+      matchId: props.match.id,
+    },
   });
 };
 </script>
