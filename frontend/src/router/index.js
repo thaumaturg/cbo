@@ -1,7 +1,9 @@
-import { createRouter, createWebHistory } from "vue-router";
-import HomeView from "@/views/HomeView.vue";
-import TopicView from "@/views/TopicView.vue";
 import { useAuthStore } from "@/stores/auth.js";
+import HomeView from "@/views/HomeView.vue";
+import MatchView from "@/views/MatchView.vue";
+import TopicView from "@/views/TopicView.vue";
+import TournamentView from "@/views/TournamentView.vue";
+import { createRouter, createWebHistory } from "vue-router";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -24,9 +26,21 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: "/tournaments/:tournamentId",
+      name: "tournament-view",
+      component: TournamentView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/tournaments/:tournamentId/matches/:matchId",
+      name: "match-view",
+      component: MatchView,
+      meta: { requiresAuth: true },
+    },
+    {
       path: "/catchAll.(.*)*",
       redirect: { name: "home" },
-    }
+    },
   ],
 });
 

@@ -17,7 +17,9 @@ public class AutoMapperProfiles : Profile
         CreateMap<Question, GetQuestionDto>().ReverseMap();
         CreateMap<Question, CreateQuestionDto>().ReverseMap();
         CreateMap<Question, UpdateQuestionDto>().ReverseMap();
-        CreateMap<Round, GetRoundDto>().ReverseMap();
+        CreateMap<Round, GetRoundDto>()
+            .ForMember(dest => dest.TopicTitle, opt => opt.MapFrom(src => src.Topic.Title))
+            .ForMember(dest => dest.Questions, opt => opt.MapFrom(src => src.Topic.Questions.OrderBy(q => q.QuestionNumber)));
         CreateMap<Round, CreateRoundDto>().ReverseMap();
         CreateMap<Round, UpdateRoundDto>().ReverseMap();
         CreateMap<RoundAnswer, GetRoundAnswerDto>().ReverseMap();
@@ -33,5 +35,13 @@ public class AutoMapperProfiles : Profile
             .ForMember(dest => dest.TopicTitle, opt => opt.MapFrom(src => src.Topic.Title))
             .ForMember(dest => dest.ParticipantUsername, opt => opt.MapFrom(src => src.TournamentParticipant.ApplicationUser.UserName));
         CreateMap<UpdateTournamentTopicDto, TournamentTopic>();
+        CreateMap<Match, GetMatchDto>()
+            .ForMember(dest => dest.RoundsCount, opt => opt.MapFrom(src => src.Rounds.Count));
+        CreateMap<MatchParticipant, GetMatchParticipantDto>()
+            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.TournamentParticipant.ApplicationUser.UserName));
+        CreateMap<Match, GetMatchDetailDto>();
+        CreateMap<TournamentTopic, GetAvailableTopicDto>()
+            .ForMember(dest => dest.OwnerUsername, opt => opt.MapFrom(src => src.TournamentParticipant.ApplicationUser.UserName))
+            .ForMember(dest => dest.TopicTitle, opt => opt.MapFrom(src => src.Topic.Title));
     }
 }
