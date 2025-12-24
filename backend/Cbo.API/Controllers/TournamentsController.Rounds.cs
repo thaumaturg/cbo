@@ -24,7 +24,7 @@ public partial class TournamentsController
         if (!authResult.Succeeded)
             return NotFound();
 
-        Match? match = await _matchRepository.GetByIdWithDetailsAsync(matchId);
+        Match? match = await _matchRepository.GetByIdAsync(matchId);
         if (match is null || match.TournamentId != tournamentId)
             return NotFound();
 
@@ -53,14 +53,11 @@ public partial class TournamentsController
         };
 
         List<RoundAnswer> answers = _mapper.Map<List<RoundAnswer>>(createRoundDto.Answers);
-        foreach (var answer in answers)
-        {
-            answer.Round = round;
-        }
-
         await _roundRepository.CreateWithAnswersAsync(round, answers);
 
-        return await GetMatchById(tournamentId, matchId);
+        Round? createdRound = await _roundRepository.GetByIdWithDetailsAsync(round.Id);
+        GetRoundDto roundDto = _mapper.Map<GetRoundDto>(createdRound);
+        return CreatedAtAction(nameof(CreateRound), new { tournamentId, matchId, roundNumber = roundDto.NumberInMatch }, roundDto);
     }
 
     [HttpPut]
@@ -80,7 +77,7 @@ public partial class TournamentsController
         if (!authResult.Succeeded)
             return NotFound();
 
-        Match? match = await _matchRepository.GetByIdWithDetailsAsync(matchId);
+        Match? match = await _matchRepository.GetByIdAsync(matchId);
         if (match is null || match.TournamentId != tournamentId)
             return NotFound();
 
@@ -105,12 +102,13 @@ public partial class TournamentsController
         foreach (RoundAnswer answer in newAnswers)
         {
             answer.RoundId = existingRound.Id;
-            answer.Round = existingRound;
         }
 
         await _roundRepository.CreateAnswersAsync(newAnswers);
 
-        return await GetMatchById(tournamentId, matchId);
+        Round? updatedRound = await _roundRepository.GetByIdWithDetailsAsync(existingRound.Id);
+        GetRoundDto roundDto = _mapper.Map<GetRoundDto>(updatedRound);
+        return Ok(roundDto);
     }
 
     [HttpDelete]
@@ -139,6 +137,6 @@ public partial class TournamentsController
 
         await _roundRepository.DeleteAsync(existingRound.Id);
 
-        return await GetMatchById(tournamentId, matchId);
+        return NoContent();
     }
 }

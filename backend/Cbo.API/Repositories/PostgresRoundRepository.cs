@@ -23,6 +23,15 @@ public class PostgresRoundRepository : IRoundRepository
         return await _dbContext.Rounds.FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    public async Task<Round?> GetByIdWithDetailsAsync(int id)
+    {
+        return await _dbContext.Rounds
+            .Include(r => r.Topic)
+                .ThenInclude(t => t.Questions.OrderBy(q => q.QuestionNumber))
+            .Include(r => r.RoundAnswers)
+            .FirstOrDefaultAsync(x => x.Id == id);
+    }
+
     public async Task<List<Round>> GetAllByTournamentIdAsync(int tournamentId)
     {
         return await _dbContext.Rounds

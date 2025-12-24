@@ -6,6 +6,7 @@ public interface IRoundRepository
 {
     Task<List<Round>> GetAllAsync();
     Task<Round?> GetByIdAsync(int id);
+    Task<Round?> GetByIdWithDetailsAsync(int id);
     Task<List<Round>> GetAllByTournamentIdAsync(int tournamentId);
     Task<Round?> GetByMatchIdAndNumberAsync(int matchId, int numberInMatch);
     Task<Round> CreateAsync(Round round);

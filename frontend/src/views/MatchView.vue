@@ -262,7 +262,10 @@ const submitRound = async (roundIndex) => {
         life: 3000,
       });
 
-      match.value = result.data;
+      const matchResult = await tournamentService.getMatchWithRounds(tournamentId.value, matchId.value);
+      if (matchResult.success) {
+        match.value = matchResult.data;
+      }
 
       const topicsResult = await tournamentService.getAvailableTopics(tournamentId.value, matchId.value);
       if (topicsResult.success) {
@@ -306,7 +309,10 @@ const deleteRound = async (roundIndex) => {
         life: 3000,
       });
 
-      match.value = result.data;
+      const matchResult = await tournamentService.getMatchWithRounds(tournamentId.value, matchId.value);
+      if (matchResult.success) {
+        match.value = matchResult.data;
+      }
 
       const topicsResult = await tournamentService.getAvailableTopics(tournamentId.value, matchId.value);
       if (topicsResult.success) {

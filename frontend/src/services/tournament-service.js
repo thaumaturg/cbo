@@ -341,7 +341,7 @@ export const tournamentService = {
    * @param {number} roundData.numberInMatch - Round number (1-4)
    * @param {number} roundData.topicId - Topic ID
    * @param {Array} roundData.answers - Array of answer objects
-   * @returns {Promise} - API response with updated match
+   * @returns {Promise} - API response with created round
    */
   async createRound(tournamentId, matchId, roundData) {
     try {
@@ -364,7 +364,7 @@ export const tournamentService = {
    * @param {number} roundData.numberInMatch - Round number (must match roundNumber)
    * @param {number} roundData.topicId - Topic ID
    * @param {Array} roundData.answers - Array of answer objects
-   * @returns {Promise} - API response with updated match
+   * @returns {Promise} - API response with updated round
    */
   async updateRound(tournamentId, matchId, roundNumber, roundData) {
     try {
@@ -404,12 +404,12 @@ export const tournamentService = {
    * @param {number} tournamentId - Tournament ID
    * @param {number} matchId - Match ID
    * @param {number} roundNumber - Round number (1-4)
-   * @returns {Promise} - API response with updated match
+   * @returns {Promise} - API response
    */
   async deleteRound(tournamentId, matchId, roundNumber) {
     try {
-      const response = await api.delete(`/Tournaments/${tournamentId}/matches/${matchId}/rounds/${roundNumber}`);
-      return { success: true, data: response.data };
+      await api.delete(`/Tournaments/${tournamentId}/matches/${matchId}/rounds/${roundNumber}`);
+      return { success: true };
     } catch (error) {
       return {
         success: false,
