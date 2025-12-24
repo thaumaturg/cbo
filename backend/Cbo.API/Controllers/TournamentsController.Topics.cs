@@ -111,7 +111,7 @@ public partial class TournamentsController
         if (tournament is null)
             return NotFound();
 
-        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, tournament, TournamentOperations.Read);
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, tournament, TournamentOperations.ViewAllTopics);
         if (!authResult.Succeeded)
             return NotFound();
 
