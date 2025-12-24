@@ -209,43 +209,47 @@ public partial class TournamentsController
             return NotFound($"Round {roundNumber} not found for this match.");
 
         if (existingRound.TopicId != updateRoundDto.TopicId)
+            return BadRequest("Cannot change topic of an existing round. Delete the round first and create a new one.");
+
+        await _roundRepository.DeleteAnswersByRoundIdAsync(existingRound.Id);
+
+        List<RoundAnswer> newAnswers = _mapper.Map<List<RoundAnswer>>(updateRoundDto.Answers);
+        foreach (RoundAnswer answer in newAnswers)
         {
-            await _roundRepository.DeleteAsync(existingRound.Id);
-
-            Topic? topic = await _topicRepository.GetByIdAsync(updateRoundDto.TopicId);
-            if (topic is null)
-                return BadRequest("Topic not found.");
-
-            Round newRound = new()
-            {
-                NumberInMatch = roundNumber,
-                TopicId = updateRoundDto.TopicId,
-                Topic = topic,
-                MatchId = matchId,
-                Match = match
-            };
-
-            List<RoundAnswer> newAnswers = _mapper.Map<List<RoundAnswer>>(updateRoundDto.Answers);
-            foreach (var answer in newAnswers)
-            {
-                answer.Round = newRound;
-            }
-
-            await _roundRepository.CreateWithAnswersAsync(newRound, newAnswers);
+            answer.RoundId = existingRound.Id;
+            answer.Round = existingRound;
         }
-        else
-        {
-            await _roundRepository.DeleteAnswersByRoundIdAsync(existingRound.Id);
 
-            List<RoundAnswer> newAnswers = _mapper.Map<List<RoundAnswer>>(updateRoundDto.Answers);
-            foreach (var answer in newAnswers)
-            {
-                answer.RoundId = existingRound.Id;
-                answer.Round = existingRound;
-            }
+        await _roundRepository.CreateAnswersAsync(newAnswers);
 
-            await _roundRepository.CreateAnswersAsync(newAnswers);
-        }
+        return await GetMatchById(tournamentId, matchId);
+    }
+
+    [HttpDelete]
+    [Route("{tournamentId:int}/matches/{matchId:int}/rounds/{roundNumber:int}")]
+    [Authorize]
+    public async Task<IActionResult> DeleteRound(
+        [FromRoute] int tournamentId,
+        [FromRoute] int matchId,
+        [FromRoute] int roundNumber)
+    {
+        Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
+        if (tournament is null)
+            return NotFound();
+
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, tournament, TournamentOperations.Read);
+        if (!authResult.Succeeded)
+            return NotFound();
+
+        Match? match = await _matchRepository.GetByIdAsync(matchId);
+        if (match is null || match.TournamentId != tournamentId)
+            return NotFound();
+
+        Round? existingRound = await _roundRepository.GetByMatchIdAndNumberAsync(matchId, roundNumber);
+        if (existingRound is null)
+            return NotFound($"Round {roundNumber} not found for this match.");
+
+        await _roundRepository.DeleteAsync(existingRound.Id);
 
         return await GetMatchById(tournamentId, matchId);
     }

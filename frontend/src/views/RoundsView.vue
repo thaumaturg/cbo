@@ -25,12 +25,13 @@ const match = ref(null);
 const availableTopics = ref([]);
 const isLoading = ref(true);
 const loadError = ref(null);
+const isProcessing = ref(false);
 
 const roundStates = ref([
-  { numberInMatch: 1, selectedTopicId: null, questions: [], answers: {}, isSubmitting: false, existingRoundId: null },
-  { numberInMatch: 2, selectedTopicId: null, questions: [], answers: {}, isSubmitting: false, existingRoundId: null },
-  { numberInMatch: 3, selectedTopicId: null, questions: [], answers: {}, isSubmitting: false, existingRoundId: null },
-  { numberInMatch: 4, selectedTopicId: null, questions: [], answers: {}, isSubmitting: false, existingRoundId: null },
+  { numberInMatch: 1, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null },
+  { numberInMatch: 2, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null },
+  { numberInMatch: 3, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null },
+  { numberInMatch: 4, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null },
 ]);
 
 const matchTitle = computed(() => {
@@ -89,10 +90,10 @@ const fetchData = async () => {
 
 const initializeRoundStates = () => {
   roundStates.value = [
-    { numberInMatch: 1, selectedTopicId: null, questions: [], answers: {}, isSubmitting: false, existingRoundId: null },
-    { numberInMatch: 2, selectedTopicId: null, questions: [], answers: {}, isSubmitting: false, existingRoundId: null },
-    { numberInMatch: 3, selectedTopicId: null, questions: [], answers: {}, isSubmitting: false, existingRoundId: null },
-    { numberInMatch: 4, selectedTopicId: null, questions: [], answers: {}, isSubmitting: false, existingRoundId: null },
+    { numberInMatch: 1, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null },
+    { numberInMatch: 2, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null },
+    { numberInMatch: 3, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null },
+    { numberInMatch: 4, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null },
   ];
 
   if (match.value?.rounds) {
@@ -172,7 +173,7 @@ const submitRound = async (roundIndex) => {
     return;
   }
 
-  roundState.isSubmitting = true;
+  isProcessing.value = true;
 
   try {
     const answers = [];
@@ -228,7 +229,49 @@ const submitRound = async (roundIndex) => {
     console.error("Error submitting round:", error);
     toast.add({ severity: "error", summary: "Error", detail: "Failed to save round.", life: 5000 });
   } finally {
-    roundState.isSubmitting = false;
+    isProcessing.value = false;
+  }
+};
+
+const deleteRound = async (roundIndex) => {
+  const roundState = roundStates.value[roundIndex];
+
+  if (!roundState.existingRoundId) {
+    roundState.selectedTopicId = null;
+    roundState.questions = [];
+    roundState.answers = {};
+    return;
+  }
+
+  isProcessing.value = true;
+
+  try {
+    const result = await tournamentService.deleteRound(tournamentId.value, matchId.value, roundState.numberInMatch);
+
+    if (result.success) {
+      toast.add({
+        severity: "success",
+        summary: "Success",
+        detail: `Round ${roundState.numberInMatch} deleted.`,
+        life: 3000,
+      });
+
+      match.value = result.data;
+
+      const topicsResult = await tournamentService.getAvailableTopics(tournamentId.value, matchId.value);
+      if (topicsResult.success) {
+        availableTopics.value = topicsResult.data;
+      }
+
+      initializeRoundStates();
+    } else {
+      toast.add({ severity: "error", summary: "Error", detail: result.error, life: 5000 });
+    }
+  } catch (error) {
+    console.error("Error deleting round:", error);
+    toast.add({ severity: "error", summary: "Error", detail: "Failed to delete round.", life: 5000 });
+  } finally {
+    isProcessing.value = false;
   }
 };
 
@@ -306,56 +349,62 @@ onMounted(() => {
               <!-- Topic Selection -->
               <div class="flex flex-col gap-2">
                 <label class="font-semibold text-gray-700 dark:text-gray-300">Select Topic</label>
-                <Select
-                  :modelValue="roundState.selectedTopicId"
-                  @update:modelValue="(val) => onTopicChange(index, val)"
-                  :options="getAvailableTopicsForRound(index)"
-                  optionLabel="topicTitle"
-                  optionValue="topicId"
-                  placeholder="Choose a topic..."
-                  class="w-full md:w-1/2"
-                  showClear
-                >
-                  <template #option="{ option }">
-                    <div class="flex items-center gap-3">
-                      <span class="font-mono text-sm bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded">
-                        #{{ option.priorityIndex }}
-                      </span>
-                      <span class="font-medium">{{ option.topicTitle }}</span>
-                      <span class="text-gray-500 dark:text-gray-400 text-sm">by {{ option.ownerUsername }}</span>
-                    </div>
-                  </template>
-                  <template #value="{ value }">
-                    <template v-if="value">
-                      <!-- Find topic in available topics first -->
-                      <template v-if="availableTopics.find((t) => t.topicId === value)">
-                        <span
-                          v-for="topic in availableTopics.filter((t) => t.topicId === value)"
-                          :key="topic.topicId"
-                          class="flex items-center gap-2"
-                        >
-                          <span class="font-mono text-sm">#{{ topic.priorityIndex }}</span>
-                          <span>{{ topic.topicTitle }}</span>
-                          <span class="text-gray-500 text-sm">by {{ topic.ownerUsername }}</span>
+                <div class="flex items-center gap-3">
+                  <Select
+                    :modelValue="roundState.selectedTopicId"
+                    @update:modelValue="(val) => onTopicChange(index, val)"
+                    :options="getAvailableTopicsForRound(index)"
+                    optionLabel="topicTitle"
+                    optionValue="topicId"
+                    placeholder="Choose a topic..."
+                    class="w-full md:w-1/2"
+                    :showClear="!roundState.existingRoundId"
+                    :disabled="!!roundState.existingRoundId"
+                  >
+                    <template #option="{ option }">
+                      <div class="flex items-center gap-3">
+                        <span class="font-mono text-sm bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded">
+                          #{{ option.priorityIndex }}
                         </span>
-                      </template>
-                      <!-- Handle case where topic is from existing round but not in available list -->
-                      <template v-else>
-                        <span class="flex items-center gap-2">
-                          <span
-                            v-if="match?.rounds?.find((r) => r.topicId === value)"
-                            class="text-gray-700 dark:text-gray-300"
-                          >
-                            {{ match.rounds.find((r) => r.topicId === value)?.topicTitle }}
-                            <span class="text-amber-600 dark:text-amber-400 text-sm ml-2">(topic already used)</span>
-                          </span>
-                          <span v-else class="text-gray-500">Topic ID: {{ value }}</span>
-                        </span>
-                      </template>
+                        <span class="font-medium">{{ option.topicTitle }}</span>
+                        <span class="text-gray-500 dark:text-gray-400 text-sm">by {{ option.ownerUsername }}</span>
+                      </div>
                     </template>
-                    <span v-else class="text-gray-400">Choose a topic...</span>
-                  </template>
-                </Select>
+                    <template #value="{ value }">
+                      <template v-if="value">
+                        <!-- Find topic in available topics first -->
+                        <template v-if="availableTopics.find((t) => t.topicId === value)">
+                          <span
+                            v-for="topic in availableTopics.filter((t) => t.topicId === value)"
+                            :key="topic.topicId"
+                            class="flex items-center gap-2"
+                          >
+                            <span class="font-mono text-sm">#{{ topic.priorityIndex }}</span>
+                            <span>{{ topic.topicTitle }}</span>
+                            <span class="text-gray-500 text-sm">by {{ topic.ownerUsername }}</span>
+                          </span>
+                        </template>
+                        <!-- Handle case where topic is from existing round but not in available list -->
+                        <template v-else>
+                          <span class="flex items-center gap-2">
+                            <span
+                              v-if="match?.rounds?.find((r) => r.topicId === value)"
+                              class="text-gray-700 dark:text-gray-300"
+                            >
+                              {{ match.rounds.find((r) => r.topicId === value)?.topicTitle }}
+                              <span class="text-amber-600 dark:text-amber-400 text-sm ml-2">(topic already used)</span>
+                            </span>
+                            <span v-else class="text-gray-500">Topic ID: {{ value }}</span>
+                          </span>
+                        </template>
+                      </template>
+                      <span v-else class="text-gray-400">Choose a topic...</span>
+                    </template>
+                  </Select>
+                </div>
+                <small v-if="roundState.existingRoundId" class="text-gray-500 dark:text-gray-400">
+                  Topic is locked. Delete the round to select a different topic.
+                </small>
               </div>
 
               <!-- Questions Table (shown when topic is selected) -->
@@ -444,13 +493,22 @@ onMounted(() => {
                   </Column>
                 </DataTable>
 
-                <!-- Submit Button -->
-                <div class="mt-4 flex justify-end">
+                <!-- Action Buttons -->
+                <div class="mt-4 flex justify-end gap-2">
                   <Button
-                    :label="roundState.existingRoundId ? 'Update Round' : 'Save Round'"
+                    v-if="roundState.existingRoundId"
+                    label="Delete Round"
+                    icon="pi pi-trash"
+                    severity="danger"
+                    outlined
+                    :disabled="isProcessing"
+                    @click="deleteRound(index)"
+                  />
+                  <Button
+                    :label="roundState.existingRoundId ? 'Update Answers' : 'Save Round'"
                     :icon="roundState.existingRoundId ? 'pi pi-sync' : 'pi pi-save'"
-                    :loading="roundState.isSubmitting"
-                    :disabled="roundState.isSubmitting"
+                    :loading="isProcessing"
+                    :disabled="isProcessing"
                     @click="submitRound(index)"
                   />
                 </div>

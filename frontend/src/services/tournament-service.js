@@ -398,4 +398,23 @@ export const tournamentService = {
       };
     }
   },
+
+  /**
+   * Delete a round
+   * @param {number} tournamentId - Tournament ID
+   * @param {number} matchId - Match ID
+   * @param {number} roundNumber - Round number (1-4)
+   * @returns {Promise} - API response with updated match
+   */
+  async deleteRound(tournamentId, matchId, roundNumber) {
+    try {
+      const response = await api.delete(`/Tournaments/${tournamentId}/matches/${matchId}/rounds/${roundNumber}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data || "Failed to delete round. Please try again.",
+      };
+    }
+  },
 };
