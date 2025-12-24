@@ -160,9 +160,39 @@ const setAnswerValue = (roundIndex, questionId, participantId, value) => {
 
   if (currentValue === value) {
     roundStates.value[roundIndex].answers[key] = null;
-  } else {
-    roundStates.value[roundIndex].answers[key] = value;
+    return;
   }
+
+  if (value === "correct") {
+    const existingCorrectKey = Object.entries(roundStates.value[roundIndex].answers).find(
+      ([k, v]) => k.startsWith(`${questionId}-`) && k !== key && v === "correct",
+    );
+
+    if (existingCorrectKey) {
+      toast.add({
+        severity: "warn",
+        summary: "Invalid",
+        detail: "Only one correct answer is allowed per question.",
+        life: 3000,
+      });
+      return;
+    }
+  }
+
+  roundStates.value[roundIndex].answers[key] = value;
+};
+
+const validateAnswers = (answers) => {
+  const correctAnswersByQuestion = {};
+  for (const answer of answers) {
+    if (answer.isAnswerAccepted) {
+      if (correctAnswersByQuestion[answer.questionId]) {
+        return `Question has multiple correct answers. Only one correct answer is allowed per question.`;
+      }
+      correctAnswersByQuestion[answer.questionId] = true;
+    }
+  }
+  return null;
 };
 
 const submitRound = async (roundIndex) => {
@@ -173,21 +203,27 @@ const submitRound = async (roundIndex) => {
     return;
   }
 
+  const answers = [];
+  for (const [key, value] of Object.entries(roundState.answers)) {
+    if (value !== null) {
+      const [questionId, participantId] = key.split("-").map(Number);
+      answers.push({
+        questionId,
+        matchParticipantId: participantId,
+        isAnswerAccepted: value === "correct",
+      });
+    }
+  }
+
+  const validationError = validateAnswers(answers);
+  if (validationError) {
+    toast.add({ severity: "error", summary: "Validation Error", detail: validationError, life: 5000 });
+    return;
+  }
+
   isProcessing.value = true;
 
   try {
-    const answers = [];
-    for (const [key, value] of Object.entries(roundState.answers)) {
-      if (value !== null) {
-        const [questionId, participantId] = key.split("-").map(Number);
-        answers.push({
-          questionId,
-          matchParticipantId: participantId,
-          isAnswerAccepted: value === "correct",
-        });
-      }
-    }
-
     const roundData = {
       numberInMatch: roundState.numberInMatch,
       topicId: roundState.selectedTopicId,
@@ -458,35 +494,31 @@ onMounted(() => {
                   >
                     <template #body="{ data }">
                       <div class="flex justify-center gap-3">
-                        <div class="flex items-center gap-1">
+                        <div
+                          class="flex items-center gap-1 cursor-pointer"
+                          @click="setAnswerValue(index, data.id, participant.id, 'correct')"
+                        >
                           <RadioButton
                             :modelValue="getAnswerValue(index, data.id, participant.id)"
-                            :inputId="`correct-${index}-${data.id}-${participant.id}`"
-                            name="`answer-${index}-${data.id}-${participant.id}`"
                             value="correct"
-                            @click="setAnswerValue(index, data.id, participant.id, 'correct')"
+                            :pt="{ input: { class: 'pointer-events-none' } }"
                           />
-                          <label
-                            :for="`correct-${index}-${data.id}-${participant.id}`"
-                            class="text-green-600 dark:text-green-400 text-xs cursor-pointer"
-                          >
+                          <span class="text-green-600 dark:text-green-400 text-xs">
                             <i class="pi pi-check"></i>
-                          </label>
+                          </span>
                         </div>
-                        <div class="flex items-center gap-1">
+                        <div
+                          class="flex items-center gap-1 cursor-pointer"
+                          @click="setAnswerValue(index, data.id, participant.id, 'wrong')"
+                        >
                           <RadioButton
                             :modelValue="getAnswerValue(index, data.id, participant.id)"
-                            :inputId="`wrong-${index}-${data.id}-${participant.id}`"
-                            name="`answer-${index}-${data.id}-${participant.id}`"
                             value="wrong"
-                            @click="setAnswerValue(index, data.id, participant.id, 'wrong')"
+                            :pt="{ input: { class: 'pointer-events-none' } }"
                           />
-                          <label
-                            :for="`wrong-${index}-${data.id}-${participant.id}`"
-                            class="text-red-600 dark:text-red-400 text-xs cursor-pointer"
-                          >
+                          <span class="text-red-600 dark:text-red-400 text-xs">
                             <i class="pi pi-times"></i>
-                          </label>
+                          </span>
                         </div>
                       </div>
                     </template>
