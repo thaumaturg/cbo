@@ -129,27 +129,22 @@ const onTopicChange = async (roundIndex, topicId) => {
   roundState.hasChanges = true;
 
   if (topicId) {
-    const existingRound = match.value?.rounds?.find((r) => r.topicId === topicId);
-    if (existingRound) {
-      roundState.questions = existingRound.questions || [];
-    } else {
-      try {
-        const result = await tournamentService.getTournamentTopic(tournamentId.value, topicId);
-        if (result.success) {
-          roundState.questions = result.data.questions || [];
-        } else {
-          toast.add({
-            severity: "error",
-            summary: "Error",
-            detail: result.error || "Failed to load topic questions.",
-            life: 3000,
-          });
-          roundState.questions = [];
-        }
-      } catch {
-        toast.add({ severity: "error", summary: "Error", detail: "Failed to load topic questions.", life: 3000 });
+    try {
+      const result = await tournamentService.getTournamentTopic(tournamentId.value, topicId);
+      if (result.success) {
+        roundState.questions = result.data.questions || [];
+      } else {
+        toast.add({
+          severity: "error",
+          summary: "Error",
+          detail: result.error || "Failed to load topic questions.",
+          life: 3000,
+        });
         roundState.questions = [];
       }
+    } catch {
+      toast.add({ severity: "error", summary: "Error", detail: "Failed to load topic questions.", life: 3000 });
+      roundState.questions = [];
     }
   } else {
     roundState.questions = [];
