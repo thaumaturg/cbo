@@ -23,6 +23,7 @@ public partial class TournamentsController : ControllerBase
     private readonly IRoundRepository _roundRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly IMatchGenerationService _matchGenerationService;
+    private readonly IRoundService _roundService;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IAuthorizationService _authorizationService;
     private readonly IMapper _mapper;
@@ -36,6 +37,7 @@ public partial class TournamentsController : ControllerBase
         IRoundRepository roundRepository,
         ICurrentUserService currentUserService,
         IMatchGenerationService matchGenerationService,
+        IRoundService roundService,
         UserManager<ApplicationUser> userManager,
         IAuthorizationService authorizationService,
         IMapper mapper)
@@ -48,6 +50,7 @@ public partial class TournamentsController : ControllerBase
         _roundRepository = roundRepository;
         _currentUserService = currentUserService;
         _matchGenerationService = matchGenerationService;
+        _roundService = roundService;
         _userManager = userManager;
         _authorizationService = authorizationService;
         _mapper = mapper;

@@ -39,6 +39,10 @@ public partial class TournamentsController
         if (topic is null)
             return BadRequest("Topic not found.");
 
+        string? answersValidationError = _roundService.ValidateRoundAnswers(createRoundDto.Answers);
+        if (answersValidationError is not null)
+            return BadRequest(answersValidationError);
+
         Round round = new()
         {
             NumberInMatch = createRoundDto.NumberInMatch,
@@ -90,6 +94,10 @@ public partial class TournamentsController
         if (existingRound.TopicId != updateRoundDto.TopicId ||
             existingRound.NumberInMatch != updateRoundDto.NumberInMatch)
             return BadRequest("Cannot change an existing round. Delete the round first and create a new one.");
+
+        string? answersValidationError = _roundService.ValidateRoundAnswers(updateRoundDto.Answers);
+        if (answersValidationError is not null)
+            return BadRequest(answersValidationError);
 
         await _roundRepository.DeleteAnswersByRoundIdAsync(existingRound.Id);
 
