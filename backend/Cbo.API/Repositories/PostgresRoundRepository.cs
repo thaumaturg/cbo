@@ -19,6 +19,11 @@ public class PostgresRoundRepository : IRoundRepository
             .Include(r => r.Topic)
                 .ThenInclude(t => t.Questions.OrderBy(q => q.QuestionNumber))
             .Include(r => r.RoundAnswers)
+            .Include(r => r.Match)
+                .ThenInclude(m => m.Tournament)
+                    .ThenInclude(t => t.TournamentTopics)
+                        .ThenInclude(tt => tt.TournamentParticipant)
+                            .ThenInclude(tp => tp.ApplicationUser)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
