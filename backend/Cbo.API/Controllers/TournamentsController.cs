@@ -20,6 +20,7 @@ public partial class TournamentsController : ControllerBase
     private readonly ITournamentTopicRepository _tournamentTopicRepository;
     private readonly ITopicRepository _topicRepository;
     private readonly IMatchRepository _matchRepository;
+    private readonly IRoundRepository _roundRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly IMatchGenerationService _matchGenerationService;
     private readonly UserManager<ApplicationUser> _userManager;
@@ -32,6 +33,7 @@ public partial class TournamentsController : ControllerBase
         ITournamentTopicRepository tournamentTopicRepository,
         ITopicRepository topicRepository,
         IMatchRepository matchRepository,
+        IRoundRepository roundRepository,
         ICurrentUserService currentUserService,
         IMatchGenerationService matchGenerationService,
         UserManager<ApplicationUser> userManager,
@@ -43,6 +45,7 @@ public partial class TournamentsController : ControllerBase
         _tournamentTopicRepository = tournamentTopicRepository;
         _topicRepository = topicRepository;
         _matchRepository = matchRepository;
+        _roundRepository = roundRepository;
         _currentUserService = currentUserService;
         _matchGenerationService = matchGenerationService;
         _userManager = userManager;
