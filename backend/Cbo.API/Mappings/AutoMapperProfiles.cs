@@ -19,7 +19,11 @@ public class AutoMapperProfiles : Profile
         CreateMap<Question, UpdateQuestionDto>().ReverseMap();
         CreateMap<Round, GetRoundDto>()
             .ForMember(dest => dest.TopicTitle, opt => opt.MapFrom(src => src.Topic.Title))
-            .ForMember(dest => dest.Questions, opt => opt.MapFrom(src => src.Topic.Questions.OrderBy(q => q.QuestionNumber)));
+            .ForMember(dest => dest.Questions, opt => opt.MapFrom(src => src.Topic.Questions.OrderBy(q => q.QuestionNumber)))
+            .ForMember(dest => dest.TopicPriorityIndex, opt => opt.MapFrom(src =>
+                src.Match.Tournament.TournamentTopics.First(tt => tt.TopicId == src.TopicId).PriorityIndex))
+            .ForMember(dest => dest.TopicOwnerUsername, opt => opt.MapFrom(src =>
+                src.Match.Tournament.TournamentTopics.First(tt => tt.TopicId == src.TopicId).TournamentParticipant.ApplicationUser.UserName));
         CreateMap<RoundAnswer, GetRoundAnswerDto>().ReverseMap();
         CreateMap<RoundAnswer, CreateRoundAnswerDto>().ReverseMap();
         CreateMap<CreateRoundWithAnswersDto, Round>()

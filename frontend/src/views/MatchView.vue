@@ -151,6 +151,10 @@ const onTopicChange = async (roundIndex, topicId) => {
   }
 };
 
+const getRoundByTopicId = (topicId) => {
+  return match.value?.rounds?.find((r) => r.topicId === topicId) || null;
+};
+
 const getAnswerValue = (roundIndex, questionId, participantId) => {
   const key = `${questionId}-${participantId}`;
   return roundStates.value[roundIndex].answers[key] || null;
@@ -440,16 +444,13 @@ onMounted(() => {
                           </span>
                         </template>
                         <!-- Handle case where topic is from existing round but not in available list -->
-                        <template v-else>
+                        <template v-else-if="getRoundByTopicId(value)">
                           <span class="flex items-center gap-2">
-                            <span
-                              v-if="match?.rounds?.find((r) => r.topicId === value)"
-                              class="text-gray-700 dark:text-gray-300"
+                            <span class="font-mono text-sm">#{{ getRoundByTopicId(value).topicPriorityIndex }}</span>
+                            <span>{{ getRoundByTopicId(value).topicTitle }}</span>
+                            <span class="text-gray-500 text-sm"
+                              >by {{ getRoundByTopicId(value).topicOwnerUsername }}</span
                             >
-                              {{ match.rounds.find((r) => r.topicId === value)?.topicTitle }}
-                              <span class="text-amber-600 dark:text-amber-400 text-sm ml-2">(topic already used)</span>
-                            </span>
-                            <span v-else class="text-gray-500">Topic ID: {{ value }}</span>
                           </span>
                         </template>
                       </template>
