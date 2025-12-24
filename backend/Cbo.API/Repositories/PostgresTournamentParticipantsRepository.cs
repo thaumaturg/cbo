@@ -21,12 +21,6 @@ public class PostgresTournamentParticipantsRepository : ITournamentParticipantsR
             .ToListAsync();
     }
 
-    public async Task<TournamentParticipant?> GetByIdAsync(int id)
-    {
-        return await _dbContext.TournamentParticipants
-            .FirstOrDefaultAsync(tp => tp.Id == id);
-    }
-
     public async Task<TournamentParticipant?> GetByParticipantIdAndTournamentIdAsync(int participantId, int tournamentId)
     {
         return await _dbContext.TournamentParticipants

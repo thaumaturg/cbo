@@ -34,7 +34,6 @@ public class Program
         builder.Services.AddScoped<ITopicAuthorRepository, PostgresTopicAuthorRepository>();
         builder.Services.AddScoped<IMatchRepository, PostgresMatchRepository>();
         builder.Services.AddScoped<IRoundRepository, PostgresRoundRepository>();
-        builder.Services.AddScoped<IRoundAnswerRepository, PostgresRoundAnswerRepository>();
         builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 
         builder.Services.AddScoped<IAuthorizationHandler, TopicAuthorizationHandler>();

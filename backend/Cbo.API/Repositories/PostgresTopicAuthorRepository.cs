@@ -21,12 +21,6 @@ public class PostgresTopicAuthorRepository : ITopicAuthorRepository
             .ToListAsync();
     }
 
-    public async Task<TopicAuthor?> GetByIdAsync(int id)
-    {
-        return await _dbContext.TopicAuthors
-            .FirstOrDefaultAsync(ta => ta.Id == id);
-    }
-
     public async Task<TopicAuthor?> GetByAuthorIdAndTopicIdAsync(int authorId, int topicId)
     {
         return await _dbContext.TopicAuthors

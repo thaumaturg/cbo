@@ -13,11 +13,6 @@ public class PostgresMatchRepository : IMatchRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<Match>> GetAllAsync()
-    {
-        return await _dbContext.Matches.ToListAsync();
-    }
-
     public async Task<Match?> GetByIdAsync(int id)
     {
         return await _dbContext.Matches.FirstOrDefaultAsync(x => x.Id == id);
