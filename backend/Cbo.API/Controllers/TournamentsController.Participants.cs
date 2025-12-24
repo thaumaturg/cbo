@@ -156,8 +156,6 @@ public partial class TournamentsController
         if (participantDomain is null)
             return NotFound();
 
-        GetTournamentParticipantDto participantDto = _mapper.Map<GetTournamentParticipantDto>(participantDomain);
-
-        return Ok(participantDto);
+        return NoContent();
     }
 }

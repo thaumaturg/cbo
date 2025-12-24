@@ -177,9 +177,7 @@ public partial class TournamentsController : ControllerBase
         if (tournamentDomain is null)
             return NotFound();
 
-        GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentDomain);
-
-        return Ok(tournamentDto);
+        return NoContent();
     }
 
     [HttpPatch]

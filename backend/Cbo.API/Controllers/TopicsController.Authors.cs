@@ -113,8 +113,6 @@ public partial class TopicsController
         if (authorDomain is null)
             return NotFound();
 
-        GetTopicAuthorDto authorDto = _mapper.Map<GetTopicAuthorDto>(authorDomain);
-
-        return Ok(authorDto);
+        return NoContent();
     }
 }

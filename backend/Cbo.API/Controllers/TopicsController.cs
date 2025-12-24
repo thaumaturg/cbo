@@ -163,8 +163,6 @@ public partial class TopicsController : ControllerBase
         if (topicDomain is null)
             return NotFound();
 
-        GetTopicDto getTopicDto = _mapper.Map<GetTopicDto>(topicDomain);
-
-        return Ok(getTopicDto);
+        return NoContent();
     }
 }

@@ -98,8 +98,8 @@ export const tournamentService = {
    */
   async deleteTournament(tournamentId) {
     try {
-      const response = await api.delete(`/Tournaments/${tournamentId}`);
-      return { success: true, data: response.data };
+      await api.delete(`/Tournaments/${tournamentId}`);
+      return { success: true };
     } catch (error) {
       return {
         success: false,
@@ -107,8 +107,6 @@ export const tournamentService = {
       };
     }
   },
-
-  // ==================== Tournament Participants Management ====================
 
   /**
    * Get all participants for a tournament
@@ -198,8 +196,8 @@ export const tournamentService = {
    */
   async deleteParticipant(tournamentId, participantId) {
     try {
-      const response = await api.delete(`/Tournaments/${tournamentId}/participants/${participantId}`);
-      return { success: true, data: response.data };
+      await api.delete(`/Tournaments/${tournamentId}/participants/${participantId}`);
+      return { success: true };
     } catch (error) {
       return {
         success: false,

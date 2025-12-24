@@ -76,8 +76,8 @@ export const topicService = {
    */
   async deleteTopic(topicId) {
     try {
-      const response = await api.delete(`/Topics/${topicId}`);
-      return { success: true, data: response.data };
+      await api.delete(`/Topics/${topicId}`);
+      return { success: true };
     } catch (error) {
       return {
         success: false,
@@ -150,8 +150,8 @@ export const topicService = {
    */
   async deleteAuthor(topicId, authorId) {
     try {
-      const response = await api.delete(`/Topics/${topicId}/authors/${authorId}`);
-      return { success: true, data: response.data };
+      await api.delete(`/Topics/${topicId}/authors/${authorId}`);
+      return { success: true };
     } catch (error) {
       return {
         success: false,
