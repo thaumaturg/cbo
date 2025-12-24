@@ -64,7 +64,7 @@ const handleDelete = () => {
         <div class="mb-4">
           <div class="flex items-center gap-2 mb-1">
             <RouterLink
-              :to="{ name: 'tournament-view', params: { id: tournament.id } }"
+              :to="{ name: 'tournament-view', params: { tournamentId: tournament.id } }"
               class="text-xl font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
             >
               {{ tournament.title }}

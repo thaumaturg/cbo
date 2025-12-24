@@ -39,7 +39,7 @@ const roundsCount = computed(() => props.match.roundsCount ?? 0);
 
 const handleRounds = () => {
   router.push({
-    name: "rounds-view",
+    name: "match-view",
     params: {
       tournamentId: props.tournamentId,
       matchId: props.match.id,
