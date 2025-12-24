@@ -350,9 +350,8 @@ onMounted(() => {
         <RouterLink :to="backRoute" custom v-slot="{ navigate }">
           <Button icon="pi pi-arrow-left" severity="secondary" text rounded @click="navigate" />
         </RouterLink>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ matchTitle }} - Rounds</h1>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ matchTitle }}</h1>
       </div>
-      <p class="text-gray-600 dark:text-gray-400 ml-14">Manage rounds and record participant answers</p>
     </div>
 
     <!-- Loading State -->
