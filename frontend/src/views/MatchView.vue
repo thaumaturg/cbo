@@ -19,8 +19,10 @@ const toast = useToast();
 
 const tournamentId = computed(() => parseInt(route.params.tournamentId));
 const matchId = computed(() => parseInt(route.params.matchId));
+const canEdit = computed(() => currentUserRole.value === "Creator");
 
 const match = ref(null);
+const currentUserRole = ref(null);
 const availableTopics = ref([]);
 const isLoading = ref(true);
 const loadError = ref(null);
@@ -57,25 +59,28 @@ const fetchData = async () => {
   loadError.value = null;
 
   try {
-    const [matchResult, topicsResult] = await Promise.all([
-      tournamentService.getMatchWithRounds(tournamentId.value, matchId.value),
-      tournamentService.getAvailableTopics(tournamentId.value, matchId.value),
-    ]);
+    const tournamentResult = await tournamentService.getTournamentById(tournamentId.value);
+    if (!tournamentResult.success) {
+      loadError.value = tournamentResult.error;
+      toast.add({ severity: "error", summary: "Error", detail: tournamentResult.error, life: 5000 });
+      return;
+    }
+    currentUserRole.value = tournamentResult.data.currentUserRole;
 
+    const matchResult = await tournamentService.getMatchWithRounds(tournamentId.value, matchId.value);
     if (!matchResult.success) {
       loadError.value = matchResult.error;
       toast.add({ severity: "error", summary: "Error", detail: matchResult.error, life: 5000 });
       return;
     }
-
-    if (!topicsResult.success) {
-      loadError.value = topicsResult.error;
-      toast.add({ severity: "error", summary: "Error", detail: topicsResult.error, life: 5000 });
-      return;
-    }
-
     match.value = matchResult.data;
-    availableTopics.value = topicsResult.data;
+
+    if (currentUserRole.value === "Creator") {
+      const topicsResult = await tournamentService.getAvailableTopics(tournamentId.value, matchId.value);
+      if (topicsResult.success) {
+        availableTopics.value = topicsResult.data;
+      }
+    }
 
     initializeRoundStates();
   } catch (error) {
@@ -116,6 +121,8 @@ const initializeRoundStates = () => {
 };
 
 const onTopicChange = async (roundIndex, topicId) => {
+  if (!canEdit.value) return;
+
   const roundState = roundStates.value[roundIndex];
   roundState.selectedTopicId = topicId;
   roundState.answers = {};
@@ -199,6 +206,8 @@ const validateAnswers = (answers) => {
 };
 
 const submitRound = async (roundIndex) => {
+  if (!canEdit.value) return;
+
   const roundState = roundStates.value[roundIndex];
 
   if (!roundState.selectedTopicId) {
@@ -273,6 +282,8 @@ const submitRound = async (roundIndex) => {
 };
 
 const deleteRound = async (roundIndex) => {
+  if (!canEdit.value) return;
+
   const roundState = roundStates.value[roundIndex];
 
   if (!roundState.existingRoundId) {
@@ -382,15 +393,15 @@ onMounted(() => {
           <AccordionHeader>
             <div class="flex items-center gap-3">
               <span class="font-semibold">Round {{ roundState.numberInMatch }}</span>
-              <span v-if="roundState.hasChanges" class="text-sm text-amber-600 dark:text-amber-400">
+              <span v-if="canEdit && roundState.hasChanges" class="text-sm text-amber-600 dark:text-amber-400">
                 <i class="pi pi-exclamation-circle mr-1"></i>Unsaved changes
               </span>
             </div>
           </AccordionHeader>
           <AccordionContent>
             <div class="p-4 space-y-6">
-              <!-- Topic Selection -->
-              <div class="flex flex-col gap-2">
+              <!-- Topic Selection (only for Creator) -->
+              <div v-if="canEdit" class="flex flex-col gap-2">
                 <label class="font-semibold text-gray-700 dark:text-gray-300">Select Topic</label>
                 <div class="flex items-center gap-3">
                   <Select
@@ -450,6 +461,17 @@ onMounted(() => {
                 </small>
               </div>
 
+              <!-- Topic Display (read-only for non-creators) -->
+              <div v-else-if="roundState.selectedTopicId" class="flex flex-col gap-2">
+                <label class="font-semibold text-gray-700 dark:text-gray-300">Topic</label>
+                <span class="text-gray-800 dark:text-gray-200">
+                  {{
+                    match?.rounds?.find((r) => r.topicId === roundState.selectedTopicId)?.topicTitle ||
+                    `Topic ID: ${roundState.selectedTopicId}`
+                  }}
+                </span>
+              </div>
+
               <!-- Questions Table (shown when topic is selected) -->
               <div v-if="roundState.selectedTopicId && roundState.questions.length > 0">
                 <DataTable
@@ -499,26 +521,28 @@ onMounted(() => {
                     <template #body="{ data }">
                       <div class="flex justify-center gap-3">
                         <div
-                          class="flex items-center gap-1 cursor-pointer"
-                          @click="setAnswerValue(index, data.id, participant.id, 'correct')"
+                          :class="['flex items-center gap-1', canEdit ? 'cursor-pointer' : 'opacity-75']"
+                          @click="canEdit && setAnswerValue(index, data.id, participant.id, 'correct')"
                         >
                           <RadioButton
                             :modelValue="getAnswerValue(index, data.id, participant.id)"
                             value="correct"
                             :pt="{ input: { class: 'pointer-events-none' } }"
+                            :disabled="!canEdit"
                           />
                           <span class="text-green-600 dark:text-green-400 text-xs">
                             <i class="pi pi-check"></i>
                           </span>
                         </div>
                         <div
-                          class="flex items-center gap-1 cursor-pointer"
-                          @click="setAnswerValue(index, data.id, participant.id, 'wrong')"
+                          :class="['flex items-center gap-1', canEdit ? 'cursor-pointer' : 'opacity-75']"
+                          @click="canEdit && setAnswerValue(index, data.id, participant.id, 'wrong')"
                         >
                           <RadioButton
                             :modelValue="getAnswerValue(index, data.id, participant.id)"
                             value="wrong"
                             :pt="{ input: { class: 'pointer-events-none' } }"
+                            :disabled="!canEdit"
                           />
                           <span class="text-red-600 dark:text-red-400 text-xs">
                             <i class="pi pi-times"></i>
@@ -529,8 +553,8 @@ onMounted(() => {
                   </Column>
                 </DataTable>
 
-                <!-- Action Buttons -->
-                <div class="mt-4 flex justify-end gap-2">
+                <!-- Action Buttons (Creator only) -->
+                <div v-if="canEdit" class="mt-4 flex justify-end gap-2">
                   <Button
                     v-if="roundState.existingRoundId"
                     label="Delete Round"
@@ -556,7 +580,8 @@ onMounted(() => {
                 class="text-center py-8 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 rounded-lg"
               >
                 <i class="pi pi-info-circle text-3xl mb-2 block"></i>
-                <p>Select a topic to view questions and record answers</p>
+                <p v-if="canEdit">Select a topic to view questions and record answers</p>
+                <p v-else>No round played yet</p>
               </div>
 
               <!-- No questions available -->
