@@ -296,4 +296,106 @@ export const tournamentService = {
       };
     }
   },
+
+  /**
+   * Get match with full round details
+   * @param {number} tournamentId - Tournament ID
+   * @param {number} matchId - Match ID
+   * @returns {Promise} - API response with match details including rounds
+   */
+  async getMatchWithRounds(tournamentId, matchId) {
+    try {
+      const response = await api.get(`/Tournaments/${tournamentId}/matches/${matchId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data || "Failed to fetch match details. Please try again.",
+      };
+    }
+  },
+
+  /**
+   * Get available topics for a match (filtered by author conflicts and already played)
+   * @param {number} tournamentId - Tournament ID
+   * @param {number} matchId - Match ID
+   * @returns {Promise} - API response with available topics list
+   */
+  async getAvailableTopics(tournamentId, matchId) {
+    try {
+      const response = await api.get(`/Tournaments/${tournamentId}/matches/${matchId}/available-topics`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data || "Failed to fetch available topics. Please try again.",
+      };
+    }
+  },
+
+  /**
+   * Create a new round with answers
+   * @param {number} tournamentId - Tournament ID
+   * @param {number} matchId - Match ID
+   * @param {Object} roundData - Round data
+   * @param {number} roundData.numberInMatch - Round number (1-4)
+   * @param {number} roundData.topicId - Topic ID
+   * @param {Array} roundData.answers - Array of answer objects
+   * @returns {Promise} - API response with updated match
+   */
+  async createRound(tournamentId, matchId, roundData) {
+    try {
+      const response = await api.post(`/Tournaments/${tournamentId}/matches/${matchId}/rounds`, roundData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data || "Failed to create round. Please try again.",
+      };
+    }
+  },
+
+  /**
+   * Update an existing round with answers
+   * @param {number} tournamentId - Tournament ID
+   * @param {number} matchId - Match ID
+   * @param {number} roundNumber - Round number (1-4)
+   * @param {Object} roundData - Round data
+   * @param {number} roundData.numberInMatch - Round number (must match roundNumber)
+   * @param {number} roundData.topicId - Topic ID
+   * @param {Array} roundData.answers - Array of answer objects
+   * @returns {Promise} - API response with updated match
+   */
+  async updateRound(tournamentId, matchId, roundNumber, roundData) {
+    try {
+      const response = await api.put(
+        `/Tournaments/${tournamentId}/matches/${matchId}/rounds/${roundNumber}`,
+        roundData,
+      );
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data || "Failed to update round. Please try again.",
+      };
+    }
+  },
+
+  /**
+   * Get topic with questions for a tournament (allows access to topics you don't own)
+   * @param {number} tournamentId - Tournament ID
+   * @param {number} topicId - Topic ID
+   * @returns {Promise} - API response with topic details including questions
+   */
+  async getTournamentTopic(tournamentId, topicId) {
+    try {
+      const response = await api.get(`/Tournaments/${tournamentId}/topics/${topicId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data || "Failed to fetch topic. Please try again.",
+      };
+    }
+  },
 };
