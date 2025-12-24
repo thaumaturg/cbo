@@ -488,13 +488,10 @@ onMounted(() => {
                   </Column>
 
                   <!-- Dynamic columns for each participant -->
-                  <Column
-                    v-for="participant in participants"
-                    :key="participant.id"
-                    :header="participant.username"
-                    style="min-width: 140px"
-                    class="text-center"
-                  >
+                  <Column v-for="participant in participants" :key="participant.id" style="min-width: 140px">
+                    <template #header>
+                      <div class="w-full text-center">{{ participant.username }}</div>
+                    </template>
                     <template #body="{ data }">
                       <div class="flex justify-center gap-3">
                         <div
