@@ -102,31 +102,4 @@ public partial class TournamentsController
 
         return Ok(availableTopics);
     }
-
-    [HttpGet]
-    [Route("{tournamentId:int}/topics/{topicId:int}")]
-    [Authorize]
-    public async Task<IActionResult> GetTournamentTopicById([FromRoute] int tournamentId, [FromRoute] int topicId)
-    {
-        Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
-        if (tournament is null)
-            return NotFound();
-
-        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, tournament, TournamentOperations.Read);
-        if (!authResult.Succeeded)
-            return NotFound();
-
-        List<TournamentTopic> tournamentTopics = await _tournamentTopicRepository.GetAllByTournamentIdAsync(tournamentId);
-        if (!tournamentTopics.Any(tt => tt.TopicId == topicId))
-            return NotFound("Topic is not part of this tournament.");
-
-        Topic? topic = await _topicRepository.GetByIdIncludeQuestionsAsync(topicId);
-        if (topic is null)
-            return NotFound();
-
-        GetTopicDto topicDto = _mapper.Map<GetTopicDto>(topic);
-
-        return Ok(topicDto);
-    }
-
 }
