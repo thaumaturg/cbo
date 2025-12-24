@@ -28,10 +28,10 @@ const loadError = ref(null);
 const isProcessing = ref(false);
 
 const roundStates = ref([
-  { numberInMatch: 1, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null },
-  { numberInMatch: 2, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null },
-  { numberInMatch: 3, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null },
-  { numberInMatch: 4, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null },
+  { numberInMatch: 1, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null, hasChanges: false },
+  { numberInMatch: 2, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null, hasChanges: false },
+  { numberInMatch: 3, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null, hasChanges: false },
+  { numberInMatch: 4, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null, hasChanges: false },
 ]);
 
 const matchTitle = computed(() => {
@@ -90,10 +90,10 @@ const fetchData = async () => {
 
 const initializeRoundStates = () => {
   roundStates.value = [
-    { numberInMatch: 1, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null },
-    { numberInMatch: 2, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null },
-    { numberInMatch: 3, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null },
-    { numberInMatch: 4, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null },
+    { numberInMatch: 1, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null, hasChanges: false },
+    { numberInMatch: 2, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null, hasChanges: false },
+    { numberInMatch: 3, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null, hasChanges: false },
+    { numberInMatch: 4, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null, hasChanges: false },
   ];
 
   if (match.value?.rounds) {
@@ -120,6 +120,7 @@ const onTopicChange = async (roundIndex, topicId) => {
   const roundState = roundStates.value[roundIndex];
   roundState.selectedTopicId = topicId;
   roundState.answers = {};
+  roundState.hasChanges = true;
 
   if (topicId) {
     const existingRound = match.value?.rounds?.find((r) => r.topicId === topicId);
@@ -156,15 +157,17 @@ const getAnswerValue = (roundIndex, questionId, participantId) => {
 
 const setAnswerValue = (roundIndex, questionId, participantId, value) => {
   const key = `${questionId}-${participantId}`;
-  const currentValue = roundStates.value[roundIndex].answers[key];
+  const roundState = roundStates.value[roundIndex];
+  const currentValue = roundState.answers[key];
 
   if (currentValue === value) {
-    roundStates.value[roundIndex].answers[key] = null;
+    roundState.answers[key] = null;
+    roundState.hasChanges = true;
     return;
   }
 
   if (value === "correct") {
-    const existingCorrectKey = Object.entries(roundStates.value[roundIndex].answers).find(
+    const existingCorrectKey = Object.entries(roundState.answers).find(
       ([k, v]) => k.startsWith(`${questionId}-`) && k !== key && v === "correct",
     );
 
@@ -179,7 +182,8 @@ const setAnswerValue = (roundIndex, questionId, participantId, value) => {
     }
   }
 
-  roundStates.value[roundIndex].answers[key] = value;
+  roundState.answers[key] = value;
+  roundState.hasChanges = true;
 };
 
 const validateAnswers = (answers) => {
@@ -374,10 +378,9 @@ onMounted(() => {
           <AccordionHeader>
             <div class="flex items-center gap-3">
               <span class="font-semibold">Round {{ roundState.numberInMatch }}</span>
-              <span v-if="roundState.existingRoundId" class="text-green-600 dark:text-green-400 text-sm">
-                <i class="pi pi-check-circle mr-1"></i>Saved
+              <span v-if="roundState.hasChanges" class="text-sm text-amber-600 dark:text-amber-400">
+                <i class="pi pi-exclamation-circle mr-1"></i>Unsaved changes
               </span>
-              <span v-else class="text-gray-400 text-sm"> <i class="pi pi-circle mr-1"></i>Not saved </span>
             </div>
           </AccordionHeader>
           <AccordionContent>
@@ -540,7 +543,7 @@ onMounted(() => {
                     :label="roundState.existingRoundId ? 'Update Answers' : 'Save Round'"
                     :icon="roundState.existingRoundId ? 'pi pi-sync' : 'pi pi-save'"
                     :loading="isProcessing"
-                    :disabled="isProcessing"
+                    :disabled="isProcessing || !roundState.hasChanges"
                     @click="submitRound(index)"
                   />
                 </div>
