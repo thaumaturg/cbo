@@ -3,10 +3,10 @@ import Button from "primevue/button";
 import Card from "primevue/card";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
-import { useToast } from "primevue/usetoast";
 import { computed } from "vue";
+import { useRouter } from "vue-router";
 
-const toast = useToast();
+const router = useRouter();
 
 const props = defineProps({
   match: {
@@ -18,9 +18,14 @@ const props = defineProps({
       numberInStage: null,
       createdOnStage: null,
       type: null,
+      tournamentId: null,
       matchParticipants: [],
-      rounds: [],
+      roundsCount: 0,
     }),
+  },
+  tournamentId: {
+    type: Number,
+    required: true,
   },
 });
 
@@ -30,7 +35,7 @@ const matchTitle = computed(() => {
   return `${stage} #${number}`;
 });
 
-const roundsCount = computed(() => props.match.rounds?.length || 0);
+const roundsCount = computed(() => props.match.roundsCount ?? 0);
 
 const handleRounds = () => {
   toast.add({

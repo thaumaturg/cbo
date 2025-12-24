@@ -160,7 +160,7 @@ onMounted(async () => {
         <!-- Matches Grid -->
         <div v-else>
           <div v-if="matches.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <MatchCard v-for="match in matches" :key="match.id" :match="match" />
+            <MatchCard v-for="match in matches" :key="match.id" :match="match" :tournamentId="tournamentId" />
           </div>
 
           <div v-else class="text-center py-12">
