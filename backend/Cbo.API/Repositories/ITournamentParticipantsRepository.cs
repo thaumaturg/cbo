@@ -1,10 +1,11 @@
+using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 
 namespace Cbo.API.Repositories;
 
 public interface ITournamentParticipantsRepository
 {
-    Task<List<TournamentParticipant>> GetAllByTournamentIdAsync(int tournamentId);
+    Task<List<TournamentParticipant>> GetAllByTournamentIdAsync(int tournamentId, TournamentParticipantRole? role = null);
     Task<TournamentParticipant?> GetByParticipantIdAndTournamentIdAsync(int participantId, int tournamentId);
     Task<TournamentParticipant?> GetByUserIdAndTournamentIdAsync(int userId, int tournamentId);
     Task<TournamentParticipant> CreateAsync(TournamentParticipant tournamentParticipant);
