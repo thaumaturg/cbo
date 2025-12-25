@@ -1,5 +1,6 @@
 <script setup>
 import MatchCard from "@/components/MatchCard.vue";
+import TournamentStandingsCard from "@/components/TournamentStandingsCard.vue";
 import { tournamentService } from "@/services/tournament-service.js";
 import Badge from "primevue/badge";
 import Toast from "primevue/toast";
@@ -13,8 +14,10 @@ const toast = useToast();
 const tournamentId = computed(() => parseInt(route.params.tournamentId));
 const tournament = ref(null);
 const matches = ref([]);
+const participants = ref([]);
 const isLoadingTournament = ref(true);
 const isLoadingMatches = ref(false);
+const isLoadingParticipants = ref(false);
 const loadError = ref(null);
 
 const isInPreparations = computed(() => tournament.value?.currentStage === "Preparations");
@@ -95,10 +98,32 @@ const fetchMatches = async () => {
   }
 };
 
+const fetchParticipants = async () => {
+  if (isInPreparations.value) {
+    participants.value = [];
+    return;
+  }
+
+  isLoadingParticipants.value = true;
+
+  try {
+    const result = await tournamentService.getAllParticipants(tournamentId.value);
+    if (result.success) {
+      participants.value = result.data;
+    } else {
+      console.error("Failed to fetch participants:", result.error);
+    }
+  } catch (error) {
+    console.error("Error fetching participants:", error);
+  } finally {
+    isLoadingParticipants.value = false;
+  }
+};
+
 onMounted(async () => {
   await fetchTournament();
   if (tournament.value && !isInPreparations.value) {
-    await fetchMatches();
+    await Promise.all([fetchMatches(), fetchParticipants()]);
   }
 });
 </script>
@@ -149,16 +174,20 @@ onMounted(async () => {
 
       <!-- Matches Section -->
       <div v-else>
-        <!-- Loading Matches -->
-        <div v-if="isLoadingMatches" class="text-center py-12">
+        <!-- Loading State -->
+        <div v-if="isLoadingMatches || isLoadingParticipants" class="text-center py-12">
           <div class="text-gray-500 dark:text-gray-400">
             <i class="pi pi-spin pi-spinner text-4xl mb-4 block"></i>
-            <p class="text-lg">Loading matches...</p>
+            <p class="text-lg">Loading tournament data...</p>
           </div>
         </div>
 
-        <!-- Matches Grid -->
+        <!-- Tournament Content -->
         <div v-else>
+          <!-- Standings -->
+          <TournamentStandingsCard v-if="participants.length > 0" :participants="participants" />
+
+          <!-- Matches Grid -->
           <div v-if="matches.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <MatchCard v-for="match in matches" :key="match.id" :match="match" :tournamentId="tournamentId" />
           </div>
