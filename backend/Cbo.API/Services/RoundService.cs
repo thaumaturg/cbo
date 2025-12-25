@@ -7,10 +7,12 @@ namespace Cbo.API.Services;
 public class RoundService : IRoundService
 {
     private readonly IMatchRepository _matchRepository;
+    private readonly ITournamentParticipantsRepository _participantsRepository;
 
-    public RoundService(IMatchRepository matchRepository)
+    public RoundService(IMatchRepository matchRepository, ITournamentParticipantsRepository participantsRepository)
     {
         _matchRepository = matchRepository;
+        _participantsRepository = participantsRepository;
     }
 
     public string? ValidateRoundAnswers(List<CreateRoundAnswerDto> answers)
@@ -62,6 +64,30 @@ public class RoundService : IRoundService
         }
 
         await _matchRepository.UpdateMatchParticipantsAsync(match.MatchParticipants.ToList());
+
+        await RecalculateTournamentScoresAsync(match.TournamentId);
+    }
+
+    private async Task RecalculateTournamentScoresAsync(int tournamentId)
+    {
+        List<TournamentParticipant> participants = await _participantsRepository
+            .GetAllByTournamentIdWithMatchDataAsync(tournamentId);
+
+        foreach (TournamentParticipant participant in participants)
+        {
+            int scoreSum = participant.MatchParticipants
+                .Where(mp => mp.ScoreSum.HasValue)
+                .Sum(mp => mp.ScoreSum!.Value);
+
+            decimal pointsSum = participant.MatchParticipants
+                .Where(mp => mp.PointsSum.HasValue)
+                .Sum(mp => mp.PointsSum!.Value);
+
+            participant.ScoreSum = scoreSum;
+            participant.PointsSum = pointsSum;
+        }
+
+        await _participantsRepository.UpdateParticipantsAsync(participants);
     }
 
     private static void CalculatePoints(List<MatchParticipant> participants)
