@@ -49,6 +49,7 @@ public partial class TournamentsController
         round.Topic = topic;
 
         await _roundRepository.CreateAsync(round);
+        await _roundService.RecalculateMatchScoresAsync(matchId);
 
         Round? createdRound = await _roundRepository.GetByIdWithDetailsAsync(round.Id);
         GetRoundDto roundDto = _mapper.Map<GetRoundDto>(createdRound);
@@ -100,6 +101,7 @@ public partial class TournamentsController
         }
 
         await _roundRepository.CreateAnswersAsync(newAnswers);
+        await _roundService.RecalculateMatchScoresAsync(matchId);
 
         Round? updatedRound = await _roundRepository.GetByIdWithDetailsAsync(existingRound.Id);
         GetRoundDto roundDto = _mapper.Map<GetRoundDto>(updatedRound);
@@ -131,6 +133,7 @@ public partial class TournamentsController
             return NotFound($"Round {roundNumber} not found for this match.");
 
         await _roundRepository.DeleteAsync(existingRound.Id);
+        await _roundService.RecalculateMatchScoresAsync(matchId);
 
         return NoContent();
     }
