@@ -107,7 +107,7 @@ const fetchParticipants = async () => {
   isLoadingParticipants.value = true;
 
   try {
-    const result = await tournamentService.getAllParticipants(tournamentId.value);
+    const result = await tournamentService.getAllParticipants(tournamentId.value, "Player");
     if (result.success) {
       participants.value = result.data;
     } else {
