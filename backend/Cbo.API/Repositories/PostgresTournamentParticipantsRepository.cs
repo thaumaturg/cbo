@@ -75,4 +75,19 @@ public class PostgresTournamentParticipantsRepository : ITournamentParticipantsR
 
         return existing;
     }
+
+    public async Task<List<TournamentParticipant>> GetAllByTournamentIdWithMatchDataAsync(int tournamentId)
+    {
+        return await _dbContext.TournamentParticipants
+            .Include(tp => tp.ApplicationUser)
+            .Include(tp => tp.MatchParticipants)
+            .Where(tp => tp.TournamentId == tournamentId)
+            .ToListAsync();
+    }
+
+    public async Task UpdateParticipantsAsync(List<TournamentParticipant> participants)
+    {
+        _dbContext.TournamentParticipants.UpdateRange(participants);
+        await _dbContext.SaveChangesAsync();
+    }
 }

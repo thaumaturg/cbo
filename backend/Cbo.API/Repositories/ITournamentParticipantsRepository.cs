@@ -10,4 +10,6 @@ public interface ITournamentParticipantsRepository
     Task<TournamentParticipant> CreateAsync(TournamentParticipant tournamentParticipant);
     Task<TournamentParticipant?> UpdateAsync(int id, TournamentParticipant tournamentParticipant);
     Task<TournamentParticipant?> DeleteAsync(int id);
+    Task<List<TournamentParticipant>> GetAllByTournamentIdWithMatchDataAsync(int tournamentId);
+    Task UpdateParticipantsAsync(List<TournamentParticipant> participants);
 }
