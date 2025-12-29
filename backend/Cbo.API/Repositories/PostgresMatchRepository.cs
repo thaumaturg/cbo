@@ -54,4 +54,20 @@ public class PostgresMatchRepository : IMatchRepository
         await _dbContext.SaveChangesAsync();
         return matches;
     }
+
+    public async Task<Match?> GetByIdWithScoreDataAsync(int id)
+    {
+        return await _dbContext.Matches
+            .Include(m => m.MatchParticipants)
+                .ThenInclude(mp => mp.RoundAnswers)
+                    .ThenInclude(ra => ra.Question)
+            .Include(m => m.Rounds)
+            .FirstOrDefaultAsync(x => x.Id == id);
+    }
+
+    public async Task UpdateMatchParticipantsAsync(List<MatchParticipant> participants)
+    {
+        _dbContext.MatchParticipants.UpdateRange(participants);
+        await _dbContext.SaveChangesAsync();
+    }
 }

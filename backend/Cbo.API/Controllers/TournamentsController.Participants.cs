@@ -12,7 +12,9 @@ public partial class TournamentsController
     [HttpGet]
     [Route("{tournamentId:int}/participants")]
     [Authorize]
-    public async Task<IActionResult> GetAllParticipants([FromRoute] int tournamentId)
+    public async Task<IActionResult> GetAllParticipants(
+        [FromRoute] int tournamentId,
+        [FromQuery] TournamentParticipantRole? role = null)
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
@@ -22,7 +24,7 @@ public partial class TournamentsController
         if (!authResult.Succeeded)
             return NotFound();
 
-        List<TournamentParticipant> participantsDomain = await _participantsRepository.GetAllByTournamentIdAsync(tournamentId);
+        List<TournamentParticipant> participantsDomain = await _participantsRepository.GetAllByTournamentIdAsync(tournamentId, role);
         List<GetTournamentParticipantDto> participantsDto = _mapper.Map<List<GetTournamentParticipantDto>>(participantsDomain);
 
         return Ok(participantsDto);

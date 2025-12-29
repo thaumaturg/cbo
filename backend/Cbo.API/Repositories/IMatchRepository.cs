@@ -8,4 +8,6 @@ public interface IMatchRepository
     Task<Match?> GetByIdWithDetailsAsync(int id);
     Task<List<Match>> GetAllByTournamentIdAsync(int tournamentId);
     Task<List<Match>> CreateBulkAsync(List<Match> matches);
+    Task<Match?> GetByIdWithScoreDataAsync(int id);
+    Task UpdateMatchParticipantsAsync(List<MatchParticipant> participants);
 }

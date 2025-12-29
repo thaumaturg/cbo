@@ -72,13 +72,13 @@ const handleRounds = () => {
           stripedRows
           size="small"
         >
-          <Column field="username" header="Player" style="min-width: 120px">
+          <Column field="username" header="Player" sortable style="min-width: 120px">
             <template #body="{ data }">
               <span class="font-medium text-gray-800 dark:text-gray-200">{{ data.username }}</span>
             </template>
           </Column>
 
-          <Column field="pointsSum" header="Points" style="width: 80px" class="text-center">
+          <Column field="pointsSum" header="Points" sortable style="width: 80px" class="text-center">
             <template #body="{ data }">
               <span class="text-gray-600 dark:text-gray-400">
                 {{ data.pointsSum ?? "-" }}
@@ -86,7 +86,7 @@ const handleRounds = () => {
             </template>
           </Column>
 
-          <Column field="scoreSum" header="Score" style="width: 80px" class="text-center">
+          <Column field="scoreSum" header="Score" sortable style="width: 80px" class="text-center">
             <template #body="{ data }">
               <span class="text-gray-600 dark:text-gray-400">
                 {{ data.scoreSum ?? "-" }}

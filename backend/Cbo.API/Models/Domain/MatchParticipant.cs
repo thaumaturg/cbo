@@ -4,7 +4,7 @@ public class MatchParticipant
 {
     public int Id { get; set; }
     public int? ScoreSum { get; set; }
-    public int? PointsSum { get; set; }
+    public decimal? PointsSum { get; set; }
     public required int TournamentParticipantId { get; set; }
     public required TournamentParticipant TournamentParticipant { get; set; }
     public int MatchId { get; set; }

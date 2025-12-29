@@ -111,11 +111,13 @@ export const tournamentService = {
   /**
    * Get all participants for a tournament
    * @param {number} tournamentId - Tournament ID
+   * @param {string} [role] - Optional role filter
    * @returns {Promise} - API response with participants list
    */
-  async getAllParticipants(tournamentId) {
+  async getAllParticipants(tournamentId, role = null) {
     try {
-      const response = await api.get(`/Tournaments/${tournamentId}/participants`);
+      const params = role ? { role } : {};
+      const response = await api.get(`/Tournaments/${tournamentId}/participants`, { params });
       return { success: true, data: response.data };
     } catch (error) {
       return {

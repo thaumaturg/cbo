@@ -1,4 +1,5 @@
 using Cbo.API.Data;
+using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,12 +14,16 @@ public class PostgresTournamentParticipantsRepository : ITournamentParticipantsR
         _dbContext = dbContext;
     }
 
-    public async Task<List<TournamentParticipant>> GetAllByTournamentIdAsync(int tournamentId)
+    public async Task<List<TournamentParticipant>> GetAllByTournamentIdAsync(int tournamentId, TournamentParticipantRole? role = null)
     {
-        return await _dbContext.TournamentParticipants
+        IQueryable<TournamentParticipant> query = _dbContext.TournamentParticipants
             .Include(tp => tp.ApplicationUser)
-            .Where(tp => tp.TournamentId == tournamentId)
-            .ToListAsync();
+            .Where(tp => tp.TournamentId == tournamentId);
+
+        if (role.HasValue)
+            query = query.Where(tp => tp.Role == role.Value);
+
+        return await query.ToListAsync();
     }
 
     public async Task<TournamentParticipant?> GetByParticipantIdAndTournamentIdAsync(int participantId, int tournamentId)
@@ -74,5 +79,20 @@ public class PostgresTournamentParticipantsRepository : ITournamentParticipantsR
         await _dbContext.SaveChangesAsync();
 
         return existing;
+    }
+
+    public async Task<List<TournamentParticipant>> GetAllByTournamentIdWithMatchDataAsync(int tournamentId)
+    {
+        return await _dbContext.TournamentParticipants
+            .Include(tp => tp.ApplicationUser)
+            .Include(tp => tp.MatchParticipants)
+            .Where(tp => tp.TournamentId == tournamentId)
+            .ToListAsync();
+    }
+
+    public async Task UpdateParticipantsAsync(List<TournamentParticipant> participants)
+    {
+        _dbContext.TournamentParticipants.UpdateRange(participants);
+        await _dbContext.SaveChangesAsync();
     }
 }
