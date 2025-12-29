@@ -2,14 +2,14 @@
 import MatchCard from "@/components/MatchCard.vue";
 import TournamentStandingsCard from "@/components/TournamentStandingsCard.vue";
 import { tournamentService } from "@/services/tournament-service.js";
+import { useNotify } from "@/utils/notify.js";
 import Badge from "primevue/badge";
 import Toast from "primevue/toast";
-import { useToast } from "primevue/usetoast";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
-const toast = useToast();
+const notify = useNotify();
 
 const tournamentId = computed(() => route.params.tournamentId);
 const tournament = ref(null);
@@ -43,22 +43,12 @@ const fetchTournament = async () => {
       tournament.value = result.data;
     } else {
       loadError.value = result.error;
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: result.error,
-        life: 5000,
-      });
+      notify.error("Tournament Load Failed", result.error);
     }
   } catch (error) {
     console.error("Error fetching tournament:", error);
     loadError.value = "Failed to load tournament. Please try again.";
-    toast.add({
-      severity: "error",
-      summary: "Error",
-      detail: "Failed to load tournament. Please try again.",
-      life: 5000,
-    });
+    notify.error("Tournament Load Failed", "Could not load tournament data");
   } finally {
     isLoadingTournament.value = false;
   }
@@ -78,21 +68,11 @@ const fetchMatches = async () => {
       matches.value = result.data;
     } else {
       console.error("Failed to fetch matches:", result.error);
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: result.error,
-        life: 5000,
-      });
+      notify.error("Matches Load Failed", result.error);
     }
   } catch (error) {
     console.error("Error fetching matches:", error);
-    toast.add({
-      severity: "error",
-      summary: "Error",
-      detail: "Failed to load matches. Please try again.",
-      life: 5000,
-    });
+    notify.error("Matches Load Failed", "Could not load match list");
   } finally {
     isLoadingMatches.value = false;
   }

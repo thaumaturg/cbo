@@ -8,13 +8,13 @@ import TournamentTopicsDialog from "@/components/TournamentTopicsDialog.vue";
 import { topicService } from "@/services/topic-service.js";
 import { tournamentService } from "@/services/tournament-service.js";
 import { useAuthStore } from "@/stores/auth.js";
+import { useNotify } from "@/utils/notify.js";
 import Button from "primevue/button";
 import Toast from "primevue/toast";
-import { useToast } from "primevue/usetoast";
 import { onMounted, ref, watch } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 
-const toast = useToast();
+const notify = useNotify();
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
@@ -76,12 +76,7 @@ const fetchTopics = async () => {
 onMounted(() => {
   // Show toast if redirected due to auth requirement
   if (route.query.authRequired === "true") {
-    toast.add({
-      severity: "warn",
-      summary: "Authentication Required",
-      detail: "Please log in to manage topics",
-      life: 3000,
-    });
+    notify.warn("Login Required", "Sign in to manage topics");
     // Clear the query parameter without adding to history
     router.replace({ query: {} });
   }
@@ -142,23 +137,13 @@ const handleTournamentStart = async (tournament) => {
       tournaments.value[index] = { ...tournaments.value[index], ...result.data };
     }
 
-    toast.add({
-      severity: "success",
-      summary: "Tournament Started",
-      detail: `"${tournamentTitle}" has been advanced to Qualifications stage!`,
-      life: 3000,
-    });
+    notify.success("Tournament Started", `"${tournamentTitle}" advanced to Qualifications`);
 
     // Background validation - ensure UI is in sync
     await fetchTournaments();
   } else {
     console.error("Failed to start tournament:", result.error);
-    toast.add({
-      severity: "error",
-      summary: "Failed to Start Tournament",
-      detail: result.error,
-      life: 5000,
-    });
+    notify.error("Start Failed", result.error);
   }
 };
 
@@ -179,21 +164,11 @@ const handleTournamentDelete = async (tournament) => {
 
     if (!result.success) {
       console.error("Failed to delete tournament:", result.error);
-      toast.add({
-        severity: "error",
-        summary: "Delete Failed",
-        detail: `Failed to delete "${tournamentTitle}". ${result.error}`,
-        life: 5000,
-      });
+      notify.error("Delete Failed", result.error);
       // Re-fetch to restore the tournament if deletion failed
       await fetchTournaments();
     } else {
-      toast.add({
-        severity: "success",
-        summary: "Tournament Deleted",
-        detail: `"${tournamentTitle}" has been deleted successfully.`,
-        life: 3000,
-      });
+      notify.success("Tournament Deleted", `"${tournamentTitle}" removed`);
       // Background validation - ensure UI is in sync
       await fetchTournaments();
     }
@@ -222,21 +197,11 @@ const handleTopicDelete = async (topic) => {
 
     if (!result.success) {
       console.error("Failed to delete topic:", result.error);
-      toast.add({
-        severity: "error",
-        summary: "Delete Failed",
-        detail: `Failed to delete "${topicTitle}". ${result.error}`,
-        life: 5000,
-      });
+      notify.error("Delete Failed", result.error);
       // Re-fetch to restore the topic if deletion failed
       await fetchTopics();
     } else {
-      toast.add({
-        severity: "success",
-        summary: "Topic Deleted",
-        detail: `"${topicTitle}" has been deleted successfully.`,
-        life: 3000,
-      });
+      notify.success("Topic Deleted", `"${topicTitle}" removed`);
       // Background validation - ensure UI is in sync
       await fetchTopics();
     }
@@ -257,12 +222,7 @@ const handleTournamentCreated = async (newTournament) => {
   // Step 1: OPTIMISTIC UPDATE - immediately add to UI for instant feedback
   tournaments.value.unshift(newTournament);
 
-  toast.add({
-    severity: "success",
-    summary: "Tournament Created",
-    detail: `"${newTournament.title}" has been created successfully!`,
-    life: 3000,
-  });
+  notify.success("Tournament Created", `"${newTournament.title}" ready`);
 
   setTimeout(() => {
     showTournamentDialog.value = false;
@@ -276,12 +236,7 @@ const handleTournamentCreated = async (newTournament) => {
     }
   } catch (error) {
     console.error("Failed to sync tournaments after creation:", error);
-    toast.add({
-      severity: "warn",
-      summary: "Sync Warning",
-      detail: "Tournament created but failed to sync with server. Please refresh the page.",
-      life: 5000,
-    });
+    notify.warn("Sync Issue", "Created but sync failed. Refresh page.");
   }
 };
 
@@ -296,12 +251,7 @@ const handleTournamentUpdated = async (updatedTournament) => {
     tournaments.value[index] = updatedTournament;
   }
 
-  toast.add({
-    severity: "success",
-    summary: "Tournament Updated",
-    detail: `"${updatedTournament.title}" has been updated successfully!`,
-    life: 3000,
-  });
+  notify.success("Tournament Updated", `"${updatedTournament.title}" saved`);
 
   setTimeout(() => {
     showTournamentDialog.value = false;
@@ -315,12 +265,7 @@ const handleTournamentUpdated = async (updatedTournament) => {
     }
   } catch (error) {
     console.error("Failed to sync tournaments after update:", error);
-    toast.add({
-      severity: "warn",
-      summary: "Sync Warning",
-      detail: "Tournament updated but failed to sync with server. Please refresh the page.",
-      life: 5000,
-    });
+    notify.warn("Sync Issue", "Updated but sync failed. Refresh the page.");
   }
 };
 </script>

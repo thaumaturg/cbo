@@ -1,5 +1,6 @@
 <script setup>
 import { tournamentService } from "@/services/tournament-service.js";
+import { useNotify } from "@/utils/notify.js";
 import Accordion from "primevue/accordion";
 import AccordionContent from "primevue/accordioncontent";
 import AccordionHeader from "primevue/accordionheader";
@@ -10,12 +11,11 @@ import DataTable from "primevue/datatable";
 import RadioButton from "primevue/radiobutton";
 import Select from "primevue/select";
 import Toast from "primevue/toast";
-import { useToast } from "primevue/usetoast";
 import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
 const route = useRoute();
-const toast = useToast();
+const notify = useNotify();
 
 const tournamentId = computed(() => route.params.tournamentId);
 const matchId = computed(() => route.params.matchId);
@@ -62,7 +62,7 @@ const fetchData = async () => {
     const tournamentResult = await tournamentService.getTournamentById(tournamentId.value);
     if (!tournamentResult.success) {
       loadError.value = tournamentResult.error;
-      toast.add({ severity: "error", summary: "Error", detail: tournamentResult.error, life: 5000 });
+      notify.error("Tournament Load Failed", tournamentResult.error);
       return;
     }
     currentUserRole.value = tournamentResult.data.currentUserRole;
@@ -70,7 +70,7 @@ const fetchData = async () => {
     const matchResult = await tournamentService.getMatchWithRounds(tournamentId.value, matchId.value);
     if (!matchResult.success) {
       loadError.value = matchResult.error;
-      toast.add({ severity: "error", summary: "Error", detail: matchResult.error, life: 5000 });
+      notify.error("Match Load Failed", matchResult.error);
       return;
     }
     match.value = matchResult.data;
@@ -86,7 +86,7 @@ const fetchData = async () => {
   } catch (error) {
     console.error("Error fetching data:", error);
     loadError.value = "Failed to load data. Please try again.";
-    toast.add({ severity: "error", summary: "Error", detail: "Failed to load data.", life: 5000 });
+    notify.error("Load Failed", "Could not load match data");
   } finally {
     isLoading.value = false;
   }
@@ -134,16 +134,11 @@ const onTopicChange = async (roundIndex, topicId) => {
       if (result.success) {
         roundState.questions = result.data.questions || [];
       } else {
-        toast.add({
-          severity: "error",
-          summary: "Error",
-          detail: result.error || "Failed to load topic questions.",
-          life: 3000,
-        });
+        notify.error("Topic Load Failed", result.error || "Failed to load questions");
         roundState.questions = [];
       }
     } catch {
-      toast.add({ severity: "error", summary: "Error", detail: "Failed to load topic questions.", life: 3000 });
+      notify.error("Topic Load Failed", "Failed to load questions");
       roundState.questions = [];
     }
   } else {
@@ -177,12 +172,7 @@ const setAnswerValue = (roundIndex, questionId, participantId, value) => {
     );
 
     if (existingCorrectKey) {
-      toast.add({
-        severity: "warn",
-        summary: "Invalid",
-        detail: "Only one correct answer is allowed per question.",
-        life: 3000,
-      });
+      notify.warn("Invalid Selection", "Only one correct answer per question");
       return;
     }
   }
@@ -210,7 +200,7 @@ const submitRound = async (roundIndex) => {
   const roundState = roundStates.value[roundIndex];
 
   if (!roundState.selectedTopicId) {
-    toast.add({ severity: "warn", summary: "Warning", detail: "Please select a topic first.", life: 3000 });
+    notify.warn("Topic Required", "Select a topic before saving");
     return;
   }
 
@@ -228,7 +218,7 @@ const submitRound = async (roundIndex) => {
 
   const validationError = validateAnswers(answers);
   if (validationError) {
-    toast.add({ severity: "error", summary: "Validation Error", detail: validationError, life: 5000 });
+    notify.error("Validation Error", validationError);
     return;
   }
 
@@ -254,12 +244,7 @@ const submitRound = async (roundIndex) => {
     }
 
     if (result.success) {
-      toast.add({
-        severity: "success",
-        summary: "Success",
-        detail: `Round ${roundState.numberInMatch} saved successfully.`,
-        life: 3000,
-      });
+      notify.success("Round Saved", `Round ${roundState.numberInMatch} saved successfully`);
 
       const matchResult = await tournamentService.getMatchWithRounds(tournamentId.value, matchId.value);
       if (matchResult.success) {
@@ -273,11 +258,11 @@ const submitRound = async (roundIndex) => {
 
       initializeRoundStates();
     } else {
-      toast.add({ severity: "error", summary: "Error", detail: result.error, life: 5000 });
+      notify.error("Save Failed", result.error);
     }
   } catch (error) {
     console.error("Error submitting round:", error);
-    toast.add({ severity: "error", summary: "Error", detail: "Failed to save round.", life: 5000 });
+    notify.error("Save Failed", "Could not save round data");
   } finally {
     isProcessing.value = false;
   }
@@ -301,12 +286,7 @@ const deleteRound = async (roundIndex) => {
     const result = await tournamentService.deleteRound(tournamentId.value, matchId.value, roundState.numberInMatch);
 
     if (result.success) {
-      toast.add({
-        severity: "success",
-        summary: "Success",
-        detail: `Round ${roundState.numberInMatch} deleted.`,
-        life: 3000,
-      });
+      notify.success("Round Deleted", `Round ${roundState.numberInMatch} removed`);
 
       const matchResult = await tournamentService.getMatchWithRounds(tournamentId.value, matchId.value);
       if (matchResult.success) {
@@ -320,11 +300,11 @@ const deleteRound = async (roundIndex) => {
 
       initializeRoundStates();
     } else {
-      toast.add({ severity: "error", summary: "Error", detail: result.error, life: 5000 });
+      notify.error("Delete Failed", result.error);
     }
   } catch (error) {
     console.error("Error deleting round:", error);
-    toast.add({ severity: "error", summary: "Error", detail: "Failed to delete round.", life: 5000 });
+    notify.error("Delete Failed", "Could not remove round");
   } finally {
     isProcessing.value = false;
   }

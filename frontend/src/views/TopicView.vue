@@ -1,5 +1,6 @@
 <script setup>
 import { topicService } from "@/services/topic-service.js";
+import { useNotify } from "@/utils/notify.js";
 import { parseTabSeparatedData } from "@/utils/tsv-parser.js";
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
@@ -10,13 +11,12 @@ import InputText from "primevue/inputtext";
 import Message from "primevue/message";
 import Textarea from "primevue/textarea";
 import Toast from "primevue/toast";
-import { useToast } from "primevue/usetoast";
 import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 
 const router = useRouter();
 const route = useRoute();
-const toast = useToast();
+const notify = useNotify();
 
 const isEditMode = computed(() => route.params.id && route.params.id !== "new");
 const topicId = computed(() => (isEditMode.value ? route.params.id : null));
@@ -140,22 +140,12 @@ const fetchTopicData = async () => {
         }
       }
     } else {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: result.error || "Failed to load topic",
-        life: 5000,
-      });
+      notify.error("Load Failed", result.error || "Could not load topic data");
       router.push("/");
     }
   } catch (error) {
     console.error("Error fetching topic:", error);
-    toast.add({
-      severity: "error",
-      summary: "Error",
-      detail: "An unexpected error occurred while loading the topic",
-      life: 5000,
-    });
+    notify.error("Load Failed", "Unexpected error while loading topic");
     router.push("/");
   } finally {
     isLoading.value = false;
@@ -181,12 +171,7 @@ const handlePaste = (event) => {
   const firstRowCols = rows[0].length;
 
   if (rows.length > 5) {
-    toast.add({
-      severity: "warn",
-      summary: "Too Many Rows",
-      detail: "Only the first 5 rows will be imported",
-      life: 3000,
-    });
+    notify.warn("Too Many Rows", "Only the first 5 rows were imported");
   }
 
   const rowsToProcess = rows.slice(0, 5);
@@ -225,12 +210,7 @@ const handlePaste = (event) => {
 };
 
 const importSuccess = (event) => {
-  toast.add({
-    severity: "success",
-    summary: "Data Imported",
-    detail: `Imported from clipboard`,
-    life: 3000,
-  });
+  notify.success("Import Complete", "Questions pasted from clipboard");
 
   event.preventDefault();
 };
@@ -516,3 +496,4 @@ const onSubmit = async (values) => {
 </template>
 
 <style scoped></style>
+
