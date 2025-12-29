@@ -478,7 +478,6 @@ onMounted(() => {
                 <DataTable
                   :value="roundState.questions"
                   dataKey="id"
-                  class="rounds-questions-table"
                   responsiveLayout="scroll"
                   stripedRows
                   size="small"
@@ -601,25 +600,4 @@ onMounted(() => {
   </main>
 </template>
 
-<style scoped>
-.rounds-questions-table :deep(.p-datatable-thead > tr > th) {
-  background-color: var(--surface-ground);
-  padding: 0.75rem 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.rounds-questions-table :deep(.p-datatable-tbody > tr > td) {
-  padding: 0.75rem 0.5rem;
-  font-size: 0.875rem;
-  vertical-align: middle;
-}
-
-:deep(.p-accordion-header-link) {
-  background-color: var(--surface-card);
-}
-
-:deep(.p-accordion-content) {
-  background-color: var(--surface-ground);
-}
-</style>
+<style scoped></style>

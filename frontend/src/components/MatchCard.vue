@@ -64,14 +64,7 @@ const handleRounds = () => {
           </div>
         </div>
 
-        <DataTable
-          :value="match.matchParticipants"
-          dataKey="id"
-          class="match-participants-table"
-          responsiveLayout="scroll"
-          stripedRows
-          size="small"
-        >
+        <DataTable :value="match.matchParticipants" dataKey="id" responsiveLayout="scroll" stripedRows size="small">
           <Column field="username" header="Player" sortable style="min-width: 120px">
             <template #body="{ data }">
               <span class="font-medium text-gray-800 dark:text-gray-200">{{ data.username }}</span>
@@ -103,15 +96,4 @@ const handleRounds = () => {
   </Card>
 </template>
 
-<style scoped>
-.match-participants-table :deep(.p-datatable-thead > tr > th) {
-  background-color: var(--surface-ground);
-  padding: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.match-participants-table :deep(.p-datatable-tbody > tr > td) {
-  padding: 0.5rem;
-  font-size: 0.875rem;
-}
-</style>
+<style scoped></style>

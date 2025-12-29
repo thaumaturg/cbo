@@ -35,7 +35,6 @@ const multiSortMeta = ref([
         <DataTable
           :value="participants"
           dataKey="id"
-          class="standings-table"
           responsiveLayout="scroll"
           stripedRows
           size="small"
@@ -70,15 +69,4 @@ const multiSortMeta = ref([
   </Card>
 </template>
 
-<style scoped>
-.standings-table :deep(.p-datatable-thead > tr > th) {
-  background-color: var(--surface-ground);
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-}
-
-.standings-table :deep(.p-datatable-tbody > tr > td) {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-}
-</style>
+<style scoped></style>

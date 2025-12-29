@@ -515,26 +515,4 @@ const handleCancel = () => {
   </main>
 </template>
 
-<style scoped>
-:deep(.p-datatable .p-datatable-tbody > tr > td) {
-  padding: 0.5rem;
-  vertical-align: top;
-}
-
-:deep(.p-datatable .p-datatable-thead > tr > th) {
-  padding: 0.75rem 0.5rem;
-  font-weight: 600;
-}
-
-:deep(.p-inputtext) {
-  width: 100%;
-}
-
-:deep(.p-inputnumber) {
-  width: 100%;
-}
-
-:deep(.p-inputnumber-input) {
-  text-align: center;
-}
-</style>
+<style scoped></style>
