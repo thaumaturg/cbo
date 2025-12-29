@@ -9,11 +9,11 @@ namespace Cbo.API.Controllers;
 public partial class TournamentsController
 {
     [HttpPost]
-    [Route("{tournamentId:int}/matches/{matchId:int}/rounds")]
+    [Route("{tournamentId:guid}/matches/{matchId:guid}/rounds")]
     [Authorize]
     public async Task<IActionResult> CreateRound(
-        [FromRoute] int tournamentId,
-        [FromRoute] int matchId,
+        [FromRoute] Guid tournamentId,
+        [FromRoute] Guid matchId,
         [FromBody] CreateRoundWithAnswersDto createRoundDto)
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
@@ -57,11 +57,11 @@ public partial class TournamentsController
     }
 
     [HttpPut]
-    [Route("{tournamentId:int}/matches/{matchId:int}/rounds/{roundNumber:int}")]
+    [Route("{tournamentId:guid}/matches/{matchId:guid}/rounds/{roundNumber:int}")]
     [Authorize]
     public async Task<IActionResult> UpdateRound(
-        [FromRoute] int tournamentId,
-        [FromRoute] int matchId,
+        [FromRoute] Guid tournamentId,
+        [FromRoute] Guid matchId,
         [FromRoute] int roundNumber,
         [FromBody] CreateRoundWithAnswersDto updateRoundDto)
     {
@@ -109,11 +109,11 @@ public partial class TournamentsController
     }
 
     [HttpDelete]
-    [Route("{tournamentId:int}/matches/{matchId:int}/rounds/{roundNumber:int}")]
+    [Route("{tournamentId:guid}/matches/{matchId:guid}/rounds/{roundNumber:int}")]
     [Authorize]
     public async Task<IActionResult> DeleteRound(
-        [FromRoute] int tournamentId,
-        [FromRoute] int matchId,
+        [FromRoute] Guid tournamentId,
+        [FromRoute] Guid matchId,
         [FromRoute] int roundNumber)
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);

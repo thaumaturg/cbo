@@ -13,7 +13,7 @@ public class PostgresRoundRepository : IRoundRepository
         _dbContext = dbContext;
     }
 
-    public async Task<Round?> GetByIdWithDetailsAsync(int id)
+    public async Task<Round?> GetByIdWithDetailsAsync(Guid id)
     {
         return await _dbContext.Rounds
             .Include(r => r.Topic)
@@ -27,7 +27,7 @@ public class PostgresRoundRepository : IRoundRepository
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
-    public async Task<List<Round>> GetAllByTournamentIdAsync(int tournamentId)
+    public async Task<List<Round>> GetAllByTournamentIdAsync(Guid tournamentId)
     {
         return await _dbContext.Rounds
             .Include(r => r.Match)
@@ -35,7 +35,7 @@ public class PostgresRoundRepository : IRoundRepository
             .ToListAsync();
     }
 
-    public async Task<Round?> GetByMatchIdAndNumberAsync(int matchId, int numberInMatch)
+    public async Task<Round?> GetByMatchIdAndNumberAsync(Guid matchId, int numberInMatch)
     {
         return await _dbContext.Rounds
             .Include(r => r.RoundAnswers)
@@ -49,7 +49,7 @@ public class PostgresRoundRepository : IRoundRepository
         return round;
     }
 
-    public async Task DeleteAnswersByRoundIdAsync(int roundId)
+    public async Task DeleteAnswersByRoundIdAsync(Guid roundId)
     {
         var answers = await _dbContext.RoundAnswers
             .Where(ra => ra.RoundId == roundId)
@@ -68,7 +68,7 @@ public class PostgresRoundRepository : IRoundRepository
         }
     }
 
-    public async Task<Round?> DeleteAsync(int id)
+    public async Task<Round?> DeleteAsync(Guid id)
     {
         Round? existingRound = await _dbContext.Rounds.FirstOrDefaultAsync(x => x.Id == id);
 

@@ -9,9 +9,9 @@ namespace Cbo.API.Controllers;
 public partial class TopicsController
 {
     [HttpGet]
-    [Route("{topicId:int}/authors")]
+    [Route("{topicId:guid}/authors")]
     [Authorize]
-    public async Task<IActionResult> GetAllAuthors([FromRoute] int topicId)
+    public async Task<IActionResult> GetAllAuthors([FromRoute] Guid topicId)
     {
         Topic? topic = await _topicRepository.GetByIdAsync(topicId);
         if (topic is null)
@@ -28,9 +28,9 @@ public partial class TopicsController
     }
 
     [HttpGet]
-    [Route("{topicId:int}/authors/{id:int}")]
+    [Route("{topicId:guid}/authors/{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> GetAuthorById([FromRoute] int topicId, [FromRoute] int id)
+    public async Task<IActionResult> GetAuthorById([FromRoute] Guid topicId, [FromRoute] Guid id)
     {
         Topic? topic = await _topicRepository.GetByIdAsync(topicId);
         if (topic is null)
@@ -51,9 +51,9 @@ public partial class TopicsController
     }
 
     [HttpPost]
-    [Route("{topicId:int}/authors")]
+    [Route("{topicId:guid}/authors")]
     [Authorize]
-    public async Task<IActionResult> CreateAuthor([FromRoute] int topicId, [FromBody] CreateTopicAuthorDto createAuthorDto)
+    public async Task<IActionResult> CreateAuthor([FromRoute] Guid topicId, [FromBody] CreateTopicAuthorDto createAuthorDto)
     {
         Topic? topic = await _topicRepository.GetByIdAsync(topicId);
         if (topic is null)
@@ -89,9 +89,9 @@ public partial class TopicsController
     }
 
     [HttpDelete]
-    [Route("{topicId:int}/authors/{id:int}")]
+    [Route("{topicId:guid}/authors/{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> DeleteAuthor([FromRoute] int topicId, [FromRoute] int id)
+    public async Task<IActionResult> DeleteAuthor([FromRoute] Guid topicId, [FromRoute] Guid id)
     {
         Topic? topic = await _topicRepository.GetByIdAsync(topicId);
         if (topic is null)

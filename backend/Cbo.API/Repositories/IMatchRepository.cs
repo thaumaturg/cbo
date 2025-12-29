@@ -4,10 +4,10 @@ namespace Cbo.API.Repositories;
 
 public interface IMatchRepository
 {
-    Task<Match?> GetByIdAsync(int id);
-    Task<Match?> GetByIdWithDetailsAsync(int id);
-    Task<List<Match>> GetAllByTournamentIdAsync(int tournamentId);
+    Task<Match?> GetByIdAsync(Guid id);
+    Task<Match?> GetByIdWithDetailsAsync(Guid id);
+    Task<List<Match>> GetAllByTournamentIdAsync(Guid tournamentId);
     Task<List<Match>> CreateBulkAsync(List<Match> matches);
-    Task<Match?> GetByIdWithScoreDataAsync(int id);
+    Task<Match?> GetByIdWithScoreDataAsync(Guid id);
     Task UpdateMatchParticipantsAsync(List<MatchParticipant> participants);
 }

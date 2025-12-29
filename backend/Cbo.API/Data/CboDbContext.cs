@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Cbo.API.Data;
 
-public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>, int>
+public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
 {
     public CboDbContext(DbContextOptions<CboDbContext> dbContextOptions) : base(dbContextOptions)
     {
@@ -51,7 +51,7 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
             entity.HasKey(m => m.Id);
 
             entity.Property(m => m.Id)
-                .ValueGeneratedOnAdd();
+                .HasDefaultValueSql("uuidv7()");
 
             entity.Property(m => m.NumberInTournament)
                 .IsRequired();
@@ -94,7 +94,7 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
             entity.HasKey(mp => mp.Id);
 
             entity.Property(mp => mp.Id)
-                .ValueGeneratedOnAdd();
+                .HasDefaultValueSql("uuidv7()");
 
             entity.Property(mp => mp.TournamentParticipantId)
                 .IsRequired();
@@ -135,7 +135,7 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
             entity.HasKey(q => q.Id);
 
             entity.Property(q => q.Id)
-                .ValueGeneratedOnAdd();
+                .HasDefaultValueSql("uuidv7()");
 
             entity.Property(q => q.QuestionNumber)
                 .IsRequired();
@@ -172,7 +172,7 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
             entity.HasKey(r => r.Id);
 
             entity.Property(r => r.Id)
-                .ValueGeneratedOnAdd();
+                .HasDefaultValueSql("uuidv7()");
 
             entity.Property(r => r.NumberInMatch)
                 .IsRequired();
@@ -207,7 +207,7 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
             entity.HasKey(ra => ra.Id);
 
             entity.Property(ra => ra.Id)
-                .ValueGeneratedOnAdd();
+                .HasDefaultValueSql("uuidv7()");
 
             entity.Property(ra => ra.IsAnswerAccepted)
                 .IsRequired();
@@ -245,7 +245,7 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
             entity.HasKey(t => t.Id);
 
             entity.Property(t => t.Id)
-                .ValueGeneratedOnAdd();
+                .HasDefaultValueSql("uuidv7()");
 
             entity.Property(t => t.Title)
                 .IsRequired();
@@ -283,7 +283,7 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
             entity.HasKey(ta => ta.Id);
 
             entity.Property(ta => ta.Id)
-                .ValueGeneratedOnAdd();
+                .HasDefaultValueSql("uuidv7()");
 
             entity.Property(ta => ta.IsOwner)
                 .IsRequired();
@@ -315,7 +315,7 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
             entity.HasKey(e => e.Id);
 
             entity.Property(e => e.Id)
-                .ValueGeneratedOnAdd();
+                .HasDefaultValueSql("uuidv7()");
 
             entity.Property(e => e.Title)
                 .IsRequired();
@@ -371,7 +371,7 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
             entity.HasKey(tp => tp.Id);
 
             entity.Property(tp => tp.Id)
-                .ValueGeneratedOnAdd();
+                .HasDefaultValueSql("uuidv7()");
 
             entity.Property(tp => tp.Role)
                 .IsRequired()
@@ -414,7 +414,7 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
             entity.HasKey(tt => tt.Id);
 
             entity.Property(tt => tt.Id)
-                .ValueGeneratedOnAdd();
+                .HasDefaultValueSql("uuidv7()");
 
             entity.Property(tt => tt.PriorityIndex)
                 .IsRequired();

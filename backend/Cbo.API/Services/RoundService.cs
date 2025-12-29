@@ -25,14 +25,14 @@ public class RoundService : IRoundService
 
         if (positiveAnswersByQuestion.Count > 0)
         {
-            int questionId = positiveAnswersByQuestion.First().Key;
+            Guid questionId = positiveAnswersByQuestion.First().Key;
             return $"Question {questionId} has multiple correct answers. Only one correct answer is allowed per question.";
         }
 
         return null;
     }
 
-    public async Task RecalculateMatchScoresAsync(int matchId)
+    public async Task RecalculateMatchScoresAsync(Guid matchId)
     {
         Match? match = await _matchRepository.GetByIdWithScoreDataAsync(matchId);
         if (match is null)
@@ -68,7 +68,7 @@ public class RoundService : IRoundService
         await RecalculateTournamentScoresAsync(match.TournamentId);
     }
 
-    private async Task RecalculateTournamentScoresAsync(int tournamentId)
+    private async Task RecalculateTournamentScoresAsync(Guid tournamentId)
     {
         List<TournamentParticipant> participants = await _participantsRepository
             .GetAllByTournamentIdWithMatchDataAsync(tournamentId);

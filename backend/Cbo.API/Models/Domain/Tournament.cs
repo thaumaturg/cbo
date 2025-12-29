@@ -4,7 +4,7 @@ namespace Cbo.API.Models.Domain;
 
 public class Tournament
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
     public required string Title { get; set; }
     public string? Description { get; set; }
     public required TournamentStage CurrentStage { get; set; }

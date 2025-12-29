@@ -4,11 +4,11 @@ namespace Cbo.API.Repositories;
 
 public interface IRoundRepository
 {
-    Task<Round?> GetByIdWithDetailsAsync(int id);
-    Task<List<Round>> GetAllByTournamentIdAsync(int tournamentId);
-    Task<Round?> GetByMatchIdAndNumberAsync(int matchId, int numberInMatch);
+    Task<Round?> GetByIdWithDetailsAsync(Guid id);
+    Task<List<Round>> GetAllByTournamentIdAsync(Guid tournamentId);
+    Task<Round?> GetByMatchIdAndNumberAsync(Guid matchId, int numberInMatch);
     Task<Round> CreateAsync(Round round);
-    Task<Round?> DeleteAsync(int id);
-    Task DeleteAnswersByRoundIdAsync(int roundId);
+    Task<Round?> DeleteAsync(Guid id);
+    Task DeleteAnswersByRoundIdAsync(Guid roundId);
     Task CreateAnswersAsync(List<RoundAnswer> answers);
 }

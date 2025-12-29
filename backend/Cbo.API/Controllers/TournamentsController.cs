@@ -76,9 +76,9 @@ public partial class TournamentsController : ControllerBase
     }
 
     [HttpGet]
-    [Route("{id:int}")]
+    [Route("{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> GetById([FromRoute] int id)
+    public async Task<IActionResult> GetById([FromRoute] Guid id)
     {
         Tournament? tournamentDomain = await _tournamentRepository.GetByIdAsync(id);
 
@@ -129,9 +129,9 @@ public partial class TournamentsController : ControllerBase
     }
 
     [HttpPut]
-    [Route("{id:int}")]
+    [Route("{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateTournamentDto updateTournamentDto)
+    public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateTournamentDto updateTournamentDto)
     {
         if (updateTournamentDto.PlayersPerTournament.HasValue &&
             updateTournamentDto.PlayersPerTournament.Value != DefaultSettings.PlayersPerTournament)
@@ -160,9 +160,9 @@ public partial class TournamentsController : ControllerBase
     }
 
     [HttpDelete]
-    [Route("{id:int}")]
+    [Route("{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> Delete([FromRoute] int id)
+    public async Task<IActionResult> Delete([FromRoute] Guid id)
     {
         Tournament? existingTournament = await _tournamentRepository.GetByIdAsync(id);
         if (existingTournament is null)
@@ -181,9 +181,9 @@ public partial class TournamentsController : ControllerBase
     }
 
     [HttpPatch]
-    [Route("{id:int}")]
+    [Route("{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> AdvanceStage([FromRoute] int id, [FromBody] UpdateTournamentStageDto advanceStageDto)
+    public async Task<IActionResult> AdvanceStage([FromRoute] Guid id, [FromBody] UpdateTournamentStageDto advanceStageDto)
     {
         if (advanceStageDto.Stage != TournamentStage.Qualifications)
             return BadRequest("Only advancing to Qualifications stage is currently supported.");

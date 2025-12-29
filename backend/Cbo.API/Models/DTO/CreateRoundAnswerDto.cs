@@ -3,7 +3,7 @@
 public record CreateRoundAnswerDto
 {
     public required bool IsAnswerAccepted { get; set; }
-    public int? RoundId { get; set; }
-    public required int QuestionId { get; set; }
-    public required int MatchParticipantId { get; set; }
+    public Guid? RoundId { get; set; }
+    public required Guid QuestionId { get; set; }
+    public required Guid MatchParticipantId { get; set; }
 }

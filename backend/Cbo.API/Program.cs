@@ -58,7 +58,7 @@ public class Program
         });
 
         builder.Services.AddIdentityCore<ApplicationUser>()
-            .AddRoles<IdentityRole<int>>()
+            .AddRoles<IdentityRole<Guid>>()
             .AddTokenProvider<DataProtectorTokenProvider<ApplicationUser>>("Cbo")
             .AddEntityFrameworkStores<CboDbContext>()
             .AddDefaultTokenProviders();

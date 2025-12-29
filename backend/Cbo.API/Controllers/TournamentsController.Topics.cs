@@ -9,9 +9,9 @@ namespace Cbo.API.Controllers;
 public partial class TournamentsController
 {
     [HttpGet]
-    [Route("{tournamentId:int}/topics")]
+    [Route("{tournamentId:guid}/topics")]
     [Authorize]
-    public async Task<IActionResult> GetMyTopics([FromRoute] int tournamentId)
+    public async Task<IActionResult> GetMyTopics([FromRoute] Guid tournamentId)
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
@@ -32,9 +32,9 @@ public partial class TournamentsController
     }
 
     [HttpGet]
-    [Route("{tournamentId:int}/topics/all")]
+    [Route("{tournamentId:guid}/topics/all")]
     [Authorize]
-    public async Task<IActionResult> GetAllTopics([FromRoute] int tournamentId)
+    public async Task<IActionResult> GetAllTopics([FromRoute] Guid tournamentId)
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
@@ -51,9 +51,9 @@ public partial class TournamentsController
     }
 
     [HttpPut]
-    [Route("{tournamentId:int}/topics")]
+    [Route("{tournamentId:guid}/topics")]
     [Authorize]
-    public async Task<IActionResult> SetMyTopics([FromRoute] int tournamentId, [FromBody] List<UpdateTournamentTopicDto> topicsDto)
+    public async Task<IActionResult> SetMyTopics([FromRoute] Guid tournamentId, [FromBody] List<UpdateTournamentTopicDto> topicsDto)
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
@@ -74,7 +74,7 @@ public partial class TournamentsController
             return BadRequest($"Cannot assign more than {tournament.TopicsPerParticipantMax} topics.");
 
         List<TournamentTopic> topicsDomain = [];
-        HashSet<int> seenTopicIds = [];
+        HashSet<Guid> seenTopicIds = [];
 
         foreach (UpdateTournamentTopicDto dto in topicsDto)
         {
@@ -103,9 +103,9 @@ public partial class TournamentsController
     }
 
     [HttpGet]
-    [Route("{tournamentId:int}/topics/{topicId:int}")]
+    [Route("{tournamentId:guid}/topics/{topicId:guid}")]
     [Authorize]
-    public async Task<IActionResult> GetTournamentTopicById([FromRoute] int tournamentId, [FromRoute] int topicId)
+    public async Task<IActionResult> GetTournamentTopicById([FromRoute] Guid tournamentId, [FromRoute] Guid topicId)
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)

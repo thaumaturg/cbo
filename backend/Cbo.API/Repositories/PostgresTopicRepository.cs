@@ -13,7 +13,7 @@ public class PostgresTopicRepository : ITopicRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<Topic>> GetAllByUserIdAsync(int userId)
+    public async Task<List<Topic>> GetAllByUserIdAsync(Guid userId)
     {
         return await _dbContext.Topics
             .Include(t => t.Questions.OrderBy(q => q.QuestionNumber))
@@ -22,12 +22,12 @@ public class PostgresTopicRepository : ITopicRepository
             .ToListAsync();
     }
 
-    public async Task<Topic?> GetByIdAsync(int id)
+    public async Task<Topic?> GetByIdAsync(Guid id)
     {
         return await _dbContext.Topics.FirstOrDefaultAsync(x => x.Id == id);
     }
 
-    public async Task<Topic?> GetByIdIncludeQuestionsAsync(int id)
+    public async Task<Topic?> GetByIdIncludeQuestionsAsync(Guid id)
     {
         return await _dbContext.Topics
             .Include(t => t.Questions.OrderBy(q => q.QuestionNumber))
@@ -42,7 +42,7 @@ public class PostgresTopicRepository : ITopicRepository
         return topic;
     }
 
-    public async Task<Topic?> UpdateAsync(int id, Topic updatedTopic, int currentUserId, bool isAuthor, ICollection<Question> incomingQuestions)
+    public async Task<Topic?> UpdateAsync(Guid id, Topic updatedTopic, Guid currentUserId, bool isAuthor, ICollection<Question> incomingQuestions)
     {
         Topic? existingTopic = await _dbContext.Topics
             .Include(t => t.Questions)
@@ -53,10 +53,10 @@ public class PostgresTopicRepository : ITopicRepository
             return null;
 
         // Validate all existing question IDs are present
-        HashSet<int> incomingQuestionIds = incomingQuestions.Select(q => q.Id).ToHashSet();
-        HashSet<int> existingQuestionIds = existingTopic.Questions.Select(q => q.Id).ToHashSet();
+        HashSet<Guid> incomingQuestionIds = incomingQuestions.Select(q => q.Id).ToHashSet();
+        HashSet<Guid> existingQuestionIds = existingTopic.Questions.Select(q => q.Id).ToHashSet();
 
-        List<int> missingIds = existingQuestionIds.Except(incomingQuestionIds).ToList();
+        List<Guid> missingIds = existingQuestionIds.Except(incomingQuestionIds).ToList();
         if (missingIds.Count > 0)
         {
             throw new InvalidOperationException(
@@ -93,7 +93,7 @@ public class PostgresTopicRepository : ITopicRepository
         return existingTopic;
     }
 
-    public async Task<Topic?> DeleteAsync(int id)
+    public async Task<Topic?> DeleteAsync(Guid id)
     {
         Topic? existingTopic = await _dbContext.Topics.FirstOrDefaultAsync(x => x.Id == id);
 

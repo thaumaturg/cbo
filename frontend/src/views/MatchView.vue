@@ -17,8 +17,8 @@ import { RouterLink, useRoute } from "vue-router";
 const route = useRoute();
 const toast = useToast();
 
-const tournamentId = computed(() => parseInt(route.params.tournamentId));
-const matchId = computed(() => parseInt(route.params.matchId));
+const tournamentId = computed(() => route.params.tournamentId);
+const matchId = computed(() => route.params.matchId);
 const canEdit = computed(() => currentUserRole.value === "Creator");
 
 const match = ref(null);
@@ -108,10 +108,10 @@ const initializeRoundStates = () => {
         roundStates.value[idx].selectedTopicId = round.topicId;
         roundStates.value[idx].questions = round.questions || [];
 
-        // Build answers map: { "questionId-participantId": "correct" | "wrong" | null }
+        // Build answers map: { "questionId::participantId": "correct" | "wrong" | null }
         const answersMap = {};
         for (const answer of round.roundAnswers || []) {
-          const key = `${answer.questionId}-${answer.matchParticipantId}`;
+          const key = `${answer.questionId}::${answer.matchParticipantId}`;
           answersMap[key] = answer.isAnswerAccepted ? "correct" : "wrong";
         }
         roundStates.value[idx].answers = answersMap;
@@ -156,12 +156,12 @@ const getRoundByTopicId = (topicId) => {
 };
 
 const getAnswerValue = (roundIndex, questionId, participantId) => {
-  const key = `${questionId}-${participantId}`;
+  const key = `${questionId}::${participantId}`;
   return roundStates.value[roundIndex].answers[key] || null;
 };
 
 const setAnswerValue = (roundIndex, questionId, participantId, value) => {
-  const key = `${questionId}-${participantId}`;
+  const key = `${questionId}::${participantId}`;
   const roundState = roundStates.value[roundIndex];
   const currentValue = roundState.answers[key];
 
@@ -173,7 +173,7 @@ const setAnswerValue = (roundIndex, questionId, participantId, value) => {
 
   if (value === "correct") {
     const existingCorrectKey = Object.entries(roundState.answers).find(
-      ([k, v]) => k.startsWith(`${questionId}-`) && k !== key && v === "correct",
+      ([k, v]) => k.startsWith(`${questionId}::`) && k !== key && v === "correct",
     );
 
     if (existingCorrectKey) {
@@ -217,7 +217,7 @@ const submitRound = async (roundIndex) => {
   const answers = [];
   for (const [key, value] of Object.entries(roundState.answers)) {
     if (value !== null) {
-      const [questionId, participantId] = key.split("-").map(Number);
+      const [questionId, participantId] = key.split("::");
       answers.push({
         questionId,
         matchParticipantId: participantId,

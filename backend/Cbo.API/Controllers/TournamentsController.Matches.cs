@@ -9,9 +9,9 @@ namespace Cbo.API.Controllers;
 public partial class TournamentsController
 {
     [HttpGet]
-    [Route("{tournamentId:int}/matches")]
+    [Route("{tournamentId:guid}/matches")]
     [Authorize]
-    public async Task<IActionResult> GetAllMatches([FromRoute] int tournamentId)
+    public async Task<IActionResult> GetAllMatches([FromRoute] Guid tournamentId)
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
@@ -28,9 +28,9 @@ public partial class TournamentsController
     }
 
     [HttpGet]
-    [Route("{tournamentId:int}/matches/{matchId:int}")]
+    [Route("{tournamentId:guid}/matches/{matchId:guid}")]
     [Authorize]
-    public async Task<IActionResult> GetMatchById([FromRoute] int tournamentId, [FromRoute] int matchId)
+    public async Task<IActionResult> GetMatchById([FromRoute] Guid tournamentId, [FromRoute] Guid matchId)
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
@@ -52,9 +52,9 @@ public partial class TournamentsController
     }
 
     [HttpGet]
-    [Route("{tournamentId:int}/matches/{matchId:int}/available-topics")]
+    [Route("{tournamentId:guid}/matches/{matchId:guid}/available-topics")]
     [Authorize]
-    public async Task<IActionResult> GetAvailableTopicsForMatch([FromRoute] int tournamentId, [FromRoute] int matchId)
+    public async Task<IActionResult> GetAvailableTopicsForMatch([FromRoute] Guid tournamentId, [FromRoute] Guid matchId)
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
@@ -68,14 +68,14 @@ public partial class TournamentsController
         if (match is null || match.TournamentId != tournamentId)
             return NotFound();
 
-        List<int> participantUserIds = match.MatchParticipants
+        List<Guid> participantUserIds = match.MatchParticipants
             .Select(mp => mp.TournamentParticipant.ApplicationUserId)
             .ToList();
 
         List<TournamentTopic> allTournamentTopics = await _tournamentTopicRepository.GetAllByTournamentIdAsync(tournamentId);
 
         List<Round> allRoundsInTournament = await _roundRepository.GetAllByTournamentIdAsync(tournamentId);
-        HashSet<int> playedTopicIds = allRoundsInTournament.Select(r => r.TopicId).ToHashSet();
+        HashSet<Guid> playedTopicIds = allRoundsInTournament.Select(r => r.TopicId).ToHashSet();
 
         List<TournamentTopic> filteredTopics = [];
 

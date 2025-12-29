@@ -13,7 +13,7 @@ public class PostgresTournamentTopicRepository : ITournamentTopicRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<TournamentTopic>> GetAllByParticipantIdAsync(int tournamentId, int participantId)
+    public async Task<List<TournamentTopic>> GetAllByParticipantIdAsync(Guid tournamentId, Guid participantId)
     {
         return await _dbContext.TournamentTopics
             .Include(tt => tt.Topic)
@@ -24,7 +24,7 @@ public class PostgresTournamentTopicRepository : ITournamentTopicRepository
             .ToListAsync();
     }
 
-    public async Task<List<TournamentTopic>> GetAllByTournamentIdAsync(int tournamentId)
+    public async Task<List<TournamentTopic>> GetAllByTournamentIdAsync(Guid tournamentId)
     {
         return await _dbContext.TournamentTopics
             .Include(tt => tt.Topic)
@@ -36,7 +36,7 @@ public class PostgresTournamentTopicRepository : ITournamentTopicRepository
             .ToListAsync();
     }
 
-    public async Task<List<TournamentTopic>> SetTopicsForParticipantAsync(int tournamentId, int participantId, List<TournamentTopic> topics)
+    public async Task<List<TournamentTopic>> SetTopicsForParticipantAsync(Guid tournamentId, Guid participantId, List<TournamentTopic> topics)
     {
         await using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
@@ -63,4 +63,3 @@ public class PostgresTournamentTopicRepository : ITournamentTopicRepository
         }
     }
 }
-

@@ -19,7 +19,7 @@ export const topicService = {
 
   /**
    * Get topic by ID (includes questions)
-   * @param {number} topicId - Topic ID
+   * @param {string} topicId - Topic ID (GUID)
    * @returns {Promise} - API response with topic details
    */
   async getTopicById(topicId) {
@@ -53,7 +53,7 @@ export const topicService = {
 
   /**
    * Update topic with questions
-   * @param {number} topicId - Topic ID
+   * @param {string} topicId - Topic ID (GUID)
    * @param {Object} topicData - Pre-formatted topic data from view (questions must include IDs)
    * @returns {Promise} - API response
    */
@@ -71,7 +71,7 @@ export const topicService = {
 
   /**
    * Delete topic
-   * @param {number} topicId - Topic ID
+   * @param {string} topicId - Topic ID (GUID)
    * @returns {Promise} - API response
    */
   async deleteTopic(topicId) {
@@ -88,7 +88,7 @@ export const topicService = {
 
   /**
    * Get all authors for a topic
-   * @param {number} topicId - Topic ID
+   * @param {string} topicId - Topic ID (GUID)
    * @returns {Promise} - API response with authors list
    */
   async getAllAuthors(topicId) {
@@ -105,8 +105,8 @@ export const topicService = {
 
   /**
    * Get author by ID
-   * @param {number} topicId - Topic ID
-   * @param {number} authorId - Author ID
+   * @param {string} topicId - Topic ID (GUID)
+   * @param {string} authorId - Author ID (GUID)
    * @returns {Promise} - API response with author details
    */
   async getAuthorById(topicId, authorId) {
@@ -123,7 +123,7 @@ export const topicService = {
 
   /**
    * Add an author to a topic
-   * @param {number} topicId - Topic ID
+   * @param {string} topicId - Topic ID (GUID)
    * @param {Object} authorData - Author data
    * @param {string} authorData.username - Username of the author
    * @returns {Promise} - API response with created author
@@ -144,8 +144,8 @@ export const topicService = {
 
   /**
    * Remove an author from a topic
-   * @param {number} topicId - Topic ID
-   * @param {number} authorId - Author ID
+   * @param {string} topicId - Topic ID (GUID)
+   * @param {string} authorId - Author ID (GUID)
    * @returns {Promise} - API response
    */
   async deleteAuthor(topicId, authorId) {

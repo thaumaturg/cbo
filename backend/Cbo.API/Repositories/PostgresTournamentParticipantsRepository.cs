@@ -14,7 +14,7 @@ public class PostgresTournamentParticipantsRepository : ITournamentParticipantsR
         _dbContext = dbContext;
     }
 
-    public async Task<List<TournamentParticipant>> GetAllByTournamentIdAsync(int tournamentId, TournamentParticipantRole? role = null)
+    public async Task<List<TournamentParticipant>> GetAllByTournamentIdAsync(Guid tournamentId, TournamentParticipantRole? role = null)
     {
         IQueryable<TournamentParticipant> query = _dbContext.TournamentParticipants
             .Include(tp => tp.ApplicationUser)
@@ -26,14 +26,14 @@ public class PostgresTournamentParticipantsRepository : ITournamentParticipantsR
         return await query.ToListAsync();
     }
 
-    public async Task<TournamentParticipant?> GetByParticipantIdAndTournamentIdAsync(int participantId, int tournamentId)
+    public async Task<TournamentParticipant?> GetByParticipantIdAndTournamentIdAsync(Guid participantId, Guid tournamentId)
     {
         return await _dbContext.TournamentParticipants
             .Include(tp => tp.ApplicationUser)
             .FirstOrDefaultAsync(tp => tp.Id == participantId && tp.TournamentId == tournamentId);
     }
 
-    public async Task<TournamentParticipant?> GetByUserIdAndTournamentIdAsync(int userId, int tournamentId)
+    public async Task<TournamentParticipant?> GetByUserIdAndTournamentIdAsync(Guid userId, Guid tournamentId)
     {
         return await _dbContext.TournamentParticipants
             .FirstOrDefaultAsync(tp => tp.ApplicationUserId == userId && tp.TournamentId == tournamentId);
@@ -49,7 +49,7 @@ public class PostgresTournamentParticipantsRepository : ITournamentParticipantsR
             .FirstAsync(tp => tp.Id == tournamentParticipant.Id);
     }
 
-    public async Task<TournamentParticipant?> UpdateAsync(int id, TournamentParticipant tournamentParticipant)
+    public async Task<TournamentParticipant?> UpdateAsync(Guid id, TournamentParticipant tournamentParticipant)
     {
         TournamentParticipant? existing = await _dbContext.TournamentParticipants.FirstOrDefaultAsync(tp => tp.Id == id);
 
@@ -66,7 +66,7 @@ public class PostgresTournamentParticipantsRepository : ITournamentParticipantsR
             .FirstAsync(tp => tp.Id == id);
     }
 
-    public async Task<TournamentParticipant?> DeleteAsync(int id)
+    public async Task<TournamentParticipant?> DeleteAsync(Guid id)
     {
         TournamentParticipant? existing = await _dbContext.TournamentParticipants
             .Include(tp => tp.ApplicationUser)
@@ -81,7 +81,7 @@ public class PostgresTournamentParticipantsRepository : ITournamentParticipantsR
         return existing;
     }
 
-    public async Task<List<TournamentParticipant>> GetAllByTournamentIdWithMatchDataAsync(int tournamentId)
+    public async Task<List<TournamentParticipant>> GetAllByTournamentIdWithMatchDataAsync(Guid tournamentId)
     {
         return await _dbContext.TournamentParticipants
             .Include(tp => tp.ApplicationUser)

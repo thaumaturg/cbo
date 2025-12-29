@@ -2,7 +2,7 @@
 
 public record GetTopicDto
 {
-    public required int Id { get; set; }
+    public required Guid Id { get; set; }
     public required string Title { get; set; }
     public string? Description { get; set; }
     public required bool IsPlayed { get; set; }

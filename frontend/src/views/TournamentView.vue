@@ -11,7 +11,7 @@ import { useRoute } from "vue-router";
 const route = useRoute();
 const toast = useToast();
 
-const tournamentId = computed(() => parseInt(route.params.tournamentId));
+const tournamentId = computed(() => route.params.tournamentId);
 const tournament = ref(null);
 const matches = ref([]);
 const participants = ref([]);

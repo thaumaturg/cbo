@@ -4,7 +4,7 @@ namespace Cbo.API.Models.DTO;
 
 public record GetTournamentDto
 {
-    public required int Id { get; set; }
+    public required Guid Id { get; set; }
     public required string Title { get; set; }
     public string? Description { get; set; }
     public required string CurrentStage { get; set; }

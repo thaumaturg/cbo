@@ -18,7 +18,7 @@ const route = useRoute();
 const toast = useToast();
 
 const isEditMode = computed(() => route.params.id && route.params.id !== "new");
-const topicId = computed(() => (isEditMode.value ? parseInt(route.params.id) : null));
+const topicId = computed(() => (isEditMode.value ? route.params.id : null));
 const pageTitle = computed(() => (isEditMode.value ? "Edit Topic" : "Create New Topic"));
 
 const formData = ref({

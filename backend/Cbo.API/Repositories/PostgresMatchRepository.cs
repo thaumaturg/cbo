@@ -13,12 +13,12 @@ public class PostgresMatchRepository : IMatchRepository
         _dbContext = dbContext;
     }
 
-    public async Task<Match?> GetByIdAsync(int id)
+    public async Task<Match?> GetByIdAsync(Guid id)
     {
         return await _dbContext.Matches.FirstOrDefaultAsync(x => x.Id == id);
     }
 
-    public async Task<Match?> GetByIdWithDetailsAsync(int id)
+    public async Task<Match?> GetByIdWithDetailsAsync(Guid id)
     {
         return await _dbContext.Matches
             .Include(m => m.MatchParticipants)
@@ -36,7 +36,7 @@ public class PostgresMatchRepository : IMatchRepository
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
-    public async Task<List<Match>> GetAllByTournamentIdAsync(int tournamentId)
+    public async Task<List<Match>> GetAllByTournamentIdAsync(Guid tournamentId)
     {
         return await _dbContext.Matches
             .Where(m => m.TournamentId == tournamentId)
@@ -55,7 +55,7 @@ public class PostgresMatchRepository : IMatchRepository
         return matches;
     }
 
-    public async Task<Match?> GetByIdWithScoreDataAsync(int id)
+    public async Task<Match?> GetByIdWithScoreDataAsync(Guid id)
     {
         return await _dbContext.Matches
             .Include(m => m.MatchParticipants)

@@ -57,9 +57,9 @@ public partial class TopicsController : ControllerBase
     }
 
     [HttpGet]
-    [Route("{id:int}")]
+    [Route("{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> GetById([FromRoute] int id)
+    public async Task<IActionResult> GetById([FromRoute] Guid id)
     {
         Topic? topicDomain = await _topicRepository.GetByIdIncludeQuestionsAsync(id);
 
@@ -109,9 +109,9 @@ public partial class TopicsController : ControllerBase
     }
 
     [HttpPut]
-    [Route("{id:int}")]
+    [Route("{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateTopicDto updateTopicDto)
+    public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateTopicDto updateTopicDto)
     {
         Topic? existingTopic = await _topicRepository.GetByIdAsync(id);
         if (existingTopic is null)
@@ -146,9 +146,9 @@ public partial class TopicsController : ControllerBase
     }
 
     [HttpDelete]
-    [Route("{id:int}")]
+    [Route("{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> Delete([FromRoute] int id)
+    public async Task<IActionResult> Delete([FromRoute] Guid id)
     {
         Topic? existingTopic = await _topicRepository.GetByIdAsync(id);
         if (existingTopic is null)

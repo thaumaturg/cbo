@@ -10,10 +10,10 @@ namespace Cbo.API.Controllers;
 public partial class TournamentsController
 {
     [HttpGet]
-    [Route("{tournamentId:int}/participants")]
+    [Route("{tournamentId:guid}/participants")]
     [Authorize]
     public async Task<IActionResult> GetAllParticipants(
-        [FromRoute] int tournamentId,
+        [FromRoute] Guid tournamentId,
         [FromQuery] TournamentParticipantRole? role = null)
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
@@ -31,9 +31,9 @@ public partial class TournamentsController
     }
 
     [HttpGet]
-    [Route("{tournamentId:int}/participants/{id:int}")]
+    [Route("{tournamentId:guid}/participants/{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> GetParticipantById([FromRoute] int tournamentId, [FromRoute] int id)
+    public async Task<IActionResult> GetParticipantById([FromRoute] Guid tournamentId, [FromRoute] Guid id)
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
@@ -54,9 +54,9 @@ public partial class TournamentsController
     }
 
     [HttpPost]
-    [Route("{tournamentId:int}/participants")]
+    [Route("{tournamentId:guid}/participants")]
     [Authorize]
-    public async Task<IActionResult> CreateParticipant([FromRoute] int tournamentId, [FromBody] CreateTournamentParticipantDto createParticipantDto)
+    public async Task<IActionResult> CreateParticipant([FromRoute] Guid tournamentId, [FromBody] CreateTournamentParticipantDto createParticipantDto)
     {
         if (createParticipantDto.Role == TournamentParticipantRole.Creator)
             return BadRequest("Cannot add a creator. Tournament can only have one creator.");
@@ -98,9 +98,9 @@ public partial class TournamentsController
     }
 
     [HttpPut]
-    [Route("{tournamentId:int}/participants/{id:int}")]
+    [Route("{tournamentId:guid}/participants/{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> UpdateParticipant([FromRoute] int tournamentId, [FromRoute] int id, [FromBody] UpdateTournamentParticipantDto updateParticipantDto)
+    public async Task<IActionResult> UpdateParticipant([FromRoute] Guid tournamentId, [FromRoute] Guid id, [FromBody] UpdateTournamentParticipantDto updateParticipantDto)
     {
         if (updateParticipantDto.Role == TournamentParticipantRole.Creator)
             return BadRequest("Cannot promote to a creator role.");
@@ -137,9 +137,9 @@ public partial class TournamentsController
     }
 
     [HttpDelete]
-    [Route("{tournamentId:int}/participants/{id:int}")]
+    [Route("{tournamentId:guid}/participants/{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> DeleteParticipant([FromRoute] int tournamentId, [FromRoute] int id)
+    public async Task<IActionResult> DeleteParticipant([FromRoute] Guid tournamentId, [FromRoute] Guid id)
     {
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)

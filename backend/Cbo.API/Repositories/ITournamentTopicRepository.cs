@@ -4,7 +4,7 @@ namespace Cbo.API.Repositories;
 
 public interface ITournamentTopicRepository
 {
-    Task<List<TournamentTopic>> GetAllByParticipantIdAsync(int tournamentId, int participantId);
-    Task<List<TournamentTopic>> GetAllByTournamentIdAsync(int tournamentId);
-    Task<List<TournamentTopic>> SetTopicsForParticipantAsync(int tournamentId, int participantId, List<TournamentTopic> topics);
+    Task<List<TournamentTopic>> GetAllByParticipantIdAsync(Guid tournamentId, Guid participantId);
+    Task<List<TournamentTopic>> GetAllByTournamentIdAsync(Guid tournamentId);
+    Task<List<TournamentTopic>> SetTopicsForParticipantAsync(Guid tournamentId, Guid participantId, List<TournamentTopic> topics);
 }

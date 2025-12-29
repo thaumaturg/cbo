@@ -19,7 +19,7 @@ export const tournamentService = {
 
   /**
    * Get tournament by ID
-   * @param {number} tournamentId - Tournament ID
+   * @param {string} tournamentId - Tournament ID (GUID)
    * @returns {Promise} - API response with tournament details
    */
   async getTournamentById(tournamentId) {
@@ -64,7 +64,7 @@ export const tournamentService = {
 
   /**
    * Update tournament
-   * @param {number} tournamentId - Tournament ID
+   * @param {string} tournamentId - Tournament ID (GUID)
    * @param {Object} tournamentData - Updated tournament data
    * @param {string} tournamentData.title - Tournament title
    * @param {string} [tournamentData.description] - Tournament description (optional)
@@ -93,7 +93,7 @@ export const tournamentService = {
 
   /**
    * Delete tournament
-   * @param {number} tournamentId - Tournament ID
+   * @param {string} tournamentId - Tournament ID (GUID)
    * @returns {Promise} - API response
    */
   async deleteTournament(tournamentId) {
@@ -110,7 +110,7 @@ export const tournamentService = {
 
   /**
    * Get all participants for a tournament
-   * @param {number} tournamentId - Tournament ID
+   * @param {string} tournamentId - Tournament ID (GUID)
    * @param {string} [role] - Optional role filter
    * @returns {Promise} - API response with participants list
    */
@@ -129,8 +129,8 @@ export const tournamentService = {
 
   /**
    * Get participant by ID
-   * @param {number} tournamentId - Tournament ID
-   * @param {number} participantId - Participant ID
+   * @param {string} tournamentId - Tournament ID (GUID)
+   * @param {string} participantId - Participant ID (GUID)
    * @returns {Promise} - API response with participant details
    */
   async getParticipantById(tournamentId, participantId) {
@@ -147,7 +147,7 @@ export const tournamentService = {
 
   /**
    * Add a participant to a tournament
-   * @param {number} tournamentId - Tournament ID
+   * @param {string} tournamentId - Tournament ID (GUID)
    * @param {Object} participantData - Participant data
    * @param {string} participantData.username - Username of the participant
    * @param {string} participantData.role - Participant role
@@ -170,8 +170,8 @@ export const tournamentService = {
 
   /**
    * Update participant role
-   * @param {number} tournamentId - Tournament ID
-   * @param {number} participantId - Participant ID
+   * @param {string} tournamentId - Tournament ID (GUID)
+   * @param {string} participantId - Participant ID (GUID)
    * @param {Object} participantData - Updated participant data
    * @param {string} participantData.role - Participant role
    * @returns {Promise} - API response with updated participant
@@ -192,8 +192,8 @@ export const tournamentService = {
 
   /**
    * Remove a participant from a tournament
-   * @param {number} tournamentId - Tournament ID
-   * @param {number} participantId - Participant ID
+   * @param {string} tournamentId - Tournament ID (GUID)
+   * @param {string} participantId - Participant ID (GUID)
    * @returns {Promise} - API response
    */
   async deleteParticipant(tournamentId, participantId) {
@@ -210,7 +210,7 @@ export const tournamentService = {
 
   /**
    * Get current user's topics for a tournament (for players)
-   * @param {number} tournamentId - Tournament ID
+   * @param {string} tournamentId - Tournament ID (GUID)
    * @returns {Promise} - API response with user's topics list
    */
   async getMyTopics(tournamentId) {
@@ -227,7 +227,7 @@ export const tournamentService = {
 
   /**
    * Get all topics for a tournament (for organizers/creators)
-   * @param {number} tournamentId - Tournament ID
+   * @param {string} tournamentId - Tournament ID (GUID)
    * @returns {Promise} - API response with all topics list
    */
   async getAllTopics(tournamentId) {
@@ -244,7 +244,7 @@ export const tournamentService = {
 
   /**
    * Set/replace current user's topics for a tournament
-   * @param {number} tournamentId - Tournament ID
+   * @param {string} tournamentId - Tournament ID (GUID)
    * @param {Array} topics - Array of topic objects with topicId and priorityIndex
    * @returns {Promise} - API response with updated topics list
    */
@@ -262,7 +262,7 @@ export const tournamentService = {
 
   /**
    * Advance tournament to the next stage
-   * @param {number} tournamentId - Tournament ID
+   * @param {string} tournamentId - Tournament ID (GUID)
    * @param {string} stage - Target stage
    * @returns {Promise} - API response with updated tournament
    */
@@ -282,7 +282,7 @@ export const tournamentService = {
 
   /**
    * Get all matches for a tournament
-   * @param {number} tournamentId - Tournament ID
+   * @param {string} tournamentId - Tournament ID (GUID)
    * @returns {Promise} - API response with matches list
    */
   async getMatches(tournamentId) {
@@ -299,8 +299,8 @@ export const tournamentService = {
 
   /**
    * Get match with full round details
-   * @param {number} tournamentId - Tournament ID
-   * @param {number} matchId - Match ID
+   * @param {string} tournamentId - Tournament ID (GUID)
+   * @param {string} matchId - Match ID (GUID)
    * @returns {Promise} - API response with match details including rounds
    */
   async getMatchWithRounds(tournamentId, matchId) {
@@ -317,8 +317,8 @@ export const tournamentService = {
 
   /**
    * Get available topics for a match (filtered by author conflicts and already played)
-   * @param {number} tournamentId - Tournament ID
-   * @param {number} matchId - Match ID
+   * @param {string} tournamentId - Tournament ID (GUID)
+   * @param {string} matchId - Match ID (GUID)
    * @returns {Promise} - API response with available topics list
    */
   async getAvailableTopics(tournamentId, matchId) {
@@ -335,11 +335,11 @@ export const tournamentService = {
 
   /**
    * Create a new round with answers
-   * @param {number} tournamentId - Tournament ID
-   * @param {number} matchId - Match ID
+   * @param {string} tournamentId - Tournament ID (GUID)
+   * @param {string} matchId - Match ID (GUID)
    * @param {Object} roundData - Round data
    * @param {number} roundData.numberInMatch - Round number (1-4)
-   * @param {number} roundData.topicId - Topic ID
+   * @param {string} roundData.topicId - Topic ID (GUID)
    * @param {Array} roundData.answers - Array of answer objects
    * @returns {Promise} - API response with created round
    */
@@ -357,12 +357,12 @@ export const tournamentService = {
 
   /**
    * Update an existing round with answers
-   * @param {number} tournamentId - Tournament ID
-   * @param {number} matchId - Match ID
+   * @param {string} tournamentId - Tournament ID (GUID)
+   * @param {string} matchId - Match ID (GUID)
    * @param {number} roundNumber - Round number (1-4)
    * @param {Object} roundData - Round data
    * @param {number} roundData.numberInMatch - Round number (must match roundNumber)
-   * @param {number} roundData.topicId - Topic ID
+   * @param {string} roundData.topicId - Topic ID (GUID)
    * @param {Array} roundData.answers - Array of answer objects
    * @returns {Promise} - API response with updated round
    */
@@ -383,8 +383,8 @@ export const tournamentService = {
 
   /**
    * Get topic with questions for a tournament (allows access to topics you don't own)
-   * @param {number} tournamentId - Tournament ID
-   * @param {number} topicId - Topic ID
+   * @param {string} tournamentId - Tournament ID (GUID)
+   * @param {string} topicId - Topic ID (GUID)
    * @returns {Promise} - API response with topic details including questions
    */
   async getTournamentTopic(tournamentId, topicId) {
@@ -401,8 +401,8 @@ export const tournamentService = {
 
   /**
    * Delete a round
-   * @param {number} tournamentId - Tournament ID
-   * @param {number} matchId - Match ID
+   * @param {string} tournamentId - Tournament ID (GUID)
+   * @param {string} matchId - Match ID (GUID)
    * @param {number} roundNumber - Round number (1-4)
    * @returns {Promise} - API response
    */

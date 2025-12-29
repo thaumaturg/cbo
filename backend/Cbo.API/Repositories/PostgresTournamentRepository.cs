@@ -14,14 +14,14 @@ public class PostgresTournamentRepository : ITournamentRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<Tournament>> GetAllByUserIdAsync(int userId)
+    public async Task<List<Tournament>> GetAllByUserIdAsync(Guid userId)
     {
         return await _dbContext.Tournaments
             .Where(t => t.TournamentParticipants.Any(tp => tp.ApplicationUserId == userId))
             .ToListAsync();
     }
 
-    public async Task<Tournament?> GetByIdAsync(int id)
+    public async Task<Tournament?> GetByIdAsync(Guid id)
     {
         return await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
     }
@@ -33,7 +33,7 @@ public class PostgresTournamentRepository : ITournamentRepository
         return tournament;
     }
 
-    public async Task<Tournament?> UpdateAsync(int id, Tournament updatedTournament)
+    public async Task<Tournament?> UpdateAsync(Guid id, Tournament updatedTournament)
     {
         Tournament? existingTournament = await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
 
@@ -51,7 +51,7 @@ public class PostgresTournamentRepository : ITournamentRepository
         return existingTournament;
     }
 
-    public async Task<Tournament?> UpdateStageAsync(int id, TournamentStage stage)
+    public async Task<Tournament?> UpdateStageAsync(Guid id, TournamentStage stage)
     {
         Tournament? existingTournament = await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
 
@@ -66,7 +66,7 @@ public class PostgresTournamentRepository : ITournamentRepository
         return existingTournament;
     }
 
-    public async Task<Tournament?> DeleteAsync(int id)
+    public async Task<Tournament?> DeleteAsync(Guid id)
     {
         Tournament? existingTournament = await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
 

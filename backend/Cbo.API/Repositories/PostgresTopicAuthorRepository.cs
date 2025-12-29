@@ -13,7 +13,7 @@ public class PostgresTopicAuthorRepository : ITopicAuthorRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<TopicAuthor>> GetAllByTopicIdAsync(int topicId)
+    public async Task<List<TopicAuthor>> GetAllByTopicIdAsync(Guid topicId)
     {
         return await _dbContext.TopicAuthors
             .Include(ta => ta.ApplicationUser)
@@ -21,14 +21,14 @@ public class PostgresTopicAuthorRepository : ITopicAuthorRepository
             .ToListAsync();
     }
 
-    public async Task<TopicAuthor?> GetByAuthorIdAndTopicIdAsync(int authorId, int topicId)
+    public async Task<TopicAuthor?> GetByAuthorIdAndTopicIdAsync(Guid authorId, Guid topicId)
     {
         return await _dbContext.TopicAuthors
             .Include(ta => ta.ApplicationUser)
             .FirstOrDefaultAsync(ta => ta.Id == authorId && ta.TopicId == topicId);
     }
 
-    public async Task<TopicAuthor?> GetByUserIdAndTopicIdAsync(int userId, int topicId)
+    public async Task<TopicAuthor?> GetByUserIdAndTopicIdAsync(Guid userId, Guid topicId)
     {
         return await _dbContext.TopicAuthors
             .FirstOrDefaultAsync(ta => ta.ApplicationUserId == userId && ta.TopicId == topicId);
@@ -44,7 +44,7 @@ public class PostgresTopicAuthorRepository : ITopicAuthorRepository
             .FirstAsync(ta => ta.Id == topicAuthor.Id);
     }
 
-    public async Task<TopicAuthor?> DeleteAsync(int id)
+    public async Task<TopicAuthor?> DeleteAsync(Guid id)
     {
         TopicAuthor? existing = await _dbContext.TopicAuthors
             .Include(ta => ta.ApplicationUser)

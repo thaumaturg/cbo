@@ -5,10 +5,10 @@ namespace Cbo.API.Repositories;
 
 public interface ITournamentRepository
 {
-    Task<List<Tournament>> GetAllByUserIdAsync(int userId);
-    Task<Tournament?> GetByIdAsync(int id);
+    Task<List<Tournament>> GetAllByUserIdAsync(Guid userId);
+    Task<Tournament?> GetByIdAsync(Guid id);
     Task<Tournament> CreateAsync(Tournament tournament);
-    Task<Tournament?> UpdateAsync(int id, Tournament updatedTournament);
-    Task<Tournament?> UpdateStageAsync(int id, TournamentStage stage);
-    Task<Tournament?> DeleteAsync(int id);
+    Task<Tournament?> UpdateAsync(Guid id, Tournament updatedTournament);
+    Task<Tournament?> UpdateStageAsync(Guid id, TournamentStage stage);
+    Task<Tournament?> DeleteAsync(Guid id);
 }

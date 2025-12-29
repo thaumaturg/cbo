@@ -4,9 +4,9 @@ namespace Cbo.API.Repositories;
 
 public interface ITopicAuthorRepository
 {
-    Task<List<TopicAuthor>> GetAllByTopicIdAsync(int topicId);
-    Task<TopicAuthor?> GetByAuthorIdAndTopicIdAsync(int authorId, int topicId);
-    Task<TopicAuthor?> GetByUserIdAndTopicIdAsync(int userId, int topicId);
+    Task<List<TopicAuthor>> GetAllByTopicIdAsync(Guid topicId);
+    Task<TopicAuthor?> GetByAuthorIdAndTopicIdAsync(Guid authorId, Guid topicId);
+    Task<TopicAuthor?> GetByUserIdAndTopicIdAsync(Guid userId, Guid topicId);
     Task<TopicAuthor> CreateAsync(TopicAuthor topicAuthor);
-    Task<TopicAuthor?> DeleteAsync(int id);
+    Task<TopicAuthor?> DeleteAsync(Guid id);
 }
