@@ -1,19 +1,17 @@
 <script setup>
 import { useAuthDialogStore } from "@/stores/auth-dialog.js";
 import { useAuthStore } from "@/stores/auth.js";
+import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
-import Button from "primevue/button";
-import Password from "primevue/password";
 import Message from "primevue/message";
-
-import Tabs from "primevue/tabs";
-import TabList from "primevue/tablist";
+import Password from "primevue/password";
 import Tab from "primevue/tab";
-import TabPanels from "primevue/tabpanels";
+import TabList from "primevue/tablist";
 import TabPanel from "primevue/tabpanel";
-
-import { ref, computed, watch } from "vue";
+import TabPanels from "primevue/tabpanels";
+import Tabs from "primevue/tabs";
+import { computed, ref, watch } from "vue";
 
 const authDialogStore = useAuthDialogStore();
 const authStore = useAuthStore();
@@ -37,7 +35,7 @@ watch(
       generalError.value = null;
       authStore.clearError();
     }
-  }
+  },
 );
 
 watch(activeTab, () => {
@@ -104,8 +102,10 @@ const onRegisterSubmit = async (values) => {
         <Tab value="1">Register</Tab>
       </TabList>
       <TabPanels>
+        <!-- Login Tab -->
         <TabPanel value="0">
           <VeeForm @submit="onLoginSubmit">
+            <!-- Email Field -->
             <div class="flex flex-col gap-1 mb-4">
               <div class="flex items-center gap-4">
                 <label for="loginEmail" class="font-semibold w-24">Email</label>
@@ -117,6 +117,8 @@ const onRegisterSubmit = async (values) => {
                 <Message severity="error" variant="simple">{{ message }}</Message>
               </ErrorMessage>
             </div>
+
+            <!-- Password Field -->
             <div class="flex flex-col gap-1 mb-8">
               <div class="flex items-center gap-4">
                 <label for="loginPassword" class="font-semibold w-24">Password</label>
@@ -140,6 +142,8 @@ const onRegisterSubmit = async (values) => {
                 <Message severity="error" variant="simple">{{ message }}</Message>
               </ErrorMessage>
             </div>
+
+            <!-- Status Messages -->
             <div class="mb-4" v-if="formStatus === 'loading'">
               <Message severity="info">Logging in, please wait...</Message>
             </div>
@@ -149,13 +153,18 @@ const onRegisterSubmit = async (values) => {
             <div class="mb-4" v-if="formStatus === 'error' && generalError">
               <Message severity="error">{{ generalError }}</Message>
             </div>
+
+            <!-- Action Buttons -->
             <div class="flex justify-end gap-2">
               <Button type="submit" label="Login" :disabled="isFormProcessing"></Button>
             </div>
           </VeeForm>
         </TabPanel>
+
+        <!-- Register Tab -->
         <TabPanel value="1">
           <VeeForm @submit="onRegisterSubmit">
+            <!-- Email Field -->
             <div class="flex flex-col gap-1 mb-4">
               <div class="flex items-center gap-4">
                 <label for="registerEmail" class="font-semibold w-24">Email</label>
@@ -167,6 +176,8 @@ const onRegisterSubmit = async (values) => {
                 <Message severity="error" variant="simple">{{ message }}</Message>
               </ErrorMessage>
             </div>
+
+            <!-- Username Field -->
             <div class="flex flex-col gap-1 mb-4">
               <div class="flex items-center gap-4">
                 <label for="registerUsername" class="font-semibold w-24">Username</label>
@@ -183,6 +194,8 @@ const onRegisterSubmit = async (values) => {
                 <Message severity="error" variant="simple">{{ message }}</Message>
               </ErrorMessage>
             </div>
+
+            <!-- Full Name Field -->
             <div class="flex flex-col gap-1 mb-4">
               <div class="flex items-center gap-4">
                 <label for="registerFullName" class="font-semibold w-24">Full Name</label>
@@ -199,6 +212,8 @@ const onRegisterSubmit = async (values) => {
                 <Message severity="error" variant="simple">{{ message }}</Message>
               </ErrorMessage>
             </div>
+
+            <!-- Password Field -->
             <div class="flex flex-col gap-1 mb-4">
               <div class="flex items-center gap-4">
                 <label for="registerPassword" class="font-semibold w-24">Password</label>
@@ -222,6 +237,8 @@ const onRegisterSubmit = async (values) => {
                 <Message severity="error" variant="simple">{{ message }}</Message>
               </ErrorMessage>
             </div>
+
+            <!-- Repeat Password Field -->
             <div class="flex flex-col gap-1 mb-8">
               <div class="flex items-center gap-4">
                 <label for="registerRepeatPassword" class="font-semibold w-24">Repeat password</label>
@@ -245,6 +262,8 @@ const onRegisterSubmit = async (values) => {
                 <Message severity="error" variant="simple">{{ message }}</Message>
               </ErrorMessage>
             </div>
+
+            <!-- Status Messages -->
             <div class="mb-4" v-if="formStatus === 'loading'">
               <Message severity="info">Registering account, please wait...</Message>
             </div>
@@ -254,6 +273,8 @@ const onRegisterSubmit = async (values) => {
             <div class="mb-4" v-if="formStatus === 'error' && generalError">
               <Message severity="error">{{ generalError }}</Message>
             </div>
+
+            <!-- Action Buttons -->
             <div class="flex justify-end gap-2">
               <Button type="submit" label="Register" :disabled="isFormProcessing"></Button>
             </div>
