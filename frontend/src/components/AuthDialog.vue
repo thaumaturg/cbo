@@ -184,7 +184,7 @@ const onRegisterSubmit = async (values) => {
                 <VeeField
                   name="registerUsername"
                   label="Username"
-                  rules="required|username_chars|min:6|max:16"
+                  rules="required|username_chars|min:3|max:16"
                   v-slot="{ field }"
                 >
                   <InputText v-bind="field" id="registerUsername" class="flex-auto" autocomplete="off" />
