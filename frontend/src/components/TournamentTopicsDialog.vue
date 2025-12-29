@@ -1,6 +1,6 @@
 <script setup>
 import { topicService } from "@/services/topic-service.js";
-import { tournamentService } from "@/services/tournament-service.js";
+import { tournamentTopicsService } from "@/services/tournament-topics-service.js";
 import AutoComplete from "primevue/autocomplete";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
@@ -84,7 +84,7 @@ const fetchAssignedTopics = async () => {
   error.value = null;
 
   try {
-    const result = await tournamentService.getMyTopics(props.tournament.id);
+    const result = await tournamentTopicsService.getMyTopics(props.tournament.id);
     if (result.success) {
       assignedTopics.value = result.data.map((t) => ({
         id: t.id,
@@ -167,7 +167,7 @@ const saveTopics = async () => {
       priorityIndex: index,
     }));
 
-    const result = await tournamentService.setMyTopics(props.tournament.id, topicsToSave);
+    const result = await tournamentTopicsService.setMyTopics(props.tournament.id, topicsToSave);
 
     if (result.success) {
       assignedTopics.value = result.data.map((t) => ({
@@ -327,4 +327,3 @@ watch(
 </template>
 
 <style scoped></style>
-

@@ -5,7 +5,7 @@ import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 import Button from "primevue/button";
 import Message from "primevue/message";
-import { tournamentService } from "@/services/tournament-service.js";
+import { tournamentParticipantsService } from "@/services/tournament-participants-service.js";
 
 const props = defineProps({
   visible: {
@@ -69,7 +69,7 @@ const fetchParticipants = async () => {
   addError.value = null;
 
   try {
-    const result = await tournamentService.getAllParticipants(props.tournament.id);
+    const result = await tournamentParticipantsService.getAllParticipants(props.tournament.id);
     if (result.success) {
       participants.value = result.data;
     } else {
@@ -94,7 +94,7 @@ const handleAddParticipant = async () => {
   addError.value = null;
 
   try {
-    const result = await tournamentService.createParticipant(props.tournament.id, {
+    const result = await tournamentParticipantsService.createParticipant(props.tournament.id, {
       username: newUsername.value.trim(),
       role: newRole.value,
     });
@@ -133,7 +133,7 @@ const handleDeleteParticipant = async (participant) => {
   addError.value = null;
 
   try {
-    const result = await tournamentService.deleteParticipant(props.tournament.id, participant.id);
+    const result = await tournamentParticipantsService.deleteParticipant(props.tournament.id, participant.id);
 
     if (result.success) {
       const index = participants.value.findIndex((p) => p.id === participant.id);

@@ -1,5 +1,8 @@
 <script setup>
+import { tournamentMatchesService } from "@/services/tournament-matches-service.js";
+import { tournamentRoundsService } from "@/services/tournament-rounds-service.js";
 import { tournamentService } from "@/services/tournament-service.js";
+import { tournamentTopicsService } from "@/services/tournament-topics-service.js";
 import { useNotify } from "@/utils/notify.js";
 import Accordion from "primevue/accordion";
 import AccordionContent from "primevue/accordioncontent";
@@ -67,7 +70,7 @@ const fetchData = async () => {
     }
     currentUserRole.value = tournamentResult.data.currentUserRole;
 
-    const matchResult = await tournamentService.getMatchWithRounds(tournamentId.value, matchId.value);
+    const matchResult = await tournamentMatchesService.getMatchWithRounds(tournamentId.value, matchId.value);
     if (!matchResult.success) {
       loadError.value = matchResult.error;
       notify.error("Match Load Failed", matchResult.error);
@@ -76,7 +79,7 @@ const fetchData = async () => {
     match.value = matchResult.data;
 
     if (currentUserRole.value === "Creator") {
-      const topicsResult = await tournamentService.getAvailableTopics(tournamentId.value, matchId.value);
+      const topicsResult = await tournamentMatchesService.getAvailableTopics(tournamentId.value, matchId.value);
       if (topicsResult.success) {
         availableTopics.value = topicsResult.data;
       }
@@ -130,7 +133,7 @@ const onTopicChange = async (roundIndex, topicId) => {
 
   if (topicId) {
     try {
-      const result = await tournamentService.getTournamentTopic(tournamentId.value, topicId);
+      const result = await tournamentTopicsService.getTournamentTopic(tournamentId.value, topicId);
       if (result.success) {
         roundState.questions = result.data.questions || [];
       } else {
@@ -233,25 +236,25 @@ const submitRound = async (roundIndex) => {
 
     let result;
     if (roundState.existingRoundId) {
-      result = await tournamentService.updateRound(
+      result = await tournamentRoundsService.updateRound(
         tournamentId.value,
         matchId.value,
         roundState.numberInMatch,
         roundData,
       );
     } else {
-      result = await tournamentService.createRound(tournamentId.value, matchId.value, roundData);
+      result = await tournamentRoundsService.createRound(tournamentId.value, matchId.value, roundData);
     }
 
     if (result.success) {
       notify.success("Round Saved", `Round ${roundState.numberInMatch} saved successfully`);
 
-      const matchResult = await tournamentService.getMatchWithRounds(tournamentId.value, matchId.value);
+      const matchResult = await tournamentMatchesService.getMatchWithRounds(tournamentId.value, matchId.value);
       if (matchResult.success) {
         match.value = matchResult.data;
       }
 
-      const topicsResult = await tournamentService.getAvailableTopics(tournamentId.value, matchId.value);
+      const topicsResult = await tournamentMatchesService.getAvailableTopics(tournamentId.value, matchId.value);
       if (topicsResult.success) {
         availableTopics.value = topicsResult.data;
       }
@@ -283,17 +286,20 @@ const deleteRound = async (roundIndex) => {
   isProcessing.value = true;
 
   try {
-    const result = await tournamentService.deleteRound(tournamentId.value, matchId.value, roundState.numberInMatch);
-
+    const result = await tournamentRoundsService.deleteRound(
+      tournamentId.value,
+      matchId.value,
+      roundState.numberInMatch,
+    );
     if (result.success) {
       notify.success("Round Deleted", `Round ${roundState.numberInMatch} removed`);
 
-      const matchResult = await tournamentService.getMatchWithRounds(tournamentId.value, matchId.value);
+      const matchResult = await tournamentMatchesService.getMatchWithRounds(tournamentId.value, matchId.value);
       if (matchResult.success) {
         match.value = matchResult.data;
       }
 
-      const topicsResult = await tournamentService.getAvailableTopics(tournamentId.value, matchId.value);
+      const topicsResult = await tournamentMatchesService.getAvailableTopics(tournamentId.value, matchId.value);
       if (topicsResult.success) {
         availableTopics.value = topicsResult.data;
       }

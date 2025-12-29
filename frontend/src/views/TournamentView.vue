@@ -1,6 +1,8 @@
 <script setup>
 import MatchCard from "@/components/MatchCard.vue";
 import TournamentStandingsCard from "@/components/TournamentStandingsCard.vue";
+import { tournamentMatchesService } from "@/services/tournament-matches-service.js";
+import { tournamentParticipantsService } from "@/services/tournament-participants-service.js";
 import { tournamentService } from "@/services/tournament-service.js";
 import { useNotify } from "@/utils/notify.js";
 import Badge from "primevue/badge";
@@ -63,7 +65,7 @@ const fetchMatches = async () => {
   isLoadingMatches.value = true;
 
   try {
-    const result = await tournamentService.getMatches(tournamentId.value);
+    const result = await tournamentMatchesService.getMatches(tournamentId.value);
     if (result.success) {
       matches.value = result.data;
     } else {
@@ -87,7 +89,7 @@ const fetchParticipants = async () => {
   isLoadingParticipants.value = true;
 
   try {
-    const result = await tournamentService.getAllParticipants(tournamentId.value, "Player");
+    const result = await tournamentParticipantsService.getAllParticipants(tournamentId.value, "Player");
     if (result.success) {
       participants.value = result.data;
     } else {

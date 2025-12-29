@@ -4,7 +4,7 @@ import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Button from "primevue/button";
 import Message from "primevue/message";
-import { topicService } from "@/services/topic-service.js";
+import { topicAuthorsService } from "@/services/topic-authors-service.js";
 
 const props = defineProps({
   visible: {
@@ -60,7 +60,7 @@ const fetchAuthors = async () => {
   addError.value = null;
 
   try {
-    const result = await topicService.getAllAuthors(props.topic.id);
+    const result = await topicAuthorsService.getAllAuthors(props.topic.id);
     if (result.success) {
       authors.value = result.data;
     } else {
@@ -85,7 +85,7 @@ const handleAddAuthor = async () => {
   addError.value = null;
 
   try {
-    const result = await topicService.createAuthor(props.topic.id, {
+    const result = await topicAuthorsService.createAuthor(props.topic.id, {
       username: newUsername.value.trim(),
     });
 
@@ -123,7 +123,7 @@ const handleDeleteAuthor = async (author) => {
   addError.value = null;
 
   try {
-    const result = await topicService.deleteAuthor(props.topic.id, author.id);
+    const result = await topicAuthorsService.deleteAuthor(props.topic.id, author.id);
 
     if (result.success) {
       const index = authors.value.findIndex((a) => a.id === author.id);
