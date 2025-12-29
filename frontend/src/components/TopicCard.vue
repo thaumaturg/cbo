@@ -1,6 +1,7 @@
 <script setup>
 import Button from "primevue/button";
 import Card from "primevue/card";
+import { RouterLink } from "vue-router";
 
 const props = defineProps({
   topic: {
@@ -16,11 +17,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["view", "authors", "delete"]);
-
-const handleView = () => {
-  emit("view", props.topic);
-};
+const emit = defineEmits(["authors", "delete"]);
 
 const handleAuthors = () => {
   emit("authors", props.topic);
@@ -61,17 +58,19 @@ const handleDelete = () => {
         </div>
 
         <div class="flex items-center gap-3">
-          <Button
-            icon="pi pi-pencil"
-            severity="secondary"
-            outlined
-            rounded
-            size="small"
-            @click="handleView"
-            v-tooltip.bottom="'Edit'"
-            class="p-2"
-            aria-label="Edit Topic"
-          />
+          <RouterLink :to="`/topics/${topic.id}`" custom v-slot="{ navigate }">
+            <Button
+              icon="pi pi-pencil"
+              severity="secondary"
+              outlined
+              rounded
+              size="small"
+              @click="navigate"
+              v-tooltip.bottom="'Edit'"
+              class="p-2"
+              aria-label="Edit Topic"
+            />
+          </RouterLink>
 
           <Button
             icon="pi pi-users"

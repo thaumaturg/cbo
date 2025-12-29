@@ -1,5 +1,4 @@
 <script setup>
-import CreateNewButton from "@/components/CreateNewButton.vue";
 import TopicAuthorsDialog from "@/components/TopicAuthorsDialog.vue";
 import TopicCard from "@/components/TopicCard.vue";
 import TournamentCard from "@/components/TournamentCard.vue";
@@ -9,10 +8,11 @@ import TournamentTopicsDialog from "@/components/TournamentTopicsDialog.vue";
 import { topicService } from "@/services/topic-service.js";
 import { tournamentService } from "@/services/tournament-service.js";
 import { useAuthStore } from "@/stores/auth.js";
+import Button from "primevue/button";
 import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
 import { onMounted, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 
 const toast = useToast();
 const router = useRouter();
@@ -125,7 +125,11 @@ const handleTournamentStart = async (tournament) => {
   }
 
   const tournamentTitle = tournament.title;
-  if (!confirm(`Are you sure you want to start "${tournamentTitle}"? This will advance the tournament to the Qualifications stage.`)) {
+  if (
+    !confirm(
+      `Are you sure you want to start "${tournamentTitle}"? This will advance the tournament to the Qualifications stage.`,
+    )
+  ) {
     return;
   }
 
@@ -194,10 +198,6 @@ const handleTournamentDelete = async (tournament) => {
       await fetchTournaments();
     }
   }
-};
-
-const handleTopicView = (topic) => {
-  router.push(`/topics/${topic.id}`);
 };
 
 const handleTopicAuthors = (topic) => {
@@ -323,10 +323,6 @@ const handleTournamentUpdated = async (updatedTournament) => {
     });
   }
 };
-
-const handleCreateTopic = () => {
-  router.push("/topics/new");
-};
 </script>
 
 <template>
@@ -358,7 +354,7 @@ const handleCreateTopic = () => {
       <div>
         <div class="mb-6 flex items-center justify-center gap-4">
           <h1 class="text-3xl">Tournaments</h1>
-          <CreateNewButton @create="handleCreateTournament" />
+          <Button icon="pi pi-plus" label="New" severity="secondary" outlined @click="handleCreateTournament" />
         </div>
 
         <div v-if="isLoadingTournaments" class="text-center py-12">
@@ -394,7 +390,9 @@ const handleCreateTopic = () => {
       <div>
         <div class="mb-6 flex items-center justify-center gap-4">
           <h1 class="text-3xl">Topics</h1>
-          <CreateNewButton @create="handleCreateTopic" />
+          <RouterLink :to="{ name: 'topic-new' }" custom v-slot="{ navigate }">
+            <Button icon="pi pi-plus" label="New" severity="secondary" outlined @click="navigate" />
+          </RouterLink>
         </div>
 
         <div v-if="isLoadingTopics" class="text-center py-12">
@@ -409,7 +407,6 @@ const handleCreateTopic = () => {
             v-for="topic in topics"
             :key="topic.id"
             :topic="topic"
-            @view="handleTopicView"
             @authors="handleTopicAuthors"
             @delete="handleTopicDelete"
             class="w-full"

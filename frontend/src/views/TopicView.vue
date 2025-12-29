@@ -12,7 +12,7 @@ import Textarea from "primevue/textarea";
 import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
 import { computed, onMounted, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 
 const router = useRouter();
 const route = useRoute();
@@ -288,10 +288,6 @@ const onSubmit = async (values) => {
     generalError.value = "An unexpected error occurred. Please try again.";
   }
 };
-
-const handleCancel = () => {
-  router.push("/");
-};
 </script>
 
 <template>
@@ -496,15 +492,17 @@ const handleCancel = () => {
 
       <!-- Action Buttons -->
       <div class="flex justify-end gap-4 pt-4">
-        <Button
-          type="button"
-          label="Cancel"
-          severity="secondary"
-          outlined
-          icon="pi pi-times"
-          @click="handleCancel"
-          :disabled="isFormProcessing"
-        />
+        <RouterLink to="/" custom v-slot="{ navigate }">
+          <Button
+            type="button"
+            label="Cancel"
+            severity="secondary"
+            outlined
+            icon="pi pi-times"
+            @click="navigate"
+            :disabled="isFormProcessing"
+          />
+        </RouterLink>
         <Button
           type="submit"
           :label="isEditMode ? 'Save Changes' : 'Create Topic'"

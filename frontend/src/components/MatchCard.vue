@@ -4,9 +4,7 @@ import Card from "primevue/card";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import { computed } from "vue";
-import { useRouter } from "vue-router";
-
-const router = useRouter();
+import { RouterLink } from "vue-router";
 
 const props = defineProps({
   match: {
@@ -37,15 +35,13 @@ const matchTitle = computed(() => {
 
 const roundsCount = computed(() => props.match.roundsCount ?? 0);
 
-const handleRounds = () => {
-  router.push({
-    name: "match-view",
-    params: {
-      tournamentId: props.tournamentId,
-      matchId: props.match.id,
-    },
-  });
-};
+const matchRoute = computed(() => ({
+  name: "match-view",
+  params: {
+    tournamentId: props.tournamentId,
+    matchId: props.match.id,
+  },
+}));
 </script>
 
 <template>
@@ -89,7 +85,9 @@ const handleRounds = () => {
         </DataTable>
 
         <div class="mt-4 flex justify-start">
-          <Button label="Rounds" icon="pi pi-list" severity="info" size="small" outlined @click="handleRounds" />
+          <RouterLink :to="matchRoute" custom v-slot="{ navigate }">
+            <Button label="Rounds" icon="pi pi-list" severity="info" size="small" outlined @click="navigate" />
+          </RouterLink>
         </div>
       </div>
     </template>
