@@ -1,5 +1,6 @@
 <script setup>
 import { topicService } from "@/services/topic-service.js";
+import { parseTabSeparatedData } from "@/utils/tsv-parser.js";
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
 import Column from "primevue/column";
@@ -171,10 +172,7 @@ const handlePaste = (event) => {
 
   if (!pastedData) return;
 
-  const rows = pastedData
-    .split("\n")
-    .map((row) => row.split("\t"))
-    .filter((row) => row.some((cell) => cell.trim()));
+  const rows = parseTabSeparatedData(pastedData);
 
   // Expected format: costPositive, costNegative, question, answer, comment (5 columns)
   // Or: question, answer, comment (3 columns minimum)
@@ -196,9 +194,12 @@ const handlePaste = (event) => {
   if (firstRowCols !== 5 && firstRowCols !== 3) return;
 
   rowsToProcess.forEach((row, index) => {
+    const existingId = questions.value[index]?.id || null;
+
     if (firstRowCols === 5) {
       // Full format: costPositive, costNegative, question, answer, comment
       questions.value[index] = {
+        id: existingId,
         questionNumber: index + 1,
         costPositive: parseInt(row[0]) || (index + 1) * 10,
         costNegative: parseInt(row[1]) || (index + 1) * 10,
@@ -209,6 +210,7 @@ const handlePaste = (event) => {
     } else {
       // Minimal format: question, answer, comment
       questions.value[index] = {
+        id: existingId,
         questionNumber: index + 1,
         costPositive: (index + 1) * 10,
         costNegative: (index + 1) * 10,
