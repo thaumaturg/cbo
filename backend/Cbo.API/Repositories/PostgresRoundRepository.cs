@@ -16,6 +16,7 @@ public class PostgresRoundRepository : IRoundRepository
     public async Task<Round?> GetByIdWithDetailsAsync(Guid id)
     {
         return await _dbContext.Rounds
+            .AsNoTracking()
             .Include(r => r.Topic)
                 .ThenInclude(t => t.Questions.OrderBy(q => q.QuestionNumber))
             .Include(r => r.RoundAnswers)
@@ -30,6 +31,7 @@ public class PostgresRoundRepository : IRoundRepository
     public async Task<List<Round>> GetAllByTournamentIdAsync(Guid tournamentId)
     {
         return await _dbContext.Rounds
+            .AsNoTracking()
             .Include(r => r.Match)
             .Where(r => r.Match.TournamentId == tournamentId)
             .ToListAsync();
@@ -38,6 +40,7 @@ public class PostgresRoundRepository : IRoundRepository
     public async Task<Round?> GetByMatchIdAndNumberAsync(Guid matchId, int numberInMatch)
     {
         return await _dbContext.Rounds
+            .AsNoTracking()
             .Include(r => r.RoundAnswers)
             .FirstOrDefaultAsync(r => r.MatchId == matchId && r.NumberInMatch == numberInMatch);
     }

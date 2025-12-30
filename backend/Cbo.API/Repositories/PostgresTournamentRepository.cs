@@ -17,13 +17,16 @@ public class PostgresTournamentRepository : ITournamentRepository
     public async Task<List<Tournament>> GetAllByUserIdAsync(Guid userId)
     {
         return await _dbContext.Tournaments
+            .AsNoTracking()
             .Where(t => t.TournamentParticipants.Any(tp => tp.ApplicationUserId == userId))
             .ToListAsync();
     }
 
     public async Task<Tournament?> GetByIdAsync(Guid id)
     {
-        return await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
+        return await _dbContext.Tournaments
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task<Tournament> CreateAsync(Tournament tournament)

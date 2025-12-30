@@ -16,6 +16,7 @@ public class PostgresTopicAuthorRepository : ITopicAuthorRepository
     public async Task<List<TopicAuthor>> GetAllByTopicIdAsync(Guid topicId)
     {
         return await _dbContext.TopicAuthors
+            .AsNoTracking()
             .Include(ta => ta.ApplicationUser)
             .Where(ta => ta.TopicId == topicId)
             .ToListAsync();
@@ -24,6 +25,7 @@ public class PostgresTopicAuthorRepository : ITopicAuthorRepository
     public async Task<TopicAuthor?> GetByAuthorIdAndTopicIdAsync(Guid authorId, Guid topicId)
     {
         return await _dbContext.TopicAuthors
+            .AsNoTracking()
             .Include(ta => ta.ApplicationUser)
             .FirstOrDefaultAsync(ta => ta.Id == authorId && ta.TopicId == topicId);
     }
@@ -31,6 +33,7 @@ public class PostgresTopicAuthorRepository : ITopicAuthorRepository
     public async Task<TopicAuthor?> GetByUserIdAndTopicIdAsync(Guid userId, Guid topicId)
     {
         return await _dbContext.TopicAuthors
+            .AsNoTracking()
             .FirstOrDefaultAsync(ta => ta.ApplicationUserId == userId && ta.TopicId == topicId);
     }
 

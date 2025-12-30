@@ -15,12 +15,15 @@ public class PostgresMatchRepository : IMatchRepository
 
     public async Task<Match?> GetByIdAsync(Guid id)
     {
-        return await _dbContext.Matches.FirstOrDefaultAsync(x => x.Id == id);
+        return await _dbContext.Matches
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task<Match?> GetByIdWithDetailsAsync(Guid id)
     {
         return await _dbContext.Matches
+            .AsNoTracking()
             .Include(m => m.MatchParticipants)
                 .ThenInclude(mp => mp.TournamentParticipant)
                     .ThenInclude(tp => tp.ApplicationUser)
@@ -39,6 +42,7 @@ public class PostgresMatchRepository : IMatchRepository
     public async Task<List<Match>> GetAllByTournamentIdAsync(Guid tournamentId)
     {
         return await _dbContext.Matches
+            .AsNoTracking()
             .Where(m => m.TournamentId == tournamentId)
             .Include(m => m.MatchParticipants)
                 .ThenInclude(mp => mp.TournamentParticipant)

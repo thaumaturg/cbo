@@ -16,6 +16,7 @@ public class PostgresTournamentTopicRepository : ITournamentTopicRepository
     public async Task<List<TournamentTopic>> GetAllByParticipantIdAsync(Guid tournamentId, Guid participantId)
     {
         return await _dbContext.TournamentTopics
+            .AsNoTracking()
             .Include(tt => tt.Topic)
             .Include(tt => tt.TournamentParticipant)
                 .ThenInclude(tp => tp.ApplicationUser)
@@ -27,6 +28,7 @@ public class PostgresTournamentTopicRepository : ITournamentTopicRepository
     public async Task<List<TournamentTopic>> GetAllByTournamentIdAsync(Guid tournamentId)
     {
         return await _dbContext.TournamentTopics
+            .AsNoTracking()
             .Include(tt => tt.Topic)
             .Include(tt => tt.TournamentParticipant)
                 .ThenInclude(tp => tp.ApplicationUser)

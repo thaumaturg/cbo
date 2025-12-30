@@ -16,6 +16,7 @@ public class PostgresTopicRepository : ITopicRepository
     public async Task<List<Topic>> GetAllByUserIdAsync(Guid userId)
     {
         return await _dbContext.Topics
+            .AsNoTracking()
             .Include(t => t.Questions.OrderBy(q => q.QuestionNumber))
             .Include(t => t.TopicAuthors)
             .Where(t => t.TopicAuthors.Any(ta => ta.ApplicationUserId == userId && ta.IsOwner))
@@ -24,12 +25,15 @@ public class PostgresTopicRepository : ITopicRepository
 
     public async Task<Topic?> GetByIdAsync(Guid id)
     {
-        return await _dbContext.Topics.FirstOrDefaultAsync(x => x.Id == id);
+        return await _dbContext.Topics
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task<Topic?> GetByIdIncludeQuestionsAsync(Guid id)
     {
         return await _dbContext.Topics
+            .AsNoTracking()
             .Include(t => t.Questions.OrderBy(q => q.QuestionNumber))
             .Include(t => t.TopicAuthors)
             .FirstOrDefaultAsync(x => x.Id == id);

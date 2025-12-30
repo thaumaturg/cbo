@@ -17,6 +17,7 @@ public class PostgresTournamentParticipantsRepository : ITournamentParticipantsR
     public async Task<List<TournamentParticipant>> GetAllByTournamentIdAsync(Guid tournamentId, TournamentParticipantRole? role = null)
     {
         IQueryable<TournamentParticipant> query = _dbContext.TournamentParticipants
+            .AsNoTracking()
             .Include(tp => tp.ApplicationUser)
             .Where(tp => tp.TournamentId == tournamentId);
 
@@ -29,6 +30,7 @@ public class PostgresTournamentParticipantsRepository : ITournamentParticipantsR
     public async Task<TournamentParticipant?> GetByParticipantIdAndTournamentIdAsync(Guid participantId, Guid tournamentId)
     {
         return await _dbContext.TournamentParticipants
+            .AsNoTracking()
             .Include(tp => tp.ApplicationUser)
             .FirstOrDefaultAsync(tp => tp.Id == participantId && tp.TournamentId == tournamentId);
     }
@@ -36,6 +38,7 @@ public class PostgresTournamentParticipantsRepository : ITournamentParticipantsR
     public async Task<TournamentParticipant?> GetByUserIdAndTournamentIdAsync(Guid userId, Guid tournamentId)
     {
         return await _dbContext.TournamentParticipants
+            .AsNoTracking()
             .FirstOrDefaultAsync(tp => tp.ApplicationUserId == userId && tp.TournamentId == tournamentId);
     }
 

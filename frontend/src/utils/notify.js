@@ -9,4 +9,3 @@ export function useNotify() {
     warn: (summary, detail) => toast.add({ severity: "warn", summary, detail, life: 3000 }),
   };
 }
-
