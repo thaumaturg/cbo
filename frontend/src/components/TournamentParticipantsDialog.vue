@@ -1,11 +1,11 @@
 <script setup>
-import { ref, computed, watch } from "vue";
+import { tournamentParticipantsService } from "@/services/tournament-participants-service.js";
+import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
-import Select from "primevue/select";
-import Button from "primevue/button";
 import Message from "primevue/message";
-import { tournamentParticipantsService } from "@/services/tournament-participants-service.js";
+import Select from "primevue/select";
+import { computed, ref, watch } from "vue";
 
 const props = defineProps({
   visible: {
@@ -49,6 +49,18 @@ const sortedParticipants = computed(() => {
     if (roleComparison !== 0) return roleComparison;
     return a.username.localeCompare(b.username);
   });
+});
+
+const organizerCount = computed(() => {
+  return participants.value.filter((p) => p.role === "Organizer").length;
+});
+
+const playerCount = computed(() => {
+  return participants.value.filter((p) => p.role === "Player").length;
+});
+
+const requiredPlayers = computed(() => {
+  return props.tournament?.playersPerTournament || 0;
 });
 
 const closeDialog = () => {
@@ -177,7 +189,7 @@ watch(
     } else {
       resetForm();
     }
-  }
+  },
 );
 </script>
 
@@ -236,7 +248,10 @@ watch(
 
     <!-- Participants List -->
     <div>
-      <h3 class="text-lg font-semibold mb-4">Participant List</h3>
+      <h3 v-if="isLoadingParticipants" class="text-lg font-semibold mb-4">Participant List</h3>
+      <h3 v-else class="text-lg font-semibold mb-4">
+        Participant List: {{ organizerCount }} Organizers, {{ playerCount }} out of {{ requiredPlayers }} Players
+      </h3>
 
       <!-- Loading State -->
       <div v-if="isLoadingParticipants" class="text-center py-8">
@@ -255,10 +270,7 @@ watch(
             <span class="font-medium text-gray-900 dark:text-gray-100">
               {{ participant.username }}
             </span>
-            <span
-              class="px-2 py-1 text-xs font-semibold rounded-full"
-              :class="getRoleBadgeClass(participant.role)"
-            >
+            <span class="px-2 py-1 text-xs font-semibold rounded-full" :class="getRoleBadgeClass(participant.role)">
               {{ participant.role }}
             </span>
           </div>
@@ -296,4 +308,3 @@ watch(
 </template>
 
 <style scoped></style>
-
