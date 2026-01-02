@@ -1,21 +1,19 @@
 <script setup>
+import MatchRoundPanel from "@/components/MatchRoundPanel.vue";
 import { tournamentMatchesService } from "@/services/tournament-matches-service.js";
 import { tournamentRoundsService } from "@/services/tournament-rounds-service.js";
 import { tournamentService } from "@/services/tournament-service.js";
-import { tournamentTopicsService } from "@/services/tournament-topics-service.js";
 import { useNotify } from "@/utils/notify.js";
 import Accordion from "primevue/accordion";
 import AccordionContent from "primevue/accordioncontent";
 import AccordionHeader from "primevue/accordionheader";
 import AccordionPanel from "primevue/accordionpanel";
 import Button from "primevue/button";
-import Column from "primevue/column";
-import DataTable from "primevue/datatable";
-import RadioButton from "primevue/radiobutton";
-import Select from "primevue/select";
 import Toast from "primevue/toast";
 import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
+
+const MAX_ROUNDS = 4;
 
 const route = useRoute();
 const notify = useNotify();
@@ -31,12 +29,7 @@ const isLoading = ref(true);
 const loadError = ref(null);
 const isProcessing = ref(false);
 
-const roundStates = ref([
-  { numberInMatch: 1, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null, hasChanges: false },
-  { numberInMatch: 2, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null, hasChanges: false },
-  { numberInMatch: 3, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null, hasChanges: false },
-  { numberInMatch: 4, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null, hasChanges: false },
-]);
+const roundStates = ref([]);
 
 const matchTitle = computed(() => {
   if (!match.value) return "Match";
@@ -47,15 +40,11 @@ const matchTitle = computed(() => {
 
 const participants = computed(() => match.value?.matchParticipants || []);
 
-// Exclude topics used in other rounds of this match
-const getAvailableTopicsForRound = (roundIndex) => {
-  const usedTopicIds = roundStates.value
-    .filter((_, idx) => idx !== roundIndex)
-    .map((r) => r.selectedTopicId)
-    .filter((id) => id !== null);
+const canAddRound = computed(() => {
+  return canEdit.value && roundStates.value.length < MAX_ROUNDS;
+});
 
-  return availableTopics.value.filter((t) => !usedTopicIds.includes(t.topicId));
-};
+const expandedPanels = computed(() => roundStates.value.map((_, idx) => String(idx)));
 
 const fetchData = async () => {
   isLoading.value = true;
@@ -95,93 +84,79 @@ const fetchData = async () => {
   }
 };
 
+const createEmptyRoundState = (numberInMatch) => ({
+  numberInMatch,
+  selectedTopicId: null,
+  questions: [],
+  answers: {},
+  existingRoundId: null,
+  hasChanges: false,
+});
+
 const initializeRoundStates = () => {
-  roundStates.value = [
-    { numberInMatch: 1, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null, hasChanges: false },
-    { numberInMatch: 2, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null, hasChanges: false },
-    { numberInMatch: 3, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null, hasChanges: false },
-    { numberInMatch: 4, selectedTopicId: null, questions: [], answers: {}, existingRoundId: null, hasChanges: false },
-  ];
+  const newRoundStates = [];
 
-  if (match.value?.rounds) {
-    for (const round of match.value.rounds) {
-      const idx = round.numberInMatch - 1;
-      if (idx >= 0 && idx < 4) {
-        roundStates.value[idx].existingRoundId = round.id;
-        roundStates.value[idx].selectedTopicId = round.topicId;
-        roundStates.value[idx].questions = round.questions || [];
+  if (match.value?.rounds && match.value.rounds.length > 0) {
+    const sortedRounds = [...match.value.rounds].sort((a, b) => a.numberInMatch - b.numberInMatch);
 
-        // Build answers map: { "questionId::participantId": "correct" | "wrong" | null }
-        const answersMap = {};
-        for (const answer of round.roundAnswers || []) {
-          const key = `${answer.questionId}::${answer.matchParticipantId}`;
-          answersMap[key] = answer.isAnswerAccepted ? "correct" : "wrong";
-        }
-        roundStates.value[idx].answers = answersMap;
+    for (const round of sortedRounds) {
+      const answersMap = {};
+      for (const answer of round.roundAnswers || []) {
+        const key = `${answer.questionId}::${answer.matchParticipantId}`;
+        answersMap[key] = answer.isAnswerAccepted;
       }
-    }
-  }
-};
 
-const onTopicChange = async (roundIndex, topicId) => {
-  if (!canEdit.value) return;
-
-  const roundState = roundStates.value[roundIndex];
-  roundState.selectedTopicId = topicId;
-  roundState.answers = {};
-  roundState.hasChanges = true;
-
-  if (topicId) {
-    try {
-      const result = await tournamentTopicsService.getTournamentTopic(tournamentId.value, topicId);
-      if (result.success) {
-        roundState.questions = result.data.questions || [];
-      } else {
-        notify.error("Topic Load Failed", result.error || "Failed to load questions");
-        roundState.questions = [];
-      }
-    } catch {
-      notify.error("Topic Load Failed", "Failed to load questions");
-      roundState.questions = [];
-    }
-  } else {
-    roundState.questions = [];
-  }
-};
-
-const getRoundByTopicId = (topicId) => {
-  return match.value?.rounds?.find((r) => r.topicId === topicId) || null;
-};
-
-const getAnswerValue = (roundIndex, questionId, participantId) => {
-  const key = `${questionId}::${participantId}`;
-  return roundStates.value[roundIndex].answers[key] || null;
-};
-
-const setAnswerValue = (roundIndex, questionId, participantId, value) => {
-  const key = `${questionId}::${participantId}`;
-  const roundState = roundStates.value[roundIndex];
-  const currentValue = roundState.answers[key];
-
-  if (currentValue === value) {
-    roundState.answers[key] = null;
-    roundState.hasChanges = true;
-    return;
-  }
-
-  if (value === "correct") {
-    const existingCorrectKey = Object.entries(roundState.answers).find(
-      ([k, v]) => k.startsWith(`${questionId}::`) && k !== key && v === "correct",
-    );
-
-    if (existingCorrectKey) {
-      notify.warn("Invalid Selection", "Only one correct answer per question");
-      return;
+      newRoundStates.push({
+        numberInMatch: round.numberInMatch,
+        existingRoundId: round.id,
+        selectedTopicId: round.topicId,
+        questions: round.questions || [],
+        answers: answersMap,
+        hasChanges: false,
+      });
     }
   }
 
-  roundState.answers[key] = value;
-  roundState.hasChanges = true;
+  roundStates.value = newRoundStates;
+};
+
+const getNextRoundNumber = () => {
+  if (roundStates.value.length === 0) return 1;
+
+  const usedNumbers = new Set(roundStates.value.map((r) => r.numberInMatch));
+  for (let i = 1; i <= MAX_ROUNDS; i++) {
+    if (!usedNumbers.has(i)) return i;
+  }
+  return null;
+};
+
+const addRound = () => {
+  if (!canAddRound.value) return;
+
+  const nextNumber = getNextRoundNumber();
+  if (nextNumber !== null) {
+    roundStates.value.push(createEmptyRoundState(nextNumber));
+  }
+};
+
+const updateRoundState = (index, updatedState) => {
+  roundStates.value[index] = updatedState;
+};
+
+const refreshMatchData = async () => {
+  const [matchResult, topicsResult] = await Promise.all([
+    tournamentMatchesService.getMatchWithRounds(tournamentId.value, matchId.value),
+    tournamentMatchesService.getAvailableTopics(tournamentId.value, matchId.value),
+  ]);
+
+  if (matchResult.success) {
+    match.value = matchResult.data;
+  }
+  if (topicsResult.success) {
+    availableTopics.value = topicsResult.data;
+  }
+
+  initializeRoundStates();
 };
 
 const validateAnswers = (answers) => {
@@ -214,7 +189,7 @@ const submitRound = async (roundIndex) => {
       answers.push({
         questionId,
         matchParticipantId: participantId,
-        isAnswerAccepted: value === "correct",
+        isAnswerAccepted: value,
       });
     }
   }
@@ -248,18 +223,7 @@ const submitRound = async (roundIndex) => {
 
     if (result.success) {
       notify.success("Round Saved", `Round ${roundState.numberInMatch} saved successfully`);
-
-      const matchResult = await tournamentMatchesService.getMatchWithRounds(tournamentId.value, matchId.value);
-      if (matchResult.success) {
-        match.value = matchResult.data;
-      }
-
-      const topicsResult = await tournamentMatchesService.getAvailableTopics(tournamentId.value, matchId.value);
-      if (topicsResult.success) {
-        availableTopics.value = topicsResult.data;
-      }
-
-      initializeRoundStates();
+      await refreshMatchData();
     } else {
       notify.error("Save Failed", result.error);
     }
@@ -277,9 +241,7 @@ const deleteRound = async (roundIndex) => {
   const roundState = roundStates.value[roundIndex];
 
   if (!roundState.existingRoundId) {
-    roundState.selectedTopicId = null;
-    roundState.questions = [];
-    roundState.answers = {};
+    roundStates.value.splice(roundIndex, 1);
     return;
   }
 
@@ -293,18 +255,7 @@ const deleteRound = async (roundIndex) => {
     );
     if (result.success) {
       notify.success("Round Deleted", `Round ${roundState.numberInMatch} removed`);
-
-      const matchResult = await tournamentMatchesService.getMatchWithRounds(tournamentId.value, matchId.value);
-      if (matchResult.success) {
-        match.value = matchResult.data;
-      }
-
-      const topicsResult = await tournamentMatchesService.getAvailableTopics(tournamentId.value, matchId.value);
-      if (topicsResult.success) {
-        availableTopics.value = topicsResult.data;
-      }
-
-      initializeRoundStates();
+      await refreshMatchData();
     } else {
       notify.error("Delete Failed", result.error);
     }
@@ -377,11 +328,24 @@ onMounted(() => {
         </div>
       </div>
 
+      <!-- No Rounds Message -->
+      <div
+        v-if="roundStates.length === 0 && !canEdit"
+        class="text-center py-16 bg-white dark:bg-gray-800 rounded-xl shadow-md"
+      >
+        <i class="pi pi-info-circle text-5xl mb-4 block text-gray-400"></i>
+        <p class="text-xl text-gray-500 dark:text-gray-400">No rounds have been played yet</p>
+      </div>
+
       <!-- Rounds Accordion -->
-      <Accordion :multiple="true" :value="['0', '1', '2', '3']">
-        <AccordionPanel v-for="(roundState, index) in roundStates" :key="index" :value="String(index)">
+      <Accordion v-if="roundStates.length > 0" :multiple="true" :value="expandedPanels">
+        <AccordionPanel
+          v-for="(roundState, index) in roundStates"
+          :key="roundState.numberInMatch"
+          :value="String(index)"
+        >
           <AccordionHeader>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 w-full">
               <span class="font-semibold">Round {{ roundState.numberInMatch }}</span>
               <span v-if="canEdit && roundState.hasChanges" class="text-sm text-amber-600 dark:text-amber-400">
                 <i class="pi pi-exclamation-circle mr-1"></i>Unsaved changes
@@ -389,199 +353,47 @@ onMounted(() => {
             </div>
           </AccordionHeader>
           <AccordionContent>
-            <div class="p-4 space-y-6">
-              <!-- Topic Selection (only for Creator) -->
-              <div v-if="canEdit" class="flex flex-col gap-2">
-                <label class="font-semibold text-gray-700 dark:text-gray-300">Select Topic</label>
-                <div class="flex items-center gap-3">
-                  <Select
-                    :modelValue="roundState.selectedTopicId"
-                    @update:modelValue="(val) => onTopicChange(index, val)"
-                    :options="getAvailableTopicsForRound(index)"
-                    optionLabel="topicTitle"
-                    optionValue="topicId"
-                    placeholder="Choose a topic..."
-                    class="w-full md:w-1/2"
-                    :showClear="!roundState.existingRoundId"
-                    :disabled="!!roundState.existingRoundId"
-                  >
-                    <template #option="{ option }">
-                      <div class="flex items-center gap-3">
-                        <span class="font-mono text-sm bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded">
-                          #{{ option.priorityIndex }}
-                        </span>
-                        <span class="font-medium">{{ option.topicTitle }}</span>
-                        <span class="text-gray-500 dark:text-gray-400 text-sm">by {{ option.ownerUsername }}</span>
-                      </div>
-                    </template>
-                    <template #value="{ value }">
-                      <template v-if="value">
-                        <!-- Find topic in available topics first -->
-                        <template v-if="availableTopics.find((t) => t.topicId === value)">
-                          <span
-                            v-for="topic in availableTopics.filter((t) => t.topicId === value)"
-                            :key="topic.topicId"
-                            class="flex items-center gap-2"
-                          >
-                            <span class="font-mono text-sm">#{{ topic.priorityIndex }}</span>
-                            <span>{{ topic.topicTitle }}</span>
-                            <span class="text-gray-500 text-sm">by {{ topic.ownerUsername }}</span>
-                          </span>
-                        </template>
-                        <!-- Handle case where topic is from existing round but not in available list -->
-                        <template v-else-if="getRoundByTopicId(value)">
-                          <span class="flex items-center gap-2">
-                            <span class="font-mono text-sm">#{{ getRoundByTopicId(value).topicPriorityIndex }}</span>
-                            <span>{{ getRoundByTopicId(value).topicTitle }}</span>
-                            <span class="text-gray-500 text-sm"
-                              >by {{ getRoundByTopicId(value).topicOwnerUsername }}</span
-                            >
-                          </span>
-                        </template>
-                      </template>
-                      <span v-else class="text-gray-400">Choose a topic...</span>
-                    </template>
-                  </Select>
-                </div>
-                <small v-if="roundState.existingRoundId" class="text-gray-500 dark:text-gray-400">
-                  Topic is locked. Delete the round to select a different topic.
-                </small>
-              </div>
-
-              <!-- Topic Display (read-only for non-creators) -->
-              <div v-else-if="roundState.selectedTopicId" class="flex flex-col gap-2">
-                <label class="font-semibold text-gray-700 dark:text-gray-300">Topic</label>
-                <span class="text-gray-800 dark:text-gray-200">
-                  {{
-                    match?.rounds?.find((r) => r.topicId === roundState.selectedTopicId)?.topicTitle ||
-                    `Topic ID: ${roundState.selectedTopicId}`
-                  }}
-                </span>
-              </div>
-
-              <!-- Questions Table (shown when topic is selected) -->
-              <div v-if="roundState.selectedTopicId && roundState.questions.length > 0">
-                <DataTable
-                  :value="roundState.questions"
-                  dataKey="id"
-                  responsiveLayout="scroll"
-                  stripedRows
-                  size="small"
-                >
-                  <Column field="costPositive" header="Cost +" style="width: 80px" class="text-center">
-                    <template #body="{ data }">
-                      <span class="text-green-600 dark:text-green-400 font-medium">+{{ data.costPositive }}</span>
-                    </template>
-                  </Column>
-
-                  <Column field="costNegative" header="Cost -" style="width: 80px" class="text-center">
-                    <template #body="{ data }">
-                      <span class="text-red-600 dark:text-red-400 font-medium">-{{ data.costNegative }}</span>
-                    </template>
-                  </Column>
-
-                  <Column field="text" header="Question" style="min-width: 250px">
-                    <template #body="{ data }">
-                      <div class="text-gray-800 dark:text-gray-200">{{ data.text }}</div>
-                    </template>
-                  </Column>
-
-                  <Column field="answer" header="Answer" style="min-width: 150px">
-                    <template #body="{ data }">
-                      <div class="text-gray-600 dark:text-gray-400 italic">{{ data.answer }}</div>
-                    </template>
-                  </Column>
-
-                  <Column field="comment" header="Comment" style="min-width: 120px">
-                    <template #body="{ data }">
-                      <div v-if="data.comment" class="text-gray-500 dark:text-gray-500 text-sm">{{ data.comment }}</div>
-                      <div v-else class="text-gray-400">-</div>
-                    </template>
-                  </Column>
-
-                  <!-- Dynamic columns for each participant -->
-                  <Column v-for="participant in participants" :key="participant.id" style="min-width: 140px">
-                    <template #header>
-                      <div class="w-full text-center">{{ participant.username }}</div>
-                    </template>
-                    <template #body="{ data }">
-                      <div class="flex justify-center gap-3">
-                        <div
-                          :class="['flex items-center gap-1', canEdit ? 'cursor-pointer' : 'opacity-75']"
-                          @click="canEdit && setAnswerValue(index, data.id, participant.id, 'correct')"
-                        >
-                          <RadioButton
-                            :modelValue="getAnswerValue(index, data.id, participant.id)"
-                            value="correct"
-                            :pt="{ input: { class: 'pointer-events-none' } }"
-                            :disabled="!canEdit"
-                          />
-                          <span class="text-green-600 dark:text-green-400 text-xs">
-                            <i class="pi pi-check"></i>
-                          </span>
-                        </div>
-                        <div
-                          :class="['flex items-center gap-1', canEdit ? 'cursor-pointer' : 'opacity-75']"
-                          @click="canEdit && setAnswerValue(index, data.id, participant.id, 'wrong')"
-                        >
-                          <RadioButton
-                            :modelValue="getAnswerValue(index, data.id, participant.id)"
-                            value="wrong"
-                            :pt="{ input: { class: 'pointer-events-none' } }"
-                            :disabled="!canEdit"
-                          />
-                          <span class="text-red-600 dark:text-red-400 text-xs">
-                            <i class="pi pi-times"></i>
-                          </span>
-                        </div>
-                      </div>
-                    </template>
-                  </Column>
-                </DataTable>
-
-                <!-- Action Buttons (Creator only) -->
-                <div v-if="canEdit" class="mt-4 flex justify-end gap-2">
-                  <Button
-                    v-if="roundState.existingRoundId"
-                    label="Delete Round"
-                    icon="pi pi-trash"
-                    severity="danger"
-                    outlined
-                    :disabled="isProcessing"
-                    @click="deleteRound(index)"
-                  />
-                  <Button
-                    :label="roundState.existingRoundId ? 'Update Answers' : 'Save Round'"
-                    :icon="roundState.existingRoundId ? 'pi pi-sync' : 'pi pi-save'"
-                    :loading="isProcessing"
-                    :disabled="isProcessing || !roundState.hasChanges"
-                    @click="submitRound(index)"
-                  />
-                </div>
-              </div>
-
-              <!-- No topic selected message -->
-              <div
-                v-else-if="!roundState.selectedTopicId"
-                class="text-center py-8 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 rounded-lg"
-              >
-                <i class="pi pi-info-circle text-3xl mb-2 block"></i>
-                <p v-if="canEdit">Select a topic to view questions and record answers</p>
-                <p v-else>No round played yet</p>
-              </div>
-
-              <!-- No questions available -->
-              <div
-                v-else-if="roundState.questions.length === 0"
-                class="text-center py-8 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 rounded-lg"
-              >
-                <i class="pi pi-exclamation-circle text-3xl mb-2 block"></i>
-                <p>No questions found for this topic</p>
-              </div>
-            </div>
+            <MatchRoundPanel
+              :roundState="roundState"
+              :roundIndex="index"
+              :participants="participants"
+              :availableTopics="availableTopics"
+              :allRoundStates="roundStates"
+              :matchRounds="match?.rounds || []"
+              :tournamentId="tournamentId"
+              :canEdit="canEdit"
+              :isProcessing="isProcessing"
+              @update:roundState="(state) => updateRoundState(index, state)"
+              @submit="submitRound"
+              @delete="deleteRound"
+            />
           </AccordionContent>
         </AccordionPanel>
       </Accordion>
+
+      <!-- Add Round Button -->
+      <div v-if="canAddRound" class="mt-6">
+        <Button
+          label="Add Round"
+          icon="pi pi-plus"
+          severity="secondary"
+          outlined
+          class="w-full"
+          :disabled="isProcessing"
+          @click="addRound"
+        />
+        <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
+          {{ roundStates.length }} of {{ MAX_ROUNDS }} rounds
+        </p>
+      </div>
+
+      <!-- Max rounds reached message -->
+      <div v-else-if="canEdit && roundStates.length >= MAX_ROUNDS" class="mt-6 text-center">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          <i class="pi pi-check-circle mr-1 text-green-500"></i>
+          Maximum number of rounds ({{ MAX_ROUNDS }}) reached
+        </p>
+      </div>
     </div>
   </main>
 </template>

@@ -8,4 +8,5 @@ public record GetTopicDto
     public required bool IsPlayed { get; set; }
     public bool IsAuthor { get; set; }
     public ICollection<GetQuestionDto> Questions { get; set; } = [];
+    public ICollection<GetTopicAuthorDto> Authors { get; set; } = [];
 }

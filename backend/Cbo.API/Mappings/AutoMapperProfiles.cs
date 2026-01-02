@@ -11,7 +11,8 @@ public class AutoMapperProfiles : Profile
         CreateMap<Tournament, GetTournamentDto>().ReverseMap();
         CreateMap<Tournament, CreateTournamentDto>().ReverseMap();
         CreateMap<Tournament, UpdateTournamentDto>().ReverseMap();
-        CreateMap<Topic, GetTopicDto>().ReverseMap();
+        CreateMap<Topic, GetTopicDto>()
+            .ForMember(dest => dest.Authors, opt => opt.MapFrom(src => src.TopicAuthors));
         CreateMap<Topic, CreateTopicDto>().ReverseMap();
         CreateMap<Topic, UpdateTopicDto>().ReverseMap();
         CreateMap<Question, GetQuestionDto>().ReverseMap();
