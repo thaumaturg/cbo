@@ -191,8 +191,8 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
 
             // Many-to-one: Round -> Topic
             entity.HasOne(r => r.Topic)
-                .WithOne(t => t.Round)
-                .HasForeignKey<Round>(r => r.TopicId)
+                .WithMany(t => t.Rounds)
+                .HasForeignKey(r => r.TopicId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // One-to-many: Round -> RoundAnswers
@@ -268,10 +268,10 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
                 .HasForeignKey(ta => ta.TopicId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // One-to-one: Topic <-> Round
-            entity.HasOne(t => t.Round)
+            // One-to-many: Topic -> Rounds
+            entity.HasMany(t => t.Rounds)
                 .WithOne(r => r.Topic)
-                .HasForeignKey<Round>(r => r.TopicId)
+                .HasForeignKey(r => r.TopicId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

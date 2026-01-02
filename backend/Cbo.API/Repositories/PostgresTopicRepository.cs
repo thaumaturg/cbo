@@ -19,7 +19,7 @@ public class PostgresTopicRepository : ITopicRepository
             .AsNoTracking()
             .Include(t => t.Questions.OrderBy(q => q.QuestionNumber))
             .Include(t => t.TopicAuthors)
-            .Include(t => t.Round)
+            .Include(t => t.Rounds)
             .Where(t => t.TopicAuthors.Any(ta => ta.ApplicationUserId == userId && ta.IsOwner))
             .ToListAsync();
     }
@@ -28,7 +28,7 @@ public class PostgresTopicRepository : ITopicRepository
     {
         return await _dbContext.Topics
             .AsNoTracking()
-            .Include(t => t.Round)
+            .Include(t => t.Rounds)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
@@ -38,7 +38,7 @@ public class PostgresTopicRepository : ITopicRepository
             .AsNoTracking()
             .Include(t => t.Questions.OrderBy(q => q.QuestionNumber))
             .Include(t => t.TopicAuthors)
-            .Include(t => t.Round)
+            .Include(t => t.Rounds)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 

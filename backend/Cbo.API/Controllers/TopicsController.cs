@@ -50,7 +50,7 @@ public partial class TopicsController : ControllerBase
             GetTopicDto dto = _mapper.Map<GetTopicDto>(topic);
             TopicAuthor? topicAuthor = topic.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUser.Id);
             dto.IsAuthor = topicAuthor?.IsAuthor ?? false;
-            dto.IsPlayed = topic.Round is not null;
+            dto.IsPlayed = topic.Rounds.Count > 0;
             return dto;
         }).ToList();
 
@@ -76,7 +76,7 @@ public partial class TopicsController : ControllerBase
         GetTopicDto getTopicDto = _mapper.Map<GetTopicDto>(topicDomain);
         TopicAuthor? topicAuthor = topicDomain.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUser.Id);
         getTopicDto.IsAuthor = topicAuthor?.IsAuthor ?? false;
-        getTopicDto.IsPlayed = topicDomain.Round is not null;
+        getTopicDto.IsPlayed = topicDomain.Rounds.Count > 0;
 
         return Ok(getTopicDto);
     }
@@ -124,7 +124,7 @@ public partial class TopicsController : ControllerBase
         if (!authResult.Succeeded)
             return NotFound();
 
-        if (existingTopic.Round is not null)
+        if (existingTopic.Rounds.Count > 0)
             return BadRequest("Cannot edit a topic that has already been played in a round.");
 
         ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
@@ -166,7 +166,7 @@ public partial class TopicsController : ControllerBase
         if (!authResult.Succeeded)
             return NotFound();
 
-        if (existingTopic.Round is not null)
+        if (existingTopic.Rounds.Count > 0)
             return BadRequest("Cannot delete a topic that has already been played in a round.");
 
         Topic? topicDomain = await _topicRepository.DeleteAsync(id);
