@@ -50,6 +50,7 @@ public partial class TopicsController : ControllerBase
             GetTopicDto dto = _mapper.Map<GetTopicDto>(topic);
             TopicAuthor? topicAuthor = topic.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUser.Id);
             dto.IsAuthor = topicAuthor?.IsAuthor ?? false;
+            dto.IsPlayed = topic.Round is not null;
             return dto;
         }).ToList();
 
@@ -75,6 +76,7 @@ public partial class TopicsController : ControllerBase
         GetTopicDto getTopicDto = _mapper.Map<GetTopicDto>(topicDomain);
         TopicAuthor? topicAuthor = topicDomain.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUser.Id);
         getTopicDto.IsAuthor = topicAuthor?.IsAuthor ?? false;
+        getTopicDto.IsPlayed = topicDomain.Round is not null;
 
         return Ok(getTopicDto);
     }
@@ -104,6 +106,7 @@ public partial class TopicsController : ControllerBase
 
         GetTopicDto getTopicDto = _mapper.Map<GetTopicDto>(topicIncludeQuestions);
         getTopicDto.IsAuthor = createTopicDto.IsAuthor;
+        getTopicDto.IsPlayed = false;
 
         return CreatedAtAction(nameof(GetById), new { id = topicDomain.Id }, getTopicDto);
     }
@@ -141,6 +144,7 @@ public partial class TopicsController : ControllerBase
         GetTopicDto getTopicDto = _mapper.Map<GetTopicDto>(updatedTopic);
         TopicAuthor? topicAuthor = updatedTopic.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUser.Id);
         getTopicDto.IsAuthor = topicAuthor?.IsAuthor ?? false;
+        getTopicDto.IsPlayed = false;
 
         return Ok(getTopicDto);
     }

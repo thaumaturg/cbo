@@ -250,9 +250,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
             entity.Property(t => t.Title)
                 .IsRequired();
 
-            entity.Property(t => t.IsPlayed)
-                .IsRequired();
-
             // One-to-many: Topic -> Questions
             entity.HasMany(t => t.Questions)
                 .WithOne(q => q.Topic)

@@ -25,7 +25,6 @@ const pageTitle = computed(() => (isEditMode.value ? "Edit Topic" : "Create New 
 const formData = ref({
   title: "",
   description: "",
-  isPlayed: false,
   isAuthor: true,
 });
 
@@ -111,7 +110,6 @@ const fetchTopicData = async () => {
       formData.value = {
         title: topic.title,
         description: topic.description || "",
-        isPlayed: topic.isPlayed,
         isAuthor: topic.isAuthor,
       };
 
@@ -245,7 +243,6 @@ const onSubmit = async (values) => {
     const topicData = {
       title: values.title,
       description: formData.value.description?.trim() || null,
-      isPlayed: formData.value.isPlayed,
       isAuthor: formData.value.isAuthor,
       questions: questionsToSend,
     };
@@ -316,36 +313,13 @@ const onSubmit = async (values) => {
             />
           </div>
 
-          <!-- Checkboxes -->
-          <div class="flex flex-wrap items-start gap-8 md:col-span-2">
-            <div class="flex flex-col gap-2">
-              <div class="flex items-center gap-3">
-                <Checkbox v-model="formData.isPlayed" inputId="isPlayed" :binary="true" />
-                <label for="isPlayed" class="cursor-pointer text-gray-700 dark:text-gray-300">
-                  <span class="font-medium">Already Played</span>
-                  <span class="block text-sm text-gray-500">Mark if this topic has already been used in a game</span>
-                </label>
-              </div>
-              <div
-                class="ml-8 p-2 bg-amber-50 dark:bg-amber-900/20 rounded border border-amber-300 dark:border-amber-700"
-              >
-                <p class="text-sm text-amber-700 dark:text-amber-300 flex items-center gap-2">
-                  <i class="pi pi-exclamation-triangle"></i>
-                  <span
-                    ><strong>Warning:</strong> This will make the topic read-only. You won't be able to edit or delete
-                    it later.</span
-                  >
-                </p>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-3 pt-0.5">
-              <Checkbox v-model="formData.isAuthor" inputId="isAuthor" :binary="true" />
-              <label for="isAuthor" class="cursor-pointer text-gray-700 dark:text-gray-300">
-                <span class="font-medium">I am the Author</span>
-                <span class="block text-sm text-gray-500">Check if you authored this topic's questions</span>
-              </label>
-            </div>
+          <!-- Checkbox -->
+          <div class="flex items-center gap-3 md:col-span-2">
+            <Checkbox v-model="formData.isAuthor" inputId="isAuthor" :binary="true" />
+            <label for="isAuthor" class="cursor-pointer text-gray-700 dark:text-gray-300">
+              <span class="font-medium">I am the Author</span>
+              <span class="block text-sm text-gray-500">Check if you authored this topic's questions</span>
+            </label>
           </div>
         </div>
       </div>
