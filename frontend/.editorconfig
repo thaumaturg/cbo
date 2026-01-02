@@ -1,7 +1,2 @@
-[*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,vue,css,scss,sass,less,styl}]
-charset = utf-8
-indent_size = 2
-
-# Config files
-[*.{yml,yaml}]
+[*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,vue,css,scss,sass,less,styl,html,yml,yaml}]
 indent_size = 2

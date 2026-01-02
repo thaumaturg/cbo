@@ -4,10 +4,6 @@
 [*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj,builds,xml,stylecop,resx,ruleset,props,targets,config,nuspec}]
 indent_size = 2
 
-# XML project files need UTF-8 (excludes vcxproj which uses other encodings)
-[*.{csproj,vbproj,proj,nativeproj,locproj}]
-charset = utf-8
-
 # Generated code
 [*{_AssemblyInfo.cs,.notsupported.cs,AsmOffsets.cs}]
 generated_code = true
