@@ -6,6 +6,7 @@ public interface IMatchRepository
 {
     Task<Match?> GetByIdAsync(Guid id);
     Task<Match?> GetByIdWithDetailsAsync(Guid id);
+    Task<Match?> GetByIdWithParticipantsAsync(Guid id);
     Task<List<Match>> GetAllByTournamentIdAsync(Guid tournamentId);
     Task<List<Match>> CreateBulkAsync(List<Match> matches);
     Task<Match?> GetByIdWithScoreDataAsync(Guid id);

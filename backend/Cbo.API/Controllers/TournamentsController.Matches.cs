@@ -64,40 +64,26 @@ public partial class TournamentsController
         if (!authResult.Succeeded)
             return NotFound();
 
-        Match? match = await _matchRepository.GetByIdWithDetailsAsync(matchId);
+        Match? match = await _matchRepository.GetByIdWithParticipantsAsync(matchId);
         if (match is null || match.TournamentId != tournamentId)
             return NotFound();
 
-        List<Guid> participantUserIds = match.MatchParticipants
+        HashSet<Guid> participantUserIds = match.MatchParticipants
             .Select(mp => mp.TournamentParticipant.ApplicationUserId)
-            .ToList();
+            .ToHashSet();
 
-        List<TournamentTopic> allTournamentTopics = await _tournamentTopicRepository.GetAllByTournamentIdAsync(tournamentId);
+        List<TournamentTopic> allTournamentTopics = await _tournamentTopicRepository.GetAllByTournamentIdWithAuthorsAsync(tournamentId);
 
         List<Round> allRoundsInTournament = await _roundRepository.GetAllByTournamentIdAsync(tournamentId);
         HashSet<Guid> playedTopicIds = allRoundsInTournament.Select(r => r.TopicId).ToHashSet();
 
-        List<TournamentTopic> filteredTopics = [];
+        List<TournamentTopic> filteredTopics = allTournamentTopics
+            .Where(tt => !playedTopicIds.Contains(tt.TopicId))
+            .Where(tt => tt.Topic?.TopicAuthors is null ||
+                         !tt.Topic.TopicAuthors.Any(ta => ta.IsAuthor && participantUserIds.Contains(ta.ApplicationUserId)))
+            .OrderBy(tt => tt.PriorityIndex)
+            .ToList();
 
-        foreach (TournamentTopic tournamentTopic in allTournamentTopics)
-        {
-            if (playedTopicIds.Contains(tournamentTopic.TopicId))
-                continue;
-
-            Topic? topic = await _topicRepository.GetByIdIncludeQuestionsAsync(tournamentTopic.TopicId);
-            if (topic is null)
-                continue;
-
-            bool participantIsAuthor = topic.TopicAuthors
-                .Any(ta => ta.IsAuthor && participantUserIds.Contains(ta.ApplicationUserId));
-
-            if (participantIsAuthor)
-                continue;
-
-            filteredTopics.Add(tournamentTopic);
-        }
-
-        filteredTopics = filteredTopics.OrderBy(t => t.PriorityIndex).ToList();
         List<GetAvailableTopicDto> availableTopics = _mapper.Map<List<GetAvailableTopicDto>>(filteredTopics);
 
         return Ok(availableTopics);

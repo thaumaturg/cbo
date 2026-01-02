@@ -32,10 +32,15 @@ public class PostgresMatchRepository : IMatchRepository
                     .ThenInclude(t => t.Questions)
             .Include(m => m.Rounds)
                 .ThenInclude(r => r.RoundAnswers)
-            .Include(m => m.Tournament)
-                .ThenInclude(t => t.TournamentTopics)
-                    .ThenInclude(tt => tt.TournamentParticipant)
-                        .ThenInclude(tp => tp.ApplicationUser)
+            .FirstOrDefaultAsync(x => x.Id == id);
+    }
+
+    public async Task<Match?> GetByIdWithParticipantsAsync(Guid id)
+    {
+        return await _dbContext.Matches
+            .AsNoTracking()
+            .Include(m => m.MatchParticipants)
+                .ThenInclude(mp => mp.TournamentParticipant)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 

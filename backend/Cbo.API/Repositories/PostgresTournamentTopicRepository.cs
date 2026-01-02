@@ -38,6 +38,19 @@ public class PostgresTournamentTopicRepository : ITournamentTopicRepository
             .ToListAsync();
     }
 
+    public async Task<List<TournamentTopic>> GetAllByTournamentIdWithAuthorsAsync(Guid tournamentId)
+    {
+        return await _dbContext.TournamentTopics
+            .AsNoTracking()
+            .Include(tt => tt.Topic)
+                .ThenInclude(t => t.TopicAuthors)
+            .Include(tt => tt.TournamentParticipant)
+                .ThenInclude(tp => tp.ApplicationUser)
+            .Where(tt => tt.TournamentId == tournamentId)
+            .OrderBy(tt => tt.PriorityIndex)
+            .ToListAsync();
+    }
+
     public async Task<List<TournamentTopic>> SetTopicsForParticipantAsync(Guid tournamentId, Guid participantId, List<TournamentTopic> topics)
     {
         await using var transaction = await _dbContext.Database.BeginTransactionAsync();
