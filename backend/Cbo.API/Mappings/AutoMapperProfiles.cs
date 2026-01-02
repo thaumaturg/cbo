@@ -29,7 +29,8 @@ public class AutoMapperProfiles : Profile
         CreateMap<CreateRoundWithAnswersDto, Round>()
             .ForMember(dest => dest.RoundAnswers, opt => opt.MapFrom(src => src.Answers));
         CreateMap<TournamentParticipant, GetTournamentParticipantDto>()
-            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.ApplicationUser.UserName));
+            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.ApplicationUser.UserName))
+            .ForMember(dest => dest.TopicsCount, opt => opt.MapFrom(src => src.TournamentTopics.Count));
         CreateMap<TournamentParticipant, CreateTournamentParticipantDto>().ReverseMap();
         CreateMap<TournamentParticipant, UpdateTournamentParticipantDto>().ReverseMap();
         CreateMap<TopicAuthor, GetTopicAuthorDto>()

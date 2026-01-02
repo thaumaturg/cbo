@@ -63,6 +63,10 @@ const requiredPlayers = computed(() => {
   return props.tournament?.playersPerTournament || 0;
 });
 
+const requiredTopics = computed(() => {
+  return props.tournament?.topicsPerParticipantMin || 0;
+});
+
 const closeDialog = () => {
   emit("update:visible", false);
   resetForm();
@@ -272,6 +276,10 @@ watch(
             </span>
             <span class="px-2 py-1 text-xs font-semibold rounded-full" :class="getRoleBadgeClass(participant.role)">
               {{ participant.role }}
+            </span>
+            <span class="text-sm text-gray-500 dark:text-gray-400">
+              Topics: {{ participant.topicsCount
+              }}<template v-if="participant.role === 'Player'"> of {{ requiredTopics }}</template>
             </span>
           </div>
 

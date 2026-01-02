@@ -19,6 +19,7 @@ public class PostgresTournamentParticipantsRepository : ITournamentParticipantsR
         IQueryable<TournamentParticipant> query = _dbContext.TournamentParticipants
             .AsNoTracking()
             .Include(tp => tp.ApplicationUser)
+            .Include(tp => tp.TournamentTopics)
             .Where(tp => tp.TournamentId == tournamentId);
 
         if (role.HasValue)
@@ -32,6 +33,7 @@ public class PostgresTournamentParticipantsRepository : ITournamentParticipantsR
         return await _dbContext.TournamentParticipants
             .AsNoTracking()
             .Include(tp => tp.ApplicationUser)
+            .Include(tp => tp.TournamentTopics)
             .FirstOrDefaultAsync(tp => tp.Id == participantId && tp.TournamentId == tournamentId);
     }
 
@@ -49,6 +51,7 @@ public class PostgresTournamentParticipantsRepository : ITournamentParticipantsR
 
         return await _dbContext.TournamentParticipants
             .Include(tp => tp.ApplicationUser)
+            .Include(tp => tp.TournamentTopics)
             .FirstAsync(tp => tp.Id == tournamentParticipant.Id);
     }
 
@@ -66,6 +69,7 @@ public class PostgresTournamentParticipantsRepository : ITournamentParticipantsR
 
         return await _dbContext.TournamentParticipants
             .Include(tp => tp.ApplicationUser)
+            .Include(tp => tp.TournamentTopics)
             .FirstAsync(tp => tp.Id == id);
     }
 

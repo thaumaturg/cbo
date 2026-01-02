@@ -9,6 +9,7 @@ public record GetTournamentParticipantDto
     public required TournamentParticipantRole Role { get; set; }
     public int? ScoreSum { get; set; }
     public decimal? PointsSum { get; set; }
+    public required int TopicsCount { get; set; }
     public required Guid TournamentId { get; set; }
     public required Guid ApplicationUserId { get; set; }
 }
