@@ -45,8 +45,7 @@ public partial class TournamentsController
 
         Round round = _mapper.Map<Round>(createRoundDto);
         round.MatchId = matchId;
-        round.Match = match;
-        round.Topic = topic;
+        round.TopicId = topic.Id;
 
         await _roundRepository.CreateAsync(round);
         await _roundService.RecalculateMatchScoresAsync(matchId);
