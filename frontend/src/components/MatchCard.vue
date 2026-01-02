@@ -22,7 +22,7 @@ const props = defineProps({
     }),
   },
   tournamentId: {
-    type: Number,
+    type: String,
     required: true,
   },
 });
