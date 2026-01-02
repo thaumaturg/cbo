@@ -1,8 +1,8 @@
 <script setup>
-import Menubar from "primevue/menubar";
-import Button from "primevue/button";
-import { useAuthDialogStore } from "@/stores/auth-dialog";
 import { useAuthStore } from "@/stores/auth";
+import { useAuthDialogStore } from "@/stores/auth-dialog";
+import Button from "primevue/button";
+import Menubar from "primevue/menubar";
 
 const authDialogStore = useAuthDialogStore();
 const authStore = useAuthStore();
@@ -30,7 +30,7 @@ const handleLogout = () => {
         <Button label="Login/Register" severity="primary" outlined @click="toggleAuthModal" />
       </div>
       <div v-else class="flex items-center gap-3">
-        <span class="text-sm">Welcome, {{ authStore.userName }}</span>
+        <span class="text-xl font-bold">{{ authStore.userName }}</span>
         <Button label="Logout" severity="secondary" outlined rounded @click="handleLogout" class="p-2" />
       </div>
     </template>
