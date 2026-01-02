@@ -123,6 +123,10 @@ public partial class TopicsController : ControllerBase
         AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, existingTopic, TopicOperations.Update);
         if (!authResult.Succeeded)
             return NotFound();
+
+        if (existingTopic.Round is not null)
+            return BadRequest("Cannot edit a topic that has already been played in a round.");
+
         ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
         Topic topicDomain = _mapper.Map<Topic>(updateTopicDto);
@@ -161,6 +165,9 @@ public partial class TopicsController : ControllerBase
         AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, existingTopic, TopicOperations.Delete);
         if (!authResult.Succeeded)
             return NotFound();
+
+        if (existingTopic.Round is not null)
+            return BadRequest("Cannot delete a topic that has already been played in a round.");
 
         Topic? topicDomain = await _topicRepository.DeleteAsync(id);
 
