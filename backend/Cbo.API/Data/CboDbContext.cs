@@ -209,9 +209,6 @@ public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
             entity.Property(ra => ra.Id)
                 .HasDefaultValueSql("uuidv7()");
 
-            entity.Property(ra => ra.IsAnswerAccepted)
-                .IsRequired();
-
             entity.Property(ra => ra.RoundId)
                 .IsRequired();
 

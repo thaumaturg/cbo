@@ -89,6 +89,8 @@ const createEmptyRoundState = (numberInMatch) => ({
   selectedTopicId: null,
   questions: [],
   answers: {},
+  overrideCosts: {},
+  isOverrideMode: false,
   existingRoundId: null,
   hasChanges: false,
 });
@@ -101,9 +103,16 @@ const initializeRoundStates = () => {
 
     for (const round of sortedRounds) {
       const answersMap = {};
+      const overrideCostsMap = {};
+      const isOverrideMode = round.isOverrideMode || false;
+
       for (const answer of round.roundAnswers || []) {
         const key = `${answer.questionId}::${answer.matchParticipantId}`;
-        answersMap[key] = answer.isAnswerAccepted;
+        if (isOverrideMode) {
+          overrideCostsMap[key] = answer.overrideCost;
+        } else {
+          answersMap[key] = answer.isAnswerAccepted;
+        }
       }
 
       newRoundStates.push({
@@ -112,6 +121,8 @@ const initializeRoundStates = () => {
         selectedTopicId: round.topicId,
         questions: round.questions || [],
         answers: answersMap,
+        overrideCosts: overrideCostsMap,
+        isOverrideMode,
         hasChanges: false,
       });
     }
@@ -159,7 +170,11 @@ const refreshMatchData = async () => {
   initializeRoundStates();
 };
 
-const validateAnswers = (answers) => {
+const validateAnswers = (answers, isOverrideMode) => {
+  if (isOverrideMode) {
+    return null;
+  }
+
   const correctAnswersByQuestion = {};
   for (const answer of answers) {
     if (answer.isAnswerAccepted) {
@@ -183,18 +198,35 @@ const submitRound = async (roundIndex) => {
   }
 
   const answers = [];
-  for (const [key, value] of Object.entries(roundState.answers)) {
-    if (value !== null) {
-      const [questionId, participantId] = key.split("::");
-      answers.push({
-        questionId,
-        matchParticipantId: participantId,
-        isAnswerAccepted: value,
-      });
+  const isOverrideMode = roundState.isOverrideMode || false;
+
+  if (isOverrideMode) {
+    for (const [key, value] of Object.entries(roundState.overrideCosts)) {
+      if (value !== null && value !== undefined) {
+        const [questionId, participantId] = key.split("::");
+        answers.push({
+          questionId,
+          matchParticipantId: participantId,
+          overrideCost: value,
+          isAnswerAccepted: null,
+        });
+      }
+    }
+  } else {
+    for (const [key, value] of Object.entries(roundState.answers)) {
+      if (value !== null) {
+        const [questionId, participantId] = key.split("::");
+        answers.push({
+          questionId,
+          matchParticipantId: participantId,
+          isAnswerAccepted: value,
+          overrideCost: null,
+        });
+      }
     }
   }
 
-  const validationError = validateAnswers(answers);
+  const validationError = validateAnswers(answers, isOverrideMode);
   if (validationError) {
     notify.error("Validation Error", validationError);
     return;
@@ -206,6 +238,7 @@ const submitRound = async (roundIndex) => {
     const roundData = {
       numberInMatch: roundState.numberInMatch,
       topicId: roundState.selectedTopicId,
+      isOverrideMode,
       answers,
     };
 

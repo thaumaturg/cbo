@@ -4,6 +4,7 @@ public class Round
 {
     public Guid Id { get; set; }
     public required int NumberInMatch { get; set; }
+    public bool IsOverrideMode { get; set; }
     public required Guid TopicId { get; set; }
     public required Topic Topic { get; set; }
     public required Guid MatchId { get; set; }

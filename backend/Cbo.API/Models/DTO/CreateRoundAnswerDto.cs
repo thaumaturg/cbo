@@ -2,7 +2,8 @@
 
 public record CreateRoundAnswerDto
 {
-    public required bool IsAnswerAccepted { get; set; }
+    public bool? IsAnswerAccepted { get; set; }
+    public int? OverrideCost { get; set; }
     public Guid? RoundId { get; set; }
     public required Guid QuestionId { get; set; }
     public required Guid MatchParticipantId { get; set; }

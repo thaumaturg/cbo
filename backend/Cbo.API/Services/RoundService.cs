@@ -15,18 +15,41 @@ public class RoundService : IRoundService
         _participantsRepository = participantsRepository;
     }
 
-    public string? ValidateRoundAnswers(List<CreateRoundAnswerDto> answers)
+    public string? ValidateRoundAnswers(List<CreateRoundAnswerDto> answers, bool isOverrideMode)
     {
-        var positiveAnswersByQuestion = answers
-            .Where(a => a.IsAnswerAccepted)
-            .GroupBy(a => a.QuestionId)
-            .Where(g => g.Count() > 1)
-            .ToList();
-
-        if (positiveAnswersByQuestion.Count > 0)
+        if (isOverrideMode)
         {
-            Guid questionId = positiveAnswersByQuestion.First().Key;
-            return $"Question {questionId} has multiple correct answers. Only one correct answer is allowed per question.";
+            foreach (CreateRoundAnswerDto answer in answers)
+            {
+                if (answer.IsAnswerAccepted.HasValue)
+                    return "In override mode, IsAnswerAccepted must be null for all answers.";
+
+                if (!answer.OverrideCost.HasValue)
+                    return "In override mode, OverrideCost must be provided for all answers.";
+            }
+        }
+        else
+        {
+            foreach (CreateRoundAnswerDto answer in answers)
+            {
+                if (!answer.IsAnswerAccepted.HasValue)
+                    return "In standard mode, IsAnswerAccepted must be provided for all answers.";
+
+                if (answer.OverrideCost.HasValue)
+                    return "In standard mode, OverrideCost must be null for all answers.";
+            }
+
+            var positiveAnswersByQuestion = answers
+                .Where(a => a.IsAnswerAccepted == true)
+                .GroupBy(a => a.QuestionId)
+                .Where(g => g.Count() > 1)
+                .ToList();
+
+            if (positiveAnswersByQuestion.Count > 0)
+            {
+                Guid questionId = positiveAnswersByQuestion.First().Key;
+                return $"Question {questionId} has multiple correct answers. Only one correct answer is allowed per question.";
+            }
         }
 
         return null;
@@ -43,10 +66,17 @@ public class RoundService : IRoundService
             int score = 0;
             foreach (RoundAnswer answer in participant.RoundAnswers)
             {
-                if (answer.IsAnswerAccepted)
-                    score += answer.Question.CostPositive;
-                else
-                    score -= answer.Question.CostNegative;
+                if (answer.OverrideCost.HasValue)
+                {
+                    score += answer.OverrideCost.Value;
+                }
+                else if (answer.IsAnswerAccepted.HasValue)
+                {
+                    if (answer.IsAnswerAccepted.Value)
+                        score += answer.Question.CostPositive;
+                    else
+                        score -= answer.Question.CostNegative;
+                }
             }
             participant.ScoreSum = score;
         }

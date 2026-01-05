@@ -4,6 +4,7 @@ public record GetRoundDto
 {
     public required Guid Id { get; set; }
     public required int NumberInMatch { get; set; }
+    public required bool IsOverrideMode { get; set; }
     public required Guid TopicId { get; set; }
     public required string TopicTitle { get; set; }
     public required int TopicPriorityIndex { get; set; }

@@ -4,8 +4,10 @@ import { useNotify } from "@/utils/notify.js";
 import Button from "primevue/button";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
+import InputNumber from "primevue/inputnumber";
 import RadioButton from "primevue/radiobutton";
 import Select from "primevue/select";
+import ToggleSwitch from "primevue/toggleswitch";
 import { computed, onMounted, ref, watch } from "vue";
 
 const props = defineProps({
@@ -52,6 +54,8 @@ const emit = defineEmits(["submit", "delete", "update:roundState"]);
 const notify = useNotify();
 const localQuestions = ref([]);
 const localAnswers = ref({});
+const localOverrideCosts = ref({});
+const localIsOverrideMode = ref(false);
 const topicAuthors = ref([]);
 const authorsLoadedForTopicId = ref(null);
 
@@ -60,6 +64,8 @@ watch(
   (newState) => {
     localQuestions.value = newState.questions || [];
     localAnswers.value = { ...newState.answers };
+    localOverrideCosts.value = { ...newState.overrideCosts };
+    localIsOverrideMode.value = newState.isOverrideMode || false;
 
     if (!newState.selectedTopicId) {
       topicAuthors.value = [];
@@ -118,6 +124,11 @@ const getAnswerValue = (questionId, participantId) => {
   return localAnswers.value[key] ?? null;
 };
 
+const getOverrideCostValue = (questionId, participantId) => {
+  const key = `${questionId}::${participantId}`;
+  return localOverrideCosts.value[key] ?? null;
+};
+
 const setAnswerValue = (questionId, participantId, value) => {
   if (!props.canEdit) return;
 
@@ -145,16 +156,41 @@ const setAnswerValue = (questionId, participantId, value) => {
   emitUpdate({ hasChanges: true, answers: { ...localAnswers.value } });
 };
 
+const setOverrideCostValue = (questionId, participantId, value) => {
+  if (!props.canEdit) return;
+
+  const key = `${questionId}::${participantId}`;
+  localOverrideCosts.value[key] = value;
+  emitUpdate({ hasChanges: true, overrideCosts: { ...localOverrideCosts.value } });
+};
+
+const toggleOverrideMode = (newValue) => {
+  if (!props.canEdit) return;
+
+  localIsOverrideMode.value = newValue;
+  // Clear all answers/costs when switching modes
+  localAnswers.value = {};
+  localOverrideCosts.value = {};
+  emitUpdate({
+    isOverrideMode: newValue,
+    answers: {},
+    overrideCosts: {},
+    hasChanges: true,
+  });
+};
+
 const onTopicChange = async (topicId) => {
   if (!props.canEdit) return;
 
   emitUpdate({
     selectedTopicId: topicId,
     answers: {},
+    overrideCosts: {},
     hasChanges: true,
   });
 
   localAnswers.value = {};
+  localOverrideCosts.value = {};
   topicAuthors.value = [];
   authorsLoadedForTopicId.value = null;
 
@@ -265,14 +301,40 @@ const handleDelete = () => {
           </div>
         </div>
       </div>
+
+      <!-- Override Mode Toggle -->
+      <div
+        v-if="roundState.selectedTopicId"
+        class="flex items-center gap-3 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+      >
+        <ToggleSwitch
+          :modelValue="localIsOverrideMode"
+          @update:modelValue="toggleOverrideMode"
+          :disabled="!canEdit || !!roundState.existingRoundId"
+        />
+        <span class="font-medium text-gray-700 dark:text-gray-300">Override Costs Mode</span>
+        <span v-if="roundState.existingRoundId" class="text-sm text-gray-500 dark:text-gray-400">
+          (locked after saving)
+        </span>
+      </div>
     </div>
 
     <!-- Topic Display (read-only for non-creators) -->
-    <div v-else-if="roundState.selectedTopicId" class="flex flex-col gap-2">
-      <label class="font-semibold text-gray-700 dark:text-gray-300">Topic</label>
-      <span class="text-gray-800 dark:text-gray-200">
-        {{ getRoundByTopicId(roundState.selectedTopicId)?.topicTitle || `Topic ID: ${roundState.selectedTopicId}` }}
-      </span>
+    <div v-else-if="roundState.selectedTopicId" class="flex flex-col gap-3">
+      <div>
+        <label class="font-semibold text-gray-700 dark:text-gray-300">Topic</label>
+        <p class="text-gray-800 dark:text-gray-200">
+          {{ getRoundByTopicId(roundState.selectedTopicId)?.topicTitle || `Topic ID: ${roundState.selectedTopicId}` }}
+        </p>
+      </div>
+      <!-- Override Mode Indicator (read-only) -->
+      <div
+        v-if="localIsOverrideMode"
+        class="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+      >
+        <i class="pi pi-sliders-h text-gray-500"></i>
+        <span class="text-sm text-gray-600 dark:text-gray-400">This round uses override costs mode</span>
+      </div>
     </div>
 
     <!-- Questions Table (shown when topic is selected) -->
@@ -315,7 +377,21 @@ const handleDelete = () => {
             <div class="w-full text-center">{{ participant.username }}</div>
           </template>
           <template #body="{ data }">
-            <div class="flex justify-center gap-3">
+            <!-- Override Mode: Input field for custom score -->
+            <div v-if="localIsOverrideMode" class="flex justify-center">
+              <InputNumber
+                :modelValue="getOverrideCostValue(data.id, participant.id)"
+                @update:modelValue="(val) => setOverrideCostValue(data.id, participant.id, val)"
+                :disabled="!canEdit"
+                :min="-999"
+                :max="999"
+                inputClass="w-16 text-center"
+                class="p-inputnumber-sm"
+                placeholder="0"
+              />
+            </div>
+            <!-- Standard Mode: Radio buttons for correct/incorrect -->
+            <div v-else class="flex justify-center gap-3">
               <div
                 :class="['flex items-center gap-1', canEdit ? 'cursor-pointer' : 'opacity-75']"
                 @click="canEdit && setAnswerValue(data.id, participant.id, true)"

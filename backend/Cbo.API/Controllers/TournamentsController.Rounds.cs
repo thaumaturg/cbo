@@ -39,13 +39,14 @@ public partial class TournamentsController
         if (topic is null)
             return BadRequest("Topic not found.");
 
-        string? answersValidationError = _roundService.ValidateRoundAnswers(createRoundDto.Answers);
+        string? answersValidationError = _roundService.ValidateRoundAnswers(createRoundDto.Answers, createRoundDto.IsOverrideMode);
         if (answersValidationError is not null)
             return BadRequest(answersValidationError);
 
         Round round = _mapper.Map<Round>(createRoundDto);
         round.MatchId = matchId;
         round.TopicId = topic.Id;
+        round.IsOverrideMode = createRoundDto.IsOverrideMode;
 
         await _roundRepository.CreateAsync(round);
         await _roundService.RecalculateMatchScoresAsync(matchId);
@@ -84,10 +85,11 @@ public partial class TournamentsController
             return NotFound($"Round {roundNumber} not found for this match.");
 
         if (existingRound.TopicId != updateRoundDto.TopicId ||
-            existingRound.NumberInMatch != updateRoundDto.NumberInMatch)
-            return BadRequest("Cannot change an existing round. Delete the round first and create a new one.");
+            existingRound.NumberInMatch != updateRoundDto.NumberInMatch ||
+            existingRound.IsOverrideMode != updateRoundDto.IsOverrideMode)
+            return BadRequest("Cannot change existing round. Delete and create a new one.");
 
-        string? answersValidationError = _roundService.ValidateRoundAnswers(updateRoundDto.Answers);
+        string? answersValidationError = _roundService.ValidateRoundAnswers(updateRoundDto.Answers, updateRoundDto.IsOverrideMode);
         if (answersValidationError is not null)
             return BadRequest(answersValidationError);
 
