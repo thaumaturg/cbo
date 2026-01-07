@@ -32,24 +32,32 @@ const isSaving = ref(false);
 const error = ref(null);
 const hasChanges = ref(false);
 
+const isPlayerRole = computed(() => props.tournament?.currentUserRole === "Player");
 const minTopics = computed(() => props.tournament?.topicsPerParticipantMin ?? 6);
 const maxTopics = computed(() => props.tournament?.topicsPerParticipantMax ?? 10);
 const canAddMore = computed(() => assignedTopics.value.length < maxTopics.value);
 
 const topicsStatus = computed(() => {
   const count = assignedTopics.value.length;
-  if (count < minTopics.value) {
+  if (isPlayerRole.value && count < minTopics.value) {
     return { severity: "warn", message: `${count}/${minTopics.value} topics (need ${minTopics.value - count} more)` };
   }
   if (count > maxTopics.value) {
     return { severity: "error", message: `${count}/${maxTopics.value} topics (remove ${count - maxTopics.value})` };
   }
-  return { severity: "success", message: `${count}/${maxTopics.value} topics` };
+  if (isPlayerRole.value) {
+    return { severity: "success", message: `${count}/${maxTopics.value} topics` };
+  }
+  return {
+    severity: "success",
+    message: `${count}/${maxTopics.value} topics (min ${minTopics.value} optional for your role)`,
+  };
 });
 
 const canSave = computed(() => {
   const count = assignedTopics.value.length;
-  return hasChanges.value && count >= minTopics.value && count <= maxTopics.value;
+  const meetsMinRequirement = isPlayerRole.value ? count >= minTopics.value : true;
+  return hasChanges.value && meetsMinRequirement && count <= maxTopics.value;
 });
 
 // Available topics (owned but not assigned)

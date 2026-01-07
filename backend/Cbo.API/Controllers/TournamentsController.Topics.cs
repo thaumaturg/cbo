@@ -1,4 +1,5 @@
 using Cbo.API.Authorization;
+using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
@@ -67,7 +68,8 @@ public partial class TournamentsController
 
         TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUser.Id, tournamentId);
 
-        if (topicsDto.Count < tournament.TopicsPerParticipantMin)
+        bool isPlayer = participant?.Role == TournamentParticipantRole.Player;
+        if (isPlayer && topicsDto.Count < tournament.TopicsPerParticipantMin)
             return BadRequest($"Must assign at least {tournament.TopicsPerParticipantMin} topics.");
 
         if (topicsDto.Count > tournament.TopicsPerParticipantMax)
