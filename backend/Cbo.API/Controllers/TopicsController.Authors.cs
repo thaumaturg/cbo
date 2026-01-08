@@ -76,9 +76,7 @@ public partial class TopicsController
             IsOwner = false,
             IsAuthor = true,
             TopicId = topicId,
-            ApplicationUserId = user.Id,
-            Topic = topic,
-            ApplicationUser = user
+            ApplicationUserId = user.Id
         };
 
         authorDomain = await _topicAuthorRepository.CreateAsync(authorDomain);

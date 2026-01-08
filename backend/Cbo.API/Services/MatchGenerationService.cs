@@ -42,7 +42,7 @@ public class MatchGenerationService : IMatchGenerationService
                 NumberInStage = matchNumber,
                 CreatedOnStage = TournamentStage.Qualifications,
                 Type = Models.Constants.MatchType.Qualification,
-                Tournament = tournament
+                TournamentId = tournament.Id
             };
 
             foreach (int playerIndex in playerPositions)
@@ -51,9 +51,7 @@ public class MatchGenerationService : IMatchGenerationService
 
                 var matchParticipant = new MatchParticipant
                 {
-                    TournamentParticipantId = player.Id,
-                    TournamentParticipant = player,
-                    Match = match
+                    TournamentParticipantId = player.Id
                 };
 
                 match.MatchParticipants.Add(matchParticipant);
