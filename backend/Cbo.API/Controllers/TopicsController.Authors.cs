@@ -1,4 +1,5 @@
 using Cbo.API.Authorization;
+using Cbo.API.Mappings;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
@@ -22,7 +23,7 @@ public partial class TopicsController
             return NotFound();
 
         List<TopicAuthor> authorsDomain = await _topicAuthorRepository.GetAllByTopicIdAsync(topicId);
-        List<GetTopicAuthorDto> authorsDto = _mapper.Map<List<GetTopicAuthorDto>>(authorsDomain);
+        List<GetTopicAuthorDto> authorsDto = authorsDomain.Select(a => a.ToGetDto()).ToList();
 
         return Ok(authorsDto);
     }
@@ -45,7 +46,7 @@ public partial class TopicsController
         if (authorDomain is null)
             return NotFound();
 
-        GetTopicAuthorDto authorDto = _mapper.Map<GetTopicAuthorDto>(authorDomain);
+        GetTopicAuthorDto authorDto = authorDomain.ToGetDto();
 
         return Ok(authorDto);
     }
@@ -81,7 +82,7 @@ public partial class TopicsController
 
         authorDomain = await _topicAuthorRepository.CreateAsync(authorDomain);
 
-        GetTopicAuthorDto authorDto = _mapper.Map<GetTopicAuthorDto>(authorDomain);
+        GetTopicAuthorDto authorDto = authorDomain.ToGetDto();
 
         return CreatedAtAction(nameof(GetAuthorById), new { topicId, id = authorDomain.Id }, authorDto);
     }

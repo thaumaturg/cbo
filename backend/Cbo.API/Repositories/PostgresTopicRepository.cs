@@ -51,7 +51,7 @@ public class PostgresTopicRepository : ITopicRepository
         return topic;
     }
 
-    public async Task<Topic?> UpdateAsync(Guid id, Topic updatedTopic, Guid currentUserId, bool isAuthor, ICollection<Question> incomingQuestions)
+    public async Task<Topic?> UpdateAsync(Guid id, UpdateTopicParameters parameters, Guid currentUserId)
     {
         Topic? existingTopic = await _dbContext.Topics
             .Include(t => t.Questions)
@@ -62,7 +62,7 @@ public class PostgresTopicRepository : ITopicRepository
             return null;
 
         // Validate all existing question IDs are present
-        HashSet<Guid> incomingQuestionIds = incomingQuestions.Select(q => q.Id).ToHashSet();
+        HashSet<Guid> incomingQuestionIds = parameters.Questions.Select(q => q.Id).ToHashSet();
         HashSet<Guid> existingQuestionIds = existingTopic.Questions.Select(q => q.Id).ToHashSet();
 
         List<Guid> missingIds = existingQuestionIds.Except(incomingQuestionIds).ToList();
@@ -73,27 +73,27 @@ public class PostgresTopicRepository : ITopicRepository
                 $"PUT requires all existing questions to be included.");
         }
 
-        existingTopic.Title = updatedTopic.Title;
-        existingTopic.Description = updatedTopic.Description;
+        existingTopic.Title = parameters.Title;
+        existingTopic.Description = parameters.Description;
 
-        foreach (Question incomingQuestion in incomingQuestions)
+        foreach (UpdateQuestionParameters questionParam in parameters.Questions)
         {
-            Question? existingQuestion = existingTopic.Questions.FirstOrDefault(q => q.Id == incomingQuestion.Id);
+            Question? existingQuestion = existingTopic.Questions.FirstOrDefault(q => q.Id == questionParam.Id);
             if (existingQuestion is not null)
             {
-                existingQuestion.QuestionNumber = incomingQuestion.QuestionNumber;
-                existingQuestion.CostPositive = incomingQuestion.CostPositive;
-                existingQuestion.CostNegative = incomingQuestion.CostNegative;
-                existingQuestion.Text = incomingQuestion.Text;
-                existingQuestion.Answer = incomingQuestion.Answer;
-                existingQuestion.Comment = incomingQuestion.Comment;
+                existingQuestion.QuestionNumber = questionParam.QuestionNumber;
+                existingQuestion.CostPositive = questionParam.CostPositive;
+                existingQuestion.CostNegative = questionParam.CostNegative;
+                existingQuestion.Text = questionParam.Text;
+                existingQuestion.Answer = questionParam.Answer;
+                existingQuestion.Comment = questionParam.Comment;
             }
         }
 
         TopicAuthor? topicAuthor = existingTopic.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUserId);
         if (topicAuthor is not null)
         {
-            topicAuthor.IsAuthor = isAuthor;
+            topicAuthor.IsAuthor = parameters.IsAuthor;
         }
 
         await _dbContext.SaveChangesAsync();

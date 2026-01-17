@@ -10,6 +10,8 @@ public class Question
     public required string Answer { get; set; }
     public string? Comment { get; set; }
     public required Guid TopicId { get; set; }
-    public required Topic Topic { get; set; }
+
+    // Navigation properties
+    public Topic? Topic { get; set; }
     public ICollection<RoundAnswer> RoundAnswers { get; set; } = [];
 }

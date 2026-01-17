@@ -36,18 +36,18 @@ public class PostgresTournamentRepository : ITournamentRepository
         return tournament;
     }
 
-    public async Task<Tournament?> UpdateAsync(Guid id, Tournament updatedTournament)
+    public async Task<Tournament?> UpdateAsync(Guid id, UpdateTournamentParameters parameters)
     {
         Tournament? existingTournament = await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
 
         if (existingTournament is null)
             return null;
 
-        existingTournament.Title = updatedTournament.Title;
-        existingTournament.Description = updatedTournament.Description;
-        existingTournament.PlayersPerTournament = updatedTournament.PlayersPerTournament;
-        existingTournament.TopicsPerParticipantMax = updatedTournament.TopicsPerParticipantMax;
-        existingTournament.TopicsPerParticipantMin = updatedTournament.TopicsPerParticipantMin;
+        existingTournament.Title = parameters.Title;
+        existingTournament.Description = parameters.Description;
+        existingTournament.PlayersPerTournament = parameters.PlayersPerTournament;
+        existingTournament.TopicsPerParticipantMax = parameters.TopicsPerParticipantMax;
+        existingTournament.TopicsPerParticipantMin = parameters.TopicsPerParticipantMin;
 
         await _dbContext.SaveChangesAsync();
 

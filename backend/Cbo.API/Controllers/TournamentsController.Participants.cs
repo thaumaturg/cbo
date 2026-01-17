@@ -1,4 +1,5 @@
 using Cbo.API.Authorization;
+using Cbo.API.Mappings;
 using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
@@ -25,7 +26,7 @@ public partial class TournamentsController
             return NotFound();
 
         List<TournamentParticipant> participantsDomain = await _participantsRepository.GetAllByTournamentIdAsync(tournamentId, role);
-        List<GetTournamentParticipantDto> participantsDto = _mapper.Map<List<GetTournamentParticipantDto>>(participantsDomain);
+        List<GetTournamentParticipantDto> participantsDto = participantsDomain.Select(p => p.ToGetDto()).ToList();
 
         return Ok(participantsDto);
     }
@@ -48,7 +49,7 @@ public partial class TournamentsController
         if (participantDomain is null)
             return NotFound();
 
-        GetTournamentParticipantDto participantDto = _mapper.Map<GetTournamentParticipantDto>(participantDomain);
+        GetTournamentParticipantDto participantDto = participantDomain.ToGetDto();
 
         return Ok(participantDto);
     }
@@ -85,14 +86,11 @@ public partial class TournamentsController
         if (existingParticipant is not null)
             return Conflict($"User '{createParticipantDto.Username}' is already a participant in this tournament.");
 
-        TournamentParticipant participantDomain = _mapper.Map<TournamentParticipant>(createParticipantDto);
-
-        participantDomain.TournamentId = tournamentId;
-        participantDomain.ApplicationUserId = user.Id;
+        TournamentParticipant participantDomain = createParticipantDto.ToNewParticipant(tournamentId, user.Id);
 
         participantDomain = await _participantsRepository.CreateAsync(participantDomain);
 
-        GetTournamentParticipantDto participantDto = _mapper.Map<GetTournamentParticipantDto>(participantDomain);
+        GetTournamentParticipantDto participantDto = participantDomain.ToGetDto();
 
         return CreatedAtAction(nameof(GetParticipantById), new { tournamentId, id = participantDomain.Id }, participantDto);
     }
@@ -125,13 +123,17 @@ public partial class TournamentsController
                 return BadRequest($"Tournament can have at most {DefaultSettings.OrganizersPerTournamentMax} organizers.");
         }
 
-        TournamentParticipant? participantDomain = _mapper.Map<TournamentParticipant>(updateParticipantDto);
-        participantDomain = await _participantsRepository.UpdateAsync(id, participantDomain!);
+        var updateParameters = new Repositories.UpdateTournamentParticipantParameters
+        {
+            Role = updateParticipantDto.Role
+        };
 
-        if (participantDomain is null)
+        TournamentParticipant? updatedParticipant = await _participantsRepository.UpdateAsync(id, updateParameters);
+
+        if (updatedParticipant is null)
             return NotFound();
 
-        GetTournamentParticipantDto participantDto = _mapper.Map<GetTournamentParticipantDto>(participantDomain);
+        GetTournamentParticipantDto participantDto = updatedParticipant.ToGetDto();
 
         return Ok(participantDto);
     }

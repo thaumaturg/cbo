@@ -1,4 +1,5 @@
 using Cbo.API.Authorization;
+using Cbo.API.Mappings;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
@@ -43,16 +44,30 @@ public partial class TournamentsController
         if (answersValidationError is not null)
             return BadRequest(answersValidationError);
 
-        Round round = _mapper.Map<Round>(createRoundDto);
-        round.MatchId = matchId;
-        round.TopicId = topic.Id;
-        round.IsOverrideMode = createRoundDto.IsOverrideMode;
+        Round round = createRoundDto.ToNewRound(matchId);
+
+        foreach (CreateRoundAnswerDto answerDto in createRoundDto.Answers)
+        {
+            RoundAnswer answer = answerDto.ToNewRoundAnswer(Guid.Empty);
+            round.RoundAnswers.Add(answer);
+        }
 
         await _roundRepository.CreateAsync(round);
         await _roundService.RecalculateMatchScoresAsync(matchId);
 
         Round? createdRound = await _roundRepository.GetByIdWithDetailsAsync(round.Id);
-        GetRoundDto roundDto = _mapper.Map<GetRoundDto>(createdRound);
+        if (createdRound is null)
+            return Problem("Failed to retrieve created round.");
+
+        List<TournamentTopic> tournamentTopics = await _tournamentTopicRepository.GetAllByTournamentIdAsync(tournamentId);
+        TournamentTopic? tournamentTopic = tournamentTopics.FirstOrDefault(tt => tt.TopicId == createdRound.TopicId);
+        if (tournamentTopic is null)
+            return Problem("Failed to find tournament topic for round.");
+
+        int priorityIndex = tournamentTopic.PriorityIndex;
+        string ownerUsername = tournamentTopic.TournamentParticipant.ApplicationUser?.UserName ?? string.Empty;
+
+        GetRoundDto roundDto = createdRound.ToGetDto(priorityIndex, ownerUsername);
         return CreatedAtAction(nameof(CreateRound), new { tournamentId, matchId, roundNumber = roundDto.NumberInMatch }, roundDto);
     }
 
@@ -95,17 +110,26 @@ public partial class TournamentsController
 
         await _roundRepository.DeleteAnswersByRoundIdAsync(existingRound.Id);
 
-        List<RoundAnswer> newAnswers = _mapper.Map<List<RoundAnswer>>(updateRoundDto.Answers);
-        foreach (RoundAnswer answer in newAnswers)
-        {
-            answer.RoundId = existingRound.Id;
-        }
+        List<RoundAnswer> newAnswers = updateRoundDto.Answers
+            .Select(a => a.ToNewRoundAnswer(existingRound.Id))
+            .ToList();
 
         await _roundRepository.CreateAnswersAsync(newAnswers);
         await _roundService.RecalculateMatchScoresAsync(matchId);
 
         Round? updatedRound = await _roundRepository.GetByIdWithDetailsAsync(existingRound.Id);
-        GetRoundDto roundDto = _mapper.Map<GetRoundDto>(updatedRound);
+        if (updatedRound is null)
+            return Problem("Failed to retrieve updated round.");
+
+        List<TournamentTopic> tournamentTopics = await _tournamentTopicRepository.GetAllByTournamentIdAsync(tournamentId);
+        TournamentTopic? tournamentTopic = tournamentTopics.FirstOrDefault(tt => tt.TopicId == updatedRound.TopicId);
+        if (tournamentTopic is null)
+            return Problem("Failed to find tournament topic for round.");
+
+        int priorityIndex = tournamentTopic.PriorityIndex;
+        string ownerUsername = tournamentTopic.TournamentParticipant.ApplicationUser?.UserName ?? string.Empty;
+
+        GetRoundDto roundDto = updatedRound.ToGetDto(priorityIndex, ownerUsername);
         return Ok(roundDto);
     }
 

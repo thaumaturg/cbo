@@ -8,6 +8,6 @@ public interface ITopicRepository
     Task<Topic?> GetByIdAsync(Guid id);
     Task<Topic?> GetByIdIncludeQuestionsAsync(Guid id);
     Task<Topic> CreateAsync(Topic topic);
-    Task<Topic?> UpdateAsync(Guid id, Topic updatedTopic, Guid currentUserId, bool isAuthor, ICollection<Question> incomingQuestions);
+    Task<Topic?> UpdateAsync(Guid id, UpdateTopicParameters parameters, Guid currentUserId);
     Task<Topic?> DeleteAsync(Guid id);
 }

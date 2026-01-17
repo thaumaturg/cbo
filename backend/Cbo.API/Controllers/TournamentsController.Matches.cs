@@ -1,4 +1,5 @@
 using Cbo.API.Authorization;
+using Cbo.API.Mappings;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
@@ -22,7 +23,7 @@ public partial class TournamentsController
             return NotFound();
 
         List<Match> matchesDomain = await _matchRepository.GetAllByTournamentIdAsync(tournamentId);
-        List<GetMatchDto> matchesDto = _mapper.Map<List<GetMatchDto>>(matchesDomain);
+        List<GetMatchDto> matchesDto = matchesDomain.Select(m => m.ToGetDto()).ToList();
 
         return Ok(matchesDto);
     }
@@ -46,7 +47,12 @@ public partial class TournamentsController
 
         match.Rounds = match.Rounds.OrderBy(r => r.NumberInMatch).ToList();
 
-        GetMatchDetailDto matchDto = _mapper.Map<GetMatchDetailDto>(match);
+        List<TournamentTopic> tournamentTopics = await _tournamentTopicRepository.GetAllByTournamentIdAsync(tournamentId);
+        Dictionary<Guid, RoundTopicInfo> topicInfoByTopicId = tournamentTopics.ToDictionary(
+            tt => tt.TopicId,
+            tt => new RoundTopicInfo(tt.PriorityIndex, tt.TournamentParticipant.ApplicationUser?.UserName ?? string.Empty));
+
+        GetMatchDetailDto matchDto = match.ToDetailDto(topicInfoByTopicId);
 
         return Ok(matchDto);
     }
@@ -84,7 +90,7 @@ public partial class TournamentsController
             .OrderBy(tt => tt.PriorityIndex)
             .ToList();
 
-        List<GetAvailableTopicDto> availableTopics = _mapper.Map<List<GetAvailableTopicDto>>(filteredTopics);
+        List<GetAvailableTopicDto> availableTopics = filteredTopics.Select(t => t.ToAvailableDto()).ToList();
 
         return Ok(availableTopics);
     }

@@ -1,4 +1,5 @@
 using Cbo.API.Authorization;
+using Cbo.API.Mappings;
 using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
@@ -27,7 +28,7 @@ public partial class TournamentsController
         TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUser.Id, tournamentId);
 
         List<TournamentTopic> topicsDomain = await _tournamentTopicRepository.GetAllByParticipantIdAsync(tournamentId, participant!.Id);
-        List<GetTournamentTopicDto> topicsDto = _mapper.Map<List<GetTournamentTopicDto>>(topicsDomain);
+        List<GetTournamentTopicDto> topicsDto = topicsDomain.Select(t => t.ToGetDto()).ToList();
 
         return Ok(topicsDto);
     }
@@ -46,7 +47,7 @@ public partial class TournamentsController
             return NotFound();
 
         List<TournamentTopic> topicsDomain = await _tournamentTopicRepository.GetAllByTournamentIdAsync(tournamentId);
-        List<GetTournamentTopicDto> topicsDto = _mapper.Map<List<GetTournamentTopicDto>>(topicsDomain);
+        List<GetTournamentTopicDto> topicsDto = topicsDomain.Select(t => t.ToGetDto()).ToList();
 
         return Ok(topicsDto);
     }
@@ -91,15 +92,12 @@ public partial class TournamentsController
             if (!topicAuthResult.Succeeded)
                 return BadRequest($"You must be the owner of topic with ID {dto.TopicId} to assign it.");
 
-            TournamentTopic topicDomain = _mapper.Map<TournamentTopic>(dto);
-            topicDomain.TournamentId = tournamentId;
-            topicDomain.TournamentParticipantId = participant!.Id;
-
+            TournamentTopic topicDomain = dto.ToNewTournamentTopic(tournamentId, participant!.Id);
             topicsDomain.Add(topicDomain);
         }
 
         List<TournamentTopic> result = await _tournamentTopicRepository.SetTopicsForParticipantAsync(tournamentId, participant!.Id, topicsDomain);
-        List<GetTournamentTopicDto> resultDto = _mapper.Map<List<GetTournamentTopicDto>>(result);
+        List<GetTournamentTopicDto> resultDto = result.Select(t => t.ToGetDto()).ToList();
 
         return Ok(resultDto);
     }
@@ -125,8 +123,11 @@ public partial class TournamentsController
         if (topic is null)
             return NotFound();
 
-        GetTopicDto topicDto = _mapper.Map<GetTopicDto>(topic);
+        ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+        TopicAuthor? topicAuthor = topic.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUser.Id);
+        bool isAuthor = topicAuthor?.IsAuthor ?? false;
+        bool isPlayed = topic.Rounds.Count > 0;
 
-        return Ok(topicDto);
+        return Ok(topic.ToGetDto(isPlayed, isAuthor));
     }
 }

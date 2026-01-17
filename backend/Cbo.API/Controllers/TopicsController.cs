@@ -1,5 +1,5 @@
-﻿using AutoMapper;
 using Cbo.API.Authorization;
+using Cbo.API.Mappings;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
@@ -19,22 +19,19 @@ public partial class TopicsController : ControllerBase
     private readonly ICurrentUserService _currentUserService;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IAuthorizationService _authorizationService;
-    private readonly IMapper _mapper;
 
     public TopicsController(
         ITopicRepository topicRepository,
         ITopicAuthorRepository topicAuthorRepository,
         ICurrentUserService currentUserService,
         UserManager<ApplicationUser> userManager,
-        IAuthorizationService authorizationService,
-        IMapper mapper)
+        IAuthorizationService authorizationService)
     {
         _topicRepository = topicRepository;
         _topicAuthorRepository = topicAuthorRepository;
         _currentUserService = currentUserService;
         _userManager = userManager;
         _authorizationService = authorizationService;
-        _mapper = mapper;
     }
 
     [HttpGet]
@@ -47,11 +44,10 @@ public partial class TopicsController : ControllerBase
 
         List<GetTopicDto> topicsDto = topicsDomain.Select(topic =>
         {
-            GetTopicDto dto = _mapper.Map<GetTopicDto>(topic);
             TopicAuthor? topicAuthor = topic.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUser.Id);
-            dto.IsAuthor = topicAuthor?.IsAuthor ?? false;
-            dto.IsPlayed = topic.Rounds.Count > 0;
-            return dto;
+            bool isAuthor = topicAuthor?.IsAuthor ?? false;
+            bool isPlayed = topic.Rounds.Count > 0;
+            return topic.ToGetDto(isPlayed, isAuthor);
         }).ToList();
 
         return Ok(topicsDto);
@@ -73,12 +69,11 @@ public partial class TopicsController : ControllerBase
 
         ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
-        GetTopicDto getTopicDto = _mapper.Map<GetTopicDto>(topicDomain);
         TopicAuthor? topicAuthor = topicDomain.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUser.Id);
-        getTopicDto.IsAuthor = topicAuthor?.IsAuthor ?? false;
-        getTopicDto.IsPlayed = topicDomain.Rounds.Count > 0;
+        bool isAuthor = topicAuthor?.IsAuthor ?? false;
+        bool isPlayed = topicDomain.Rounds.Count > 0;
 
-        return Ok(getTopicDto);
+        return Ok(topicDomain.ToGetDto(isPlayed, isAuthor));
     }
 
     [HttpPost]
@@ -87,14 +82,21 @@ public partial class TopicsController : ControllerBase
     {
         ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
-        Topic topicDomain = _mapper.Map<Topic>(createTopicDto);
+        Topic topicDomain = createTopicDto.ToDomain();
+
+        // Map and add questions
+        foreach (CreateQuestionDto questionDto in createTopicDto.Questions)
+        {
+            topicDomain.Questions.Add(questionDto.ToDomain(Guid.Empty));
+        }
 
         // Create TopicAuthor entry for the current user as owner
         topicDomain.TopicAuthors.Add(new TopicAuthor
         {
             IsOwner = true,
             IsAuthor = createTopicDto.IsAuthor,
-            ApplicationUserId = currentUser.Id
+            ApplicationUserId = currentUser.Id,
+            TopicId = Guid.Empty
         });
 
         topicDomain = await _topicRepository.CreateAsync(topicDomain);
@@ -104,9 +106,7 @@ public partial class TopicsController : ControllerBase
         if (topicIncludeQuestions is null)
             return BadRequest();
 
-        GetTopicDto getTopicDto = _mapper.Map<GetTopicDto>(topicIncludeQuestions);
-        getTopicDto.IsAuthor = createTopicDto.IsAuthor;
-        getTopicDto.IsPlayed = false;
+        GetTopicDto getTopicDto = topicIncludeQuestions.ToGetDto(isPlayed: false, isAuthor: createTopicDto.IsAuthor);
 
         return CreatedAtAction(nameof(GetById), new { id = topicDomain.Id }, getTopicDto);
     }
@@ -129,13 +129,27 @@ public partial class TopicsController : ControllerBase
 
         ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
-        Topic topicDomain = _mapper.Map<Topic>(updateTopicDto);
-        List<Question> incomingQuestions = _mapper.Map<List<Question>>(updateTopicDto.Questions);
+        var updateParameters = new UpdateTopicParameters
+        {
+            Title = updateTopicDto.Title,
+            Description = updateTopicDto.Description,
+            IsAuthor = updateTopicDto.IsAuthor,
+            Questions = updateTopicDto.Questions.Select(q => new UpdateQuestionParameters
+            {
+                Id = q.Id,
+                QuestionNumber = q.QuestionNumber,
+                CostPositive = q.CostPositive,
+                CostNegative = q.CostNegative,
+                Text = q.Text,
+                Answer = q.Answer,
+                Comment = q.Comment
+            }).ToList()
+        };
 
         Topic? updatedTopic;
         try
         {
-            updatedTopic = await _topicRepository.UpdateAsync(id, topicDomain, currentUser.Id, updateTopicDto.IsAuthor, incomingQuestions);
+            updatedTopic = await _topicRepository.UpdateAsync(id, updateParameters, currentUser.Id);
         }
         catch (InvalidOperationException ex)
         {
@@ -145,12 +159,10 @@ public partial class TopicsController : ControllerBase
         if (updatedTopic is null)
             return NotFound();
 
-        GetTopicDto getTopicDto = _mapper.Map<GetTopicDto>(updatedTopic);
         TopicAuthor? topicAuthor = updatedTopic.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUser.Id);
-        getTopicDto.IsAuthor = topicAuthor?.IsAuthor ?? false;
-        getTopicDto.IsPlayed = false;
+        bool isAuthor = topicAuthor?.IsAuthor ?? false;
 
-        return Ok(getTopicDto);
+        return Ok(updatedTopic.ToGetDto(isPlayed: false, isAuthor));
     }
 
     [HttpDelete]

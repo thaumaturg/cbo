@@ -6,8 +6,10 @@ public class Round
     public required int NumberInMatch { get; set; }
     public bool IsOverrideMode { get; set; }
     public required Guid TopicId { get; set; }
-    public required Topic Topic { get; set; }
     public required Guid MatchId { get; set; }
-    public required Match Match { get; set; }
+
+    // Navigation properties
+    public Topic? Topic { get; set; }
+    public Match? Match { get; set; }
     public ICollection<RoundAnswer> RoundAnswers { get; set; } = [];
 }

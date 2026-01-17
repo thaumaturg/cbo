@@ -1,5 +1,5 @@
-﻿using AutoMapper;
 using Cbo.API.Authorization;
+using Cbo.API.Mappings;
 using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
@@ -26,7 +26,6 @@ public partial class TournamentsController : ControllerBase
     private readonly IRoundService _roundService;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IAuthorizationService _authorizationService;
-    private readonly IMapper _mapper;
 
     public TournamentsController(
         ITournamentRepository tournamentRepository,
@@ -39,8 +38,7 @@ public partial class TournamentsController : ControllerBase
         IMatchGenerationService matchGenerationService,
         IRoundService roundService,
         UserManager<ApplicationUser> userManager,
-        IAuthorizationService authorizationService,
-        IMapper mapper)
+        IAuthorizationService authorizationService)
     {
         _tournamentRepository = tournamentRepository;
         _participantsRepository = participantsRepository;
@@ -53,7 +51,6 @@ public partial class TournamentsController : ControllerBase
         _roundService = roundService;
         _userManager = userManager;
         _authorizationService = authorizationService;
-        _mapper = mapper;
     }
 
     [HttpGet]
@@ -64,7 +61,7 @@ public partial class TournamentsController : ControllerBase
 
         List<Tournament> tournamentsDomain = await _tournamentRepository.GetAllByUserIdAsync(currentUser.Id);
 
-        List<GetTournamentDto> tournamentsDto = _mapper.Map<List<GetTournamentDto>>(tournamentsDomain);
+        List<GetTournamentDto> tournamentsDto = tournamentsDomain.Select(t => t.ToGetDto()).ToList();
 
         foreach (GetTournamentDto tournamentDto in tournamentsDto)
         {
@@ -91,7 +88,7 @@ public partial class TournamentsController : ControllerBase
 
         ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
-        GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentDomain);
+        GetTournamentDto tournamentDto = tournamentDomain.ToGetDto();
 
         TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUser.Id, id);
         tournamentDto.CurrentUserRole = participant?.Role;
@@ -112,7 +109,16 @@ public partial class TournamentsController : ControllerBase
 
         ApplicationUser creator = await _currentUserService.GetRequiredCurrentUserAsync();
 
-        Tournament tournamentDomain = _mapper.Map<Tournament>(createTournamentDto);
+        int playersPerTournament = createTournamentDto.PlayersPerTournament ?? DefaultSettings.PlayersPerTournament;
+        int topicsPerParticipantMax = createTournamentDto.TopicsPerParticipantMax ?? DefaultSettings.TopicsPerParticipantMax;
+        int topicsPerParticipantMin = createTournamentDto.TopicsPerParticipantMin ?? DefaultSettings.TopicsPerParticipantMin;
+
+        Tournament tournamentDomain = createTournamentDto.ToNewTournament(
+            TournamentStage.Preparations,
+            DateTime.UtcNow,
+            playersPerTournament,
+            topicsPerParticipantMax,
+            topicsPerParticipantMin);
 
         tournamentDomain.TournamentParticipants.Add(new TournamentParticipant
         {
@@ -123,7 +129,7 @@ public partial class TournamentsController : ControllerBase
 
         tournamentDomain = await _tournamentRepository.CreateAsync(tournamentDomain);
 
-        GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentDomain);
+        GetTournamentDto tournamentDto = tournamentDomain.ToGetDto();
 
         return CreatedAtAction(nameof(GetById), new { id = tournamentDomain.Id }, tournamentDto);
     }
@@ -147,14 +153,21 @@ public partial class TournamentsController : ControllerBase
         if (!authResult.Succeeded)
             return NotFound();
 
-        Tournament? tournamentDomain = _mapper.Map<Tournament>(updateTournamentDto);
+        var updateParameters = new UpdateTournamentParameters
+        {
+            Title = updateTournamentDto.Title,
+            Description = updateTournamentDto.Description,
+            PlayersPerTournament = updateTournamentDto.PlayersPerTournament ?? DefaultSettings.PlayersPerTournament,
+            TopicsPerParticipantMax = updateTournamentDto.TopicsPerParticipantMax ?? DefaultSettings.TopicsPerParticipantMax,
+            TopicsPerParticipantMin = updateTournamentDto.TopicsPerParticipantMin ?? DefaultSettings.TopicsPerParticipantMin
+        };
 
-        tournamentDomain = await _tournamentRepository.UpdateAsync(id, tournamentDomain);
+        Tournament? updatedTournament = await _tournamentRepository.UpdateAsync(id, updateParameters);
 
-        if (tournamentDomain is null)
+        if (updatedTournament is null)
             return NotFound();
 
-        GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentDomain);
+        GetTournamentDto tournamentDto = updatedTournament.ToGetDto();
 
         return Ok(tournamentDto);
     }
@@ -238,7 +251,7 @@ public partial class TournamentsController : ControllerBase
         if (tournamentDomain is null)
             return NotFound();
 
-        GetTournamentDto tournamentDto = _mapper.Map<GetTournamentDto>(tournamentDomain);
+        GetTournamentDto tournamentDto = tournamentDomain.ToGetDto();
 
         return Ok(tournamentDto);
     }

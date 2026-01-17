@@ -51,7 +51,8 @@ public class MatchGenerationService : IMatchGenerationService
 
                 var matchParticipant = new MatchParticipant
                 {
-                    TournamentParticipantId = player.Id
+                    TournamentParticipantId = player.Id,
+                    MatchId = Guid.Empty
                 };
 
                 match.MatchParticipants.Add(matchParticipant);

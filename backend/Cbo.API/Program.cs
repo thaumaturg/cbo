@@ -2,7 +2,6 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Cbo.API.Authorization;
 using Cbo.API.Data;
-using Cbo.API.Mappings;
 using Cbo.API.Models.Domain;
 using Cbo.API.Repositories;
 using Cbo.API.Services;
@@ -43,8 +42,6 @@ public class Program
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
         builder.Services.AddScoped<IMatchGenerationService, MatchGenerationService>();
         builder.Services.AddScoped<IRoundService, RoundService>();
-
-        builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
         builder.Services.AddControllers()
             .AddJsonOptions(options =>

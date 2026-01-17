@@ -9,7 +9,7 @@ public interface ITournamentParticipantsRepository
     Task<TournamentParticipant?> GetByParticipantIdAndTournamentIdAsync(Guid participantId, Guid tournamentId);
     Task<TournamentParticipant?> GetByUserIdAndTournamentIdAsync(Guid userId, Guid tournamentId);
     Task<TournamentParticipant> CreateAsync(TournamentParticipant tournamentParticipant);
-    Task<TournamentParticipant?> UpdateAsync(Guid id, TournamentParticipant tournamentParticipant);
+    Task<TournamentParticipant?> UpdateAsync(Guid id, UpdateTournamentParticipantParameters parameters);
     Task<TournamentParticipant?> DeleteAsync(Guid id);
     Task<List<TournamentParticipant>> GetAllByTournamentIdWithMatchDataAsync(Guid tournamentId);
     Task UpdateParticipantsAsync(List<TournamentParticipant> participants);

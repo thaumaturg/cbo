@@ -55,15 +55,14 @@ public class PostgresTournamentParticipantsRepository : ITournamentParticipantsR
             .FirstAsync(tp => tp.Id == tournamentParticipant.Id);
     }
 
-    public async Task<TournamentParticipant?> UpdateAsync(Guid id, TournamentParticipant tournamentParticipant)
+    public async Task<TournamentParticipant?> UpdateAsync(Guid id, UpdateTournamentParticipantParameters parameters)
     {
         TournamentParticipant? existing = await _dbContext.TournamentParticipants.FirstOrDefaultAsync(tp => tp.Id == id);
 
         if (existing is null)
             return null;
 
-        existing.Role = tournamentParticipant.Role;
-        existing.PointsSum = tournamentParticipant.PointsSum;
+        existing.Role = parameters.Role;
 
         await _dbContext.SaveChangesAsync();
 
