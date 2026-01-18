@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 public sealed class BearerSecuritySchemeTransformer : IOpenApiDocumentTransformer
 {
     private readonly IAuthenticationSchemeProvider _authenticationSchemeProvider;
+    private const string BearerSchemeName = "Bearer";
 
     public BearerSecuritySchemeTransformer(IAuthenticationSchemeProvider authenticationSchemeProvider)
     {
@@ -13,30 +14,31 @@ public sealed class BearerSecuritySchemeTransformer : IOpenApiDocumentTransforme
 
     public async Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
     {
-        var authenticationSchemes = await _authenticationSchemeProvider.GetAllSchemesAsync();
+        IEnumerable<AuthenticationScheme> authenticationSchemes = await _authenticationSchemeProvider.GetAllSchemesAsync();
 
-        if (authenticationSchemes.Any(authScheme => authScheme.Name == "Bearer"))
+        if (authenticationSchemes.Any(authScheme => authScheme.Name == BearerSchemeName))
         {
-            var requirements = new Dictionary<string, OpenApiSecurityScheme>
+            var bearerScheme = new OpenApiSecurityScheme
             {
-                ["Bearer"] = new OpenApiSecurityScheme
-                {
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "bearer",
-                    In = ParameterLocation.Header,
-                    BearerFormat = "JWT"
-                }
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                In = ParameterLocation.Header,
+                BearerFormat = "JWT"
             };
 
             document.Components ??= new OpenApiComponents();
-            document.Components.SecuritySchemes = requirements;
+            document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+            document.Components.SecuritySchemes[BearerSchemeName] = bearerScheme;
 
-            foreach (var operation in document.Paths.Values.SelectMany(path => path.Operations))
+            var securityRequirement = new OpenApiSecurityRequirement
             {
-                operation.Value.Security.Add(new OpenApiSecurityRequirement
-                {
-                    [new OpenApiSecurityScheme { Reference = new OpenApiReference { Id = "Bearer", Type = ReferenceType.SecurityScheme } }] = Array.Empty<string>()
-                });
+                [new OpenApiSecuritySchemeReference(BearerSchemeName, document)] = []
+            };
+
+            foreach (OpenApiOperation operation in document.Paths.Values.SelectMany(path => path.Operations?.Values ?? Enumerable.Empty<OpenApiOperation>()))
+            {
+                operation.Security ??= [];
+                operation.Security.Add(securityRequirement);
             }
         }
     }
