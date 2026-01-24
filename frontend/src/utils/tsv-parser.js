@@ -51,9 +51,49 @@ export const parseTabSeparatedData = (text) => {
         currentCell += '"';
         i += 2;
       } else if (isQuoteChar(char)) {
-        // End of quoted cell
-        insideQuotes = false;
-        i++;
+        // Potential end of quoted cell
+        // Only close if followed by delimiter (TAB, newline, end)
+        // Otherwise it's an embedded quote in the content
+        if (nextChar === "\t" || nextChar === undefined) {
+          // Real closing quote (followed by TAB or end of data)
+          insideQuotes = false;
+          i++;
+        } else if (nextChar === "\n" || nextChar === "\r") {
+          // Quote followed by newline - could be:
+          // 1. Real closing quote (next line is a new data row with TABs)
+          // 2. Embedded quote (content continues on next line without TABs before next quote)
+          // Look ahead to check if next line has a TAB before another quote or newline
+          const newlineLength = nextChar === "\r" && text[i + 2] === "\n" ? 2 : 1;
+          let lookAhead = i + 1 + newlineLength;
+          let foundTab = false;
+
+          while (lookAhead < text.length) {
+            const ch = text[lookAhead];
+            if (ch === "\t") {
+              foundTab = true;
+              break;
+            }
+            if (ch === "\n" || ch === "\r" || isQuoteChar(ch)) {
+              // Reached next newline or quote without finding TAB
+              break;
+            }
+            lookAhead++;
+          }
+
+          if (foundTab) {
+            // Next line has TAB = it's a new data row = this IS the closing quote
+            insideQuotes = false;
+            i++;
+          } else {
+            // No TAB on next line = content continues = embedded quote
+            currentCell += char;
+            i++;
+          }
+        } else {
+          // Embedded quote in content (e.g., Russian quotes inside cell)
+          currentCell += char;
+          i++;
+        }
       } else if (char === "\t" && isQuoteChar(nextChar) && !isQuoteChar(charAfterNext)) {
         // TAB followed by single quote (not escaped "") while "inside quotes"
         // Need to determine if:
