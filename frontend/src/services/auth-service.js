@@ -151,8 +151,9 @@ export const authService = {
       "jti", // JWT ID
       "iat", // Issued at
       "exp", // Expiration
-      "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
-      "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
+      "email",
+      "name", // Full display name
+      "preferred_username", // Login username
     ];
 
     return requiredClaims.every((claim) => {

@@ -1,6 +1,6 @@
-import { defineStore } from "pinia";
-import { ref, computed } from "vue";
 import { authService } from "@/services/auth-service.js";
+import { defineStore } from "pinia";
+import { computed, ref } from "vue";
 
 export const useAuthStore = defineStore("auth", () => {
   const user = ref(null);
@@ -11,6 +11,7 @@ export const useAuthStore = defineStore("auth", () => {
   const userEmail = computed(() => user.value?.email || null);
   const userName = computed(() => user.value?.username || null);
   const userFullName = computed(() => user.value?.fullName || null);
+  const isEmailVerified = computed(() => user.value?.emailVerified || false);
 
   async function login(credentials) {
     isLoading.value = true;
@@ -23,10 +24,10 @@ export const useAuthStore = defineStore("auth", () => {
         const userData = authService.getCurrentUser();
         if (userData) {
           user.value = {
-            email: userData["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"],
-            username: userData["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"],
-            fullName: userData["fullName"] || "",
-            roles: userData["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || [],
+            email: userData.email,
+            username: userData.preferred_username,
+            fullName: userData.name || "",
+            emailVerified: userData.email_verified === "true",
           };
         }
         return { success: true };
@@ -79,10 +80,10 @@ export const useAuthStore = defineStore("auth", () => {
       const userData = authService.getCurrentUser();
       if (userData) {
         user.value = {
-          email: userData["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"],
-          username: userData["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"],
-          fullName: userData["fullName"] || "",
-          roles: userData["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || [],
+          email: userData.email,
+          username: userData.preferred_username,
+          fullName: userData.name || "",
+          emailVerified: userData.email_verified === "true",
         };
       }
     }
@@ -97,6 +98,7 @@ export const useAuthStore = defineStore("auth", () => {
     userEmail,
     userName,
     userFullName,
+    isEmailVerified,
 
     login,
     register,

@@ -30,11 +30,11 @@ public class CurrentUserService : ICurrentUserService
         if (user?.Identity?.IsAuthenticated != true)
             return null;
 
-        string? username = user.Identity.Name;
-        if (string.IsNullOrEmpty(username))
+        string? userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
             return null;
 
-        _cachedUser = await _userManager.FindByNameAsync(username);
+        _cachedUser = await _userManager.FindByIdAsync(userId);
         return _cachedUser;
     }
 
