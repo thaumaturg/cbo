@@ -288,7 +288,7 @@ watch(
         :metaKeySelection="true"
         :autoOptionFocus="false"
       >
-        <template #item="{ item, index }">
+        <template #option="{ item, index }">
           <div class="flex items-center justify-between w-full py-1 px-2">
             <div class="flex items-center gap-2 flex-1 min-w-0">
               <span class="text-gray-400 font-mono text-xs w-5">{{ index + 1 }}.</span>
