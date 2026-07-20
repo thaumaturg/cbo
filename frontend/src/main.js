@@ -20,6 +20,7 @@ app.use(pinia);
 app.use(router);
 app.use(VeeValidatePlugin);
 app.use(PrimeVue, {
+  license: import.meta.env.VITE_PRIMEUI_LICENSE_KEY,
   theme: {
     preset: Aura,
     options: {
