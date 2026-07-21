@@ -1,4 +1,4 @@
-﻿using Cbo.API.Data;
+using Cbo.API.Data;
 using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -15,14 +15,9 @@ public interface ITournamentRepository
     Task<Tournament?> DeleteAsync(Guid id);
 }
 
-public class TournamentRepository : ITournamentRepository
+public class TournamentRepository(CboDbContext dbContext) : ITournamentRepository
 {
-    private readonly CboDbContext _dbContext;
-
-    public TournamentRepository(CboDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
+    private readonly CboDbContext _dbContext = dbContext;
 
     public async Task<List<Tournament>> GetAllByUserIdAsync(Guid userId)
     {

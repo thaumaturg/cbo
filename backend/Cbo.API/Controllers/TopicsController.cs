@@ -12,27 +12,18 @@ namespace Cbo.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public partial class TopicsController : ControllerBase
+public partial class TopicsController(
+    ITopicRepository topicRepository,
+    ITopicAuthorRepository topicAuthorRepository,
+    ICurrentUserService currentUserService,
+    UserManager<ApplicationUser> userManager,
+    IAuthorizationService authorizationService) : ControllerBase
 {
-    private readonly ITopicRepository _topicRepository;
-    private readonly ITopicAuthorRepository _topicAuthorRepository;
-    private readonly ICurrentUserService _currentUserService;
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IAuthorizationService _authorizationService;
-
-    public TopicsController(
-        ITopicRepository topicRepository,
-        ITopicAuthorRepository topicAuthorRepository,
-        ICurrentUserService currentUserService,
-        UserManager<ApplicationUser> userManager,
-        IAuthorizationService authorizationService)
-    {
-        _topicRepository = topicRepository;
-        _topicAuthorRepository = topicAuthorRepository;
-        _currentUserService = currentUserService;
-        _userManager = userManager;
-        _authorizationService = authorizationService;
-    }
+    private readonly ITopicRepository _topicRepository = topicRepository;
+    private readonly ITopicAuthorRepository _topicAuthorRepository = topicAuthorRepository;
+    private readonly ICurrentUserService _currentUserService = currentUserService;
+    private readonly UserManager<ApplicationUser> _userManager = userManager;
+    private readonly IAuthorizationService _authorizationService = authorizationService;
 
     [HttpGet]
     [Authorize]

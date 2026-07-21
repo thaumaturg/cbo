@@ -10,16 +10,10 @@ public interface IRoundService
     Task RecalculateMatchScoresAsync(Guid matchId);
 }
 
-public class RoundService : IRoundService
+public class RoundService(IMatchRepository matchRepository, ITournamentParticipantsRepository participantsRepository) : IRoundService
 {
-    private readonly IMatchRepository _matchRepository;
-    private readonly ITournamentParticipantsRepository _participantsRepository;
-
-    public RoundService(IMatchRepository matchRepository, ITournamentParticipantsRepository participantsRepository)
-    {
-        _matchRepository = matchRepository;
-        _participantsRepository = participantsRepository;
-    }
+    private readonly IMatchRepository _matchRepository = matchRepository;
+    private readonly ITournamentParticipantsRepository _participantsRepository = participantsRepository;
 
     public string? ValidateRoundAnswers(List<CreateRoundAnswerDto> answers, bool isOverrideMode)
     {

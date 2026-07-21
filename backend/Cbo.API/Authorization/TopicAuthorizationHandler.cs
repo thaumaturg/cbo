@@ -6,18 +6,12 @@ using Microsoft.AspNetCore.Authorization.Infrastructure;
 
 namespace Cbo.API.Authorization;
 
-public class TopicAuthorizationHandler : AuthorizationHandler<OperationAuthorizationRequirement, Topic>
+public class TopicAuthorizationHandler(
+    ITopicAuthorRepository topicAuthorRepository,
+    ICurrentUserService currentUserService) : AuthorizationHandler<OperationAuthorizationRequirement, Topic>
 {
-    private readonly ITopicAuthorRepository _topicAuthorRepository;
-    private readonly ICurrentUserService _currentUserService;
-
-    public TopicAuthorizationHandler(
-        ITopicAuthorRepository topicAuthorRepository,
-        ICurrentUserService currentUserService)
-    {
-        _topicAuthorRepository = topicAuthorRepository;
-        _currentUserService = currentUserService;
-    }
+    private readonly ITopicAuthorRepository _topicAuthorRepository = topicAuthorRepository;
+    private readonly ICurrentUserService _currentUserService = currentUserService;
 
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,

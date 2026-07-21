@@ -13,45 +13,30 @@ namespace Cbo.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public partial class TournamentsController : ControllerBase
+public partial class TournamentsController(
+    ITournamentRepository tournamentRepository,
+    ITournamentParticipantsRepository participantsRepository,
+    ITournamentTopicRepository tournamentTopicRepository,
+    ITopicRepository topicRepository,
+    IMatchRepository matchRepository,
+    IRoundRepository roundRepository,
+    ICurrentUserService currentUserService,
+    IMatchGenerationService matchGenerationService,
+    IRoundService roundService,
+    UserManager<ApplicationUser> userManager,
+    IAuthorizationService authorizationService) : ControllerBase
 {
-    private readonly ITournamentRepository _tournamentRepository;
-    private readonly ITournamentParticipantsRepository _participantsRepository;
-    private readonly ITournamentTopicRepository _tournamentTopicRepository;
-    private readonly ITopicRepository _topicRepository;
-    private readonly IMatchRepository _matchRepository;
-    private readonly IRoundRepository _roundRepository;
-    private readonly ICurrentUserService _currentUserService;
-    private readonly IMatchGenerationService _matchGenerationService;
-    private readonly IRoundService _roundService;
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IAuthorizationService _authorizationService;
-
-    public TournamentsController(
-        ITournamentRepository tournamentRepository,
-        ITournamentParticipantsRepository participantsRepository,
-        ITournamentTopicRepository tournamentTopicRepository,
-        ITopicRepository topicRepository,
-        IMatchRepository matchRepository,
-        IRoundRepository roundRepository,
-        ICurrentUserService currentUserService,
-        IMatchGenerationService matchGenerationService,
-        IRoundService roundService,
-        UserManager<ApplicationUser> userManager,
-        IAuthorizationService authorizationService)
-    {
-        _tournamentRepository = tournamentRepository;
-        _participantsRepository = participantsRepository;
-        _tournamentTopicRepository = tournamentTopicRepository;
-        _topicRepository = topicRepository;
-        _matchRepository = matchRepository;
-        _roundRepository = roundRepository;
-        _currentUserService = currentUserService;
-        _matchGenerationService = matchGenerationService;
-        _roundService = roundService;
-        _userManager = userManager;
-        _authorizationService = authorizationService;
-    }
+    private readonly ITournamentRepository _tournamentRepository = tournamentRepository;
+    private readonly ITournamentParticipantsRepository _participantsRepository = participantsRepository;
+    private readonly ITournamentTopicRepository _tournamentTopicRepository = tournamentTopicRepository;
+    private readonly ITopicRepository _topicRepository = topicRepository;
+    private readonly IMatchRepository _matchRepository = matchRepository;
+    private readonly IRoundRepository _roundRepository = roundRepository;
+    private readonly ICurrentUserService _currentUserService = currentUserService;
+    private readonly IMatchGenerationService _matchGenerationService = matchGenerationService;
+    private readonly IRoundService _roundService = roundService;
+    private readonly UserManager<ApplicationUser> _userManager = userManager;
+    private readonly IAuthorizationService _authorizationService = authorizationService;
 
     [HttpGet]
     [Authorize]

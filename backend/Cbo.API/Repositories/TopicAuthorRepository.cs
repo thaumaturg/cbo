@@ -13,14 +13,9 @@ public interface ITopicAuthorRepository
     Task<TopicAuthor?> DeleteAsync(Guid id);
 }
 
-public class TopicAuthorRepository : ITopicAuthorRepository
+public class TopicAuthorRepository(CboDbContext dbContext) : ITopicAuthorRepository
 {
-    private readonly CboDbContext _dbContext;
-
-    public TopicAuthorRepository(CboDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
+    private readonly CboDbContext _dbContext = dbContext;
 
     public async Task<List<TopicAuthor>> GetAllByTopicIdAsync(Guid topicId)
     {

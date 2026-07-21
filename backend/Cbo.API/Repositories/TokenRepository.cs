@@ -11,14 +11,9 @@ public interface ITokenRepository
     string CreateJWTToken(ApplicationUser user);
 }
 
-public class TokenRepository : ITokenRepository
+public class TokenRepository(IConfiguration configuration) : ITokenRepository
 {
-    private readonly IConfiguration _configuration;
-
-    public TokenRepository(IConfiguration configuration)
-    {
-        _configuration = configuration;
-    }
+    private readonly IConfiguration _configuration = configuration;
 
     public string CreateJWTToken(ApplicationUser user)
     {

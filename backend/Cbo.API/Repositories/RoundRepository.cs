@@ -1,4 +1,4 @@
-﻿using Cbo.API.Data;
+using Cbo.API.Data;
 using Cbo.API.Models.Domain;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,14 +15,9 @@ public interface IRoundRepository
     Task CreateAnswersAsync(List<RoundAnswer> answers);
 }
 
-public class RoundRepository : IRoundRepository
+public class RoundRepository(CboDbContext dbContext) : IRoundRepository
 {
-    private readonly CboDbContext _dbContext;
-
-    public RoundRepository(CboDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
+    private readonly CboDbContext _dbContext = dbContext;
 
     public async Task<Round?> GetByIdWithDetailsAsync(Guid id)
     {

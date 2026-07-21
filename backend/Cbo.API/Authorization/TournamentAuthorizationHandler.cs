@@ -7,18 +7,12 @@ using Microsoft.AspNetCore.Authorization.Infrastructure;
 
 namespace Cbo.API.Authorization;
 
-public class TournamentAuthorizationHandler : AuthorizationHandler<OperationAuthorizationRequirement, Tournament>
+public class TournamentAuthorizationHandler(
+    ITournamentParticipantsRepository participantsRepository,
+    ICurrentUserService currentUserService) : AuthorizationHandler<OperationAuthorizationRequirement, Tournament>
 {
-    private readonly ITournamentParticipantsRepository _participantsRepository;
-    private readonly ICurrentUserService _currentUserService;
-
-    public TournamentAuthorizationHandler(
-        ITournamentParticipantsRepository participantsRepository,
-        ICurrentUserService currentUserService)
-    {
-        _participantsRepository = participantsRepository;
-        _currentUserService = currentUserService;
-    }
+    private readonly ITournamentParticipantsRepository _participantsRepository = participantsRepository;
+    private readonly ICurrentUserService _currentUserService = currentUserService;
 
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,

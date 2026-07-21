@@ -12,14 +12,9 @@ public interface ITournamentTopicRepository
     Task<List<TournamentTopic>> SetTopicsForParticipantAsync(Guid tournamentId, Guid participantId, List<TournamentTopic> topics);
 }
 
-public class TournamentTopicRepository : ITournamentTopicRepository
+public class TournamentTopicRepository(CboDbContext dbContext) : ITournamentTopicRepository
 {
-    private readonly CboDbContext _dbContext;
-
-    public TournamentTopicRepository(CboDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
+    private readonly CboDbContext _dbContext = dbContext;
 
     public async Task<List<TournamentTopic>> GetAllByParticipantIdAsync(Guid tournamentId, Guid participantId)
     {

@@ -10,20 +10,14 @@ public interface ICurrentUserService
     Task<ApplicationUser> GetRequiredCurrentUserAsync();
 }
 
-public class CurrentUserService : ICurrentUserService
+public class CurrentUserService(
+    IHttpContextAccessor httpContextAccessor,
+    UserManager<ApplicationUser> userManager) : ICurrentUserService
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+    private readonly UserManager<ApplicationUser> _userManager = userManager;
     private ApplicationUser? _cachedUser;
     private bool _userResolved;
-
-    public CurrentUserService(
-        IHttpContextAccessor httpContextAccessor,
-        UserManager<ApplicationUser> userManager)
-    {
-        _httpContextAccessor = httpContextAccessor;
-        _userManager = userManager;
-    }
 
     public async Task<ApplicationUser?> GetCurrentUserAsync()
     {

@@ -1,4 +1,4 @@
-﻿using Cbo.API.Data;
+using Cbo.API.Data;
 using Cbo.API.Models.Domain;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,14 +14,9 @@ public interface ITopicRepository
     Task<Topic?> DeleteAsync(Guid id);
 }
 
-public class TopicRepository : ITopicRepository
+public class TopicRepository(CboDbContext dbContext) : ITopicRepository
 {
-    private readonly CboDbContext _dbContext;
-
-    public TopicRepository(CboDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
+    private readonly CboDbContext _dbContext = dbContext;
 
     public async Task<List<Topic>> GetAllByUserIdAsync(Guid userId)
     {

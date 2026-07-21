@@ -1,16 +1,11 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 
-public sealed class BearerSecuritySchemeTransformer : IOpenApiDocumentTransformer
+public sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvider authenticationSchemeProvider) : IOpenApiDocumentTransformer
 {
-    private readonly IAuthenticationSchemeProvider _authenticationSchemeProvider;
+    private readonly IAuthenticationSchemeProvider _authenticationSchemeProvider = authenticationSchemeProvider;
     private const string BearerSchemeName = "Bearer";
-
-    public BearerSecuritySchemeTransformer(IAuthenticationSchemeProvider authenticationSchemeProvider)
-    {
-        _authenticationSchemeProvider = authenticationSchemeProvider;
-    }
 
     public async Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
     {

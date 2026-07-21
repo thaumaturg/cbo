@@ -10,7 +10,7 @@ public interface IMatchGenerationService
 
 public class MatchGenerationService : IMatchGenerationService
 {
-    private static readonly int[][] QualificationDistribution14Players =
+    private static readonly int[][] s_qualificationDistribution14Players =
     [
         [0, 7, 11, 12],
         [5, 8, 10, 13],
@@ -36,9 +36,9 @@ public class MatchGenerationService : IMatchGenerationService
 
         var matches = new List<Match>();
 
-        for (int matchIndex = 0; matchIndex < QualificationDistribution14Players.Length; matchIndex++)
+        for (int matchIndex = 0; matchIndex < s_qualificationDistribution14Players.Length; matchIndex++)
         {
-            int[] playerPositions = QualificationDistribution14Players[matchIndex];
+            int[] playerPositions = s_qualificationDistribution14Players[matchIndex];
             int matchNumber = matchIndex + 1;
 
             var match = new Match

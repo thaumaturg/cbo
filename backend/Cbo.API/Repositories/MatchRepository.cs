@@ -1,4 +1,4 @@
-﻿using Cbo.API.Data;
+using Cbo.API.Data;
 using Cbo.API.Models.Domain;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,14 +15,9 @@ public interface IMatchRepository
     Task UpdateMatchParticipantsAsync(List<MatchParticipant> participants);
 }
 
-public class MatchRepository : IMatchRepository
+public class MatchRepository(CboDbContext dbContext) : IMatchRepository
 {
-    private readonly CboDbContext _dbContext;
-
-    public MatchRepository(CboDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
+    private readonly CboDbContext _dbContext = dbContext;
 
     public async Task<Match?> GetByIdAsync(Guid id)
     {

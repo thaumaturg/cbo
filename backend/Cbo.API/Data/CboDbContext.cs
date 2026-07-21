@@ -1,16 +1,12 @@
-﻿using Cbo.API.Models.Domain;
+using Cbo.API.Models.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cbo.API.Data;
 
-public class CboDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
+public class CboDbContext(DbContextOptions<CboDbContext> dbContextOptions) : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(dbContextOptions)
 {
-    public CboDbContext(DbContextOptions<CboDbContext> dbContextOptions) : base(dbContextOptions)
-    {
-    }
-
     public DbSet<ApplicationUser> ApplicationUsers { get; set; }
     public DbSet<Match> Matches { get; set; }
     public DbSet<MatchParticipant> MatchParticipants { get; set; }

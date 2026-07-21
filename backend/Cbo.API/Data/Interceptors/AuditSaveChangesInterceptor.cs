@@ -9,14 +9,9 @@ namespace Cbo.API.Data.Interceptors;
 /// Writes audit timestamps on save. Currently only sets <see cref="Tournament.CreatedAt"/>;
 /// extend here when more entities gain audit fields.
 /// </summary>
-public class AuditSaveChangesInterceptor : SaveChangesInterceptor
+public class AuditSaveChangesInterceptor(TimeProvider timeProvider) : SaveChangesInterceptor
 {
-    private readonly TimeProvider _timeProvider;
-
-    public AuditSaveChangesInterceptor(TimeProvider timeProvider)
-    {
-        _timeProvider = timeProvider;
-    }
+    private readonly TimeProvider _timeProvider = timeProvider;
 
     public override InterceptionResult<int> SavingChanges(
         DbContextEventData eventData,

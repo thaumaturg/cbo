@@ -17,14 +17,9 @@ public interface ITournamentParticipantsRepository
     Task UpdateParticipantsAsync(List<TournamentParticipant> participants);
 }
 
-public class TournamentParticipantsRepository : ITournamentParticipantsRepository
+public class TournamentParticipantsRepository(CboDbContext dbContext) : ITournamentParticipantsRepository
 {
-    private readonly CboDbContext _dbContext;
-
-    public TournamentParticipantsRepository(CboDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
+    private readonly CboDbContext _dbContext = dbContext;
 
     public async Task<List<TournamentParticipant>> GetAllByTournamentIdAsync(Guid tournamentId, TournamentParticipantRole? role = null)
     {
