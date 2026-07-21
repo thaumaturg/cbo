@@ -115,7 +115,6 @@ public partial class TournamentsController : ControllerBase
 
         Tournament tournamentDomain = createTournamentDto.ToNewTournament(
             TournamentStage.Preparations,
-            DateTime.UtcNow,
             playersPerTournament,
             topicsPerParticipantMax,
             topicsPerParticipantMin);

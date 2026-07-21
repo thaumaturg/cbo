@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Cbo.API.Authorization;
 using Cbo.API.Data;
+using Cbo.API.Data.Interceptors;
 using Cbo.API.Models.Domain;
 using Cbo.API.Repositories;
 using Cbo.API.Services;
@@ -23,8 +24,13 @@ public class Program
         string connectionString = builder.Configuration.GetConnectionString("CboDb")
             ?? throw new InvalidOperationException("Connection string" + "'CboDb' not found.");
 
-        builder.Services.AddDbContext<CboDbContext>(options =>
-            options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention());
+        builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddSingleton<AuditSaveChangesInterceptor>();
+
+        builder.Services.AddDbContext<CboDbContext>((serviceProvider, options) =>
+            options.UseNpgsql(connectionString)
+                .UseSnakeCaseNamingConvention()
+                .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
         builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
         builder.Services.AddScoped<ITournamentParticipantsRepository, TournamentParticipantsRepository>();

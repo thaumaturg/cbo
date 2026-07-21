@@ -29,7 +29,6 @@ public static class TournamentMappings
     public static Tournament ToNewTournament(
         this CreateTournamentDto dto,
         TournamentStage currentStage,
-        DateTime createdAt,
         int playersPerTournament,
         int topicsPerParticipantMax,
         int topicsPerParticipantMin)
@@ -39,7 +38,6 @@ public static class TournamentMappings
             Title = dto.Title,
             Description = dto.Description,
             CurrentStage = currentStage,
-            CreatedAt = createdAt,
             PlayersPerTournament = playersPerTournament,
             TopicsPerParticipantMax = topicsPerParticipantMax,
             TopicsPerParticipantMin = topicsPerParticipantMin
