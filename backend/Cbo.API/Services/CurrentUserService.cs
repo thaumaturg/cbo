@@ -4,6 +4,12 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Cbo.API.Services;
 
+public interface ICurrentUserService
+{
+    Task<ApplicationUser?> GetCurrentUserAsync();
+    Task<ApplicationUser> GetRequiredCurrentUserAsync();
+}
+
 public class CurrentUserService : ICurrentUserService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;

@@ -4,6 +4,12 @@ using Cbo.API.Repositories;
 
 namespace Cbo.API.Services;
 
+public interface IRoundService
+{
+    string? ValidateRoundAnswers(List<CreateRoundAnswerDto> answers, bool isOverrideMode);
+    Task RecalculateMatchScoresAsync(Guid matchId);
+}
+
 public class RoundService : IRoundService
 {
     private readonly IMatchRepository _matchRepository;
