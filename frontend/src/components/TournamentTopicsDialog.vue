@@ -36,9 +36,36 @@ const isPlayerRole = computed(() => props.tournament?.currentUserRole === "Playe
 const minTopics = computed(() => props.tournament?.topicsPerParticipantMin ?? 6);
 const maxTopics = computed(() => props.tournament?.topicsPerParticipantMax ?? 10);
 const canAddMore = computed(() => assignedTopics.value.length < maxTopics.value);
+const realTopicsCount = computed(() => assignedTopics.value.filter((t) => !t.isPlaceholder).length);
+const maxPriorityNumber = computed(() => assignedTopics.value.findLastIndex((t) => !t.isPlaceholder) + 1);
+
+let placeholderCounter = 0;
+const createPlaceholder = () => ({
+  key: `placeholder-${placeholderCounter++}`,
+  isPlaceholder: true,
+});
+
+const toListItem = (dto) => ({
+  key: dto.topicId,
+  id: dto.id,
+  topicId: dto.topicId,
+  title: dto.topicTitle,
+});
+
+const buildListFromDtos = (dtos) => {
+  const sorted = [...dtos].sort((a, b) => a.priorityIndex - b.priorityIndex);
+  const items = [];
+  for (const dto of sorted) {
+    while (items.length < dto.priorityIndex) {
+      items.push(createPlaceholder());
+    }
+    items.push(toListItem(dto));
+  }
+  return items;
+};
 
 const topicsStatus = computed(() => {
-  const count = assignedTopics.value.length;
+  const count = maxPriorityNumber.value;
   if (isPlayerRole.value && count < minTopics.value) {
     return { severity: "warn", message: `${count}/${minTopics.value} topics (need ${minTopics.value - count} more)` };
   }
@@ -55,7 +82,7 @@ const topicsStatus = computed(() => {
 });
 
 const canSave = computed(() => {
-  const count = assignedTopics.value.length;
+  const count = realTopicsCount.value;
   const meetsMinRequirement = isPlayerRole.value ? count >= minTopics.value : true;
   return hasChanges.value && meetsMinRequirement && count <= maxTopics.value;
 });
@@ -94,12 +121,7 @@ const fetchAssignedTopics = async () => {
   try {
     const result = await tournamentTopicsService.getMyTopics(props.tournament.id);
     if (result.success) {
-      assignedTopics.value = result.data.map((t) => ({
-        id: t.id,
-        topicId: t.topicId,
-        title: t.topicTitle,
-        priorityIndex: t.priorityIndex,
-      }));
+      assignedTopics.value = buildListFromDtos(result.data);
     } else {
       error.value = typeof result.error === "string" ? result.error : "Failed to load assigned topics.";
     }
@@ -138,28 +160,29 @@ const addTopic = (event) => {
   if (!topic || !canAddMore.value) return;
 
   assignedTopics.value.push({
+    key: topic.id,
     id: null,
     topicId: topic.id,
     title: topic.title,
-    priorityIndex: assignedTopics.value.length,
   });
 
   searchQuery.value = "";
   hasChanges.value = true;
 };
 
+const addPlaceholder = () => {
+  if (!canAddMore.value) return;
+
+  assignedTopics.value.push(createPlaceholder());
+  hasChanges.value = true;
+};
+
 const removeTopic = (index) => {
   assignedTopics.value.splice(index, 1);
-  assignedTopics.value.forEach((t, i) => {
-    t.priorityIndex = i;
-  });
   hasChanges.value = true;
 };
 
 const onReorder = () => {
-  assignedTopics.value.forEach((t, i) => {
-    t.priorityIndex = i;
-  });
   hasChanges.value = true;
 };
 
@@ -170,20 +193,18 @@ const saveTopics = async () => {
   error.value = null;
 
   try {
-    const topicsToSave = assignedTopics.value.map((t, index) => ({
-      topicId: t.topicId,
-      priorityIndex: index,
-    }));
+    const topicsToSave = assignedTopics.value
+      .map((t, index) => ({ ...t, priorityIndex: index }))
+      .filter((t) => !t.isPlaceholder)
+      .map((t) => ({
+        topicId: t.topicId,
+        priorityIndex: t.priorityIndex,
+      }));
 
     const result = await tournamentTopicsService.setMyTopics(props.tournament.id, topicsToSave);
 
     if (result.success) {
-      assignedTopics.value = result.data.map((t) => ({
-        id: t.id,
-        topicId: t.topicId,
-        title: t.topicTitle,
-        priorityIndex: t.priorityIndex,
-      }));
+      assignedTopics.value = buildListFromDtos(result.data);
       hasChanges.value = false;
     } else {
       if (typeof result.error === "string") {
@@ -261,6 +282,17 @@ watch(
             </div>
           </template>
         </AutoComplete>
+        <Button
+          v-if="!isPlayerRole"
+          label="Add empty slot"
+          icon="pi pi-minus-circle"
+          severity="secondary"
+          outlined
+          @click="addPlaceholder"
+          :disabled="!canAddMore || isSaving"
+          v-tooltip.bottom="'Reserve a priority slot without a topic'"
+          class="shrink-0"
+        />
       </div>
 
       <p v-if="!canAddMore" class="text-sm text-amber-600 dark:text-amber-400 mt-2">
@@ -283,7 +315,7 @@ watch(
       <OrderList
         v-else
         v-model="assignedTopics"
-        dataKey="topicId"
+        dataKey="key"
         @reorder="onReorder"
         :metaKeySelection="true"
         :autoOptionFocus="false"
@@ -292,7 +324,13 @@ watch(
           <div class="flex items-center justify-between w-full py-1 px-2">
             <div class="flex items-center gap-2 flex-1 min-w-0">
               <span class="text-gray-400 font-mono text-xs w-5">{{ index + 1 }}.</span>
-              <span class="text-sm text-gray-900 dark:text-gray-100 truncate">{{ item.title }}</span>
+              <span
+                v-if="item.isPlaceholder"
+                class="text-sm text-gray-400 dark:text-gray-500 italic border border-dashed border-gray-300 dark:border-gray-600 rounded px-2 py-0.5"
+              >
+                Empty slot (skipped)
+              </span>
+              <span v-else class="text-sm text-gray-900 dark:text-gray-100 truncate">{{ item.title }}</span>
             </div>
             <Button
               icon="pi pi-times"
