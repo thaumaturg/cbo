@@ -246,7 +246,7 @@ watch(
           v-model="searchQuery"
           :suggestions="filteredTopics"
           @complete="searchTopics"
-          @item-select="addTopic"
+          @option-select="addTopic"
           optionLabel="title"
           placeholder="Search your topics..."
           class="flex-1"
