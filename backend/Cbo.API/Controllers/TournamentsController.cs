@@ -42,15 +42,15 @@ public partial class TournamentsController(
     [Authorize]
     public async Task<IActionResult> GetAll()
     {
-        ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
 
-        List<Tournament> tournamentsDomain = await _tournamentRepository.GetAllByUserIdAsync(currentUser.Id);
+        List<Tournament> tournamentsDomain = await _tournamentRepository.GetAllByUserIdAsync(currentUserId);
 
         List<GetTournamentDto> tournamentsDto = tournamentsDomain.Select(t => t.ToGetDto()).ToList();
 
         foreach (GetTournamentDto tournamentDto in tournamentsDto)
         {
-            TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUser.Id, tournamentDto.Id);
+            TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUserId, tournamentDto.Id);
             tournamentDto.CurrentUserRole = participant?.Role;
         }
 
@@ -71,11 +71,11 @@ public partial class TournamentsController(
         if (!authResult.Succeeded)
             return NotFound();
 
-        ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
 
         GetTournamentDto tournamentDto = tournamentDomain.ToGetDto();
 
-        TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUser.Id, id);
+        TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUserId, id);
         tournamentDto.CurrentUserRole = participant?.Role;
 
         return Ok(tournamentDto);
@@ -92,7 +92,7 @@ public partial class TournamentsController(
             return BadRequest($"Only {DefaultSettings.PlayersPerTournament} players per tournament is currently supported.");
         }
 
-        ApplicationUser creator = await _currentUserService.GetRequiredCurrentUserAsync();
+        Guid creatorId = _currentUserService.GetRequiredCurrentUserId();
 
         int playersPerTournament = createTournamentDto.PlayersPerTournament ?? DefaultSettings.PlayersPerTournament;
         int topicsPerParticipantMax = createTournamentDto.TopicsPerParticipantMax ?? DefaultSettings.TopicsPerParticipantMax;
@@ -108,7 +108,7 @@ public partial class TournamentsController(
         {
             Role = TournamentParticipantRole.Creator,
             PointsSum = null,
-            ApplicationUserId = creator.Id,
+            ApplicationUserId = creatorId,
         });
 
         tournamentDomain = await _tournamentRepository.CreateAsync(tournamentDomain);

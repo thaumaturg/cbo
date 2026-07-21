@@ -23,9 +23,9 @@ public partial class TournamentsController
         if (!authResult.Succeeded)
             return NotFound();
 
-        ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
 
-        TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUser.Id, tournamentId);
+        TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUserId, tournamentId);
 
         List<TournamentTopic> topicsDomain = await _tournamentTopicRepository.GetAllByParticipantIdAsync(tournamentId, participant!.Id);
         List<GetTournamentTopicDto> topicsDto = topicsDomain.Select(t => t.ToGetDto()).ToList();
@@ -65,9 +65,9 @@ public partial class TournamentsController
         if (!authResult.Succeeded)
             return NotFound();
 
-        ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
 
-        TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUser.Id, tournamentId);
+        TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUserId, tournamentId);
 
         bool isPlayer = participant?.Role == TournamentParticipantRole.Player;
         if (isPlayer && topicsDto.Count < tournament.TopicsPerParticipantMin)
@@ -123,8 +123,8 @@ public partial class TournamentsController
         if (topic is null)
             return NotFound();
 
-        ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
-        TopicAuthor? topicAuthor = topic.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUser.Id);
+        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
+        TopicAuthor? topicAuthor = topic.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUserId);
         bool isAuthor = topicAuthor?.IsAuthor ?? false;
         bool isPlayed = topic.Rounds.Count > 0;
 

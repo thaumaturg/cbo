@@ -29,13 +29,13 @@ public partial class TopicsController(
     [Authorize]
     public async Task<IActionResult> GetAll()
     {
-        ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
 
-        List<Topic> topicsDomain = await _topicRepository.GetAllByUserIdAsync(currentUser.Id);
+        List<Topic> topicsDomain = await _topicRepository.GetAllByUserIdAsync(currentUserId);
 
         List<GetTopicDto> topicsDto = topicsDomain.Select(topic =>
         {
-            TopicAuthor? topicAuthor = topic.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUser.Id);
+            TopicAuthor? topicAuthor = topic.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUserId);
             bool isAuthor = topicAuthor?.IsAuthor ?? false;
             bool isPlayed = topic.Rounds.Count > 0;
             return topic.ToGetDto(isPlayed, isAuthor);
@@ -58,9 +58,9 @@ public partial class TopicsController(
         if (!authResult.Succeeded)
             return NotFound();
 
-        ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
 
-        TopicAuthor? topicAuthor = topicDomain.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUser.Id);
+        TopicAuthor? topicAuthor = topicDomain.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUserId);
         bool isAuthor = topicAuthor?.IsAuthor ?? false;
         bool isPlayed = topicDomain.Rounds.Count > 0;
 
@@ -71,7 +71,7 @@ public partial class TopicsController(
     [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateTopicDto createTopicDto)
     {
-        ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
 
         Topic topicDomain = createTopicDto.ToDomain();
 
@@ -86,7 +86,7 @@ public partial class TopicsController(
         {
             IsOwner = true,
             IsAuthor = createTopicDto.IsAuthor,
-            ApplicationUserId = currentUser.Id,
+            ApplicationUserId = currentUserId,
             TopicId = Guid.Empty
         });
 
@@ -118,7 +118,7 @@ public partial class TopicsController(
         if (existingTopic.Rounds.Count > 0)
             return BadRequest("Cannot edit a topic that has already been played in a round.");
 
-        ApplicationUser currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
 
         var updateParameters = new UpdateTopicParameters
         {
@@ -140,7 +140,7 @@ public partial class TopicsController(
         Topic? updatedTopic;
         try
         {
-            updatedTopic = await _topicRepository.UpdateAsync(id, updateParameters, currentUser.Id);
+            updatedTopic = await _topicRepository.UpdateAsync(id, updateParameters, currentUserId);
         }
         catch (InvalidOperationException ex)
         {
@@ -150,7 +150,7 @@ public partial class TopicsController(
         if (updatedTopic is null)
             return NotFound();
 
-        TopicAuthor? topicAuthor = updatedTopic.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUser.Id);
+        TopicAuthor? topicAuthor = updatedTopic.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUserId);
         bool isAuthor = topicAuthor?.IsAuthor ?? false;
 
         return Ok(updatedTopic.ToGetDto(isPlayed: false, isAuthor));

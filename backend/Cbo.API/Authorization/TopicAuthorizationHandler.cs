@@ -1,28 +1,25 @@
+using System.Security.Claims;
 using Cbo.API.Models.Domain;
 using Cbo.API.Repositories;
-using Cbo.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 
 namespace Cbo.API.Authorization;
 
 public class TopicAuthorizationHandler(
-    ITopicAuthorRepository topicAuthorRepository,
-    ICurrentUserService currentUserService) : AuthorizationHandler<OperationAuthorizationRequirement, Topic>
+    ITopicAuthorRepository topicAuthorRepository) : AuthorizationHandler<OperationAuthorizationRequirement, Topic>
 {
     private readonly ITopicAuthorRepository _topicAuthorRepository = topicAuthorRepository;
-    private readonly ICurrentUserService _currentUserService = currentUserService;
 
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
         OperationAuthorizationRequirement requirement,
         Topic resource)
     {
-        ApplicationUser? user = await _currentUserService.GetCurrentUserAsync();
-        if (user is null)
+        if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId))
             return;
 
-        TopicAuthor? topicAuthor = await _topicAuthorRepository.GetByUserIdAndTopicIdAsync(user.Id, resource.Id);
+        TopicAuthor? topicAuthor = await _topicAuthorRepository.GetByUserIdAndTopicIdAsync(userId, resource.Id);
 
         if (requirement.Name == TopicOperations.Read.Name ||
             requirement.Name == TopicOperations.Update.Name ||

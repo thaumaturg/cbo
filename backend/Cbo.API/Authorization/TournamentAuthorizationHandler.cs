@@ -1,29 +1,26 @@
+using System.Security.Claims;
 using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Cbo.API.Repositories;
-using Cbo.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 
 namespace Cbo.API.Authorization;
 
 public class TournamentAuthorizationHandler(
-    ITournamentParticipantsRepository participantsRepository,
-    ICurrentUserService currentUserService) : AuthorizationHandler<OperationAuthorizationRequirement, Tournament>
+    ITournamentParticipantsRepository participantsRepository) : AuthorizationHandler<OperationAuthorizationRequirement, Tournament>
 {
     private readonly ITournamentParticipantsRepository _participantsRepository = participantsRepository;
-    private readonly ICurrentUserService _currentUserService = currentUserService;
 
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
         OperationAuthorizationRequirement requirement,
         Tournament resource)
     {
-        ApplicationUser? user = await _currentUserService.GetCurrentUserAsync();
-        if (user is null)
+        if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId))
             return;
 
-        TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(user.Id, resource.Id);
+        TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(userId, resource.Id);
 
         if (participant is null)
             return;

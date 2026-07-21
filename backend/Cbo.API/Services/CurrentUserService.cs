@@ -1,46 +1,30 @@
 using System.Security.Claims;
-using Cbo.API.Models.Domain;
-using Microsoft.AspNetCore.Identity;
 
 namespace Cbo.API.Services;
 
 public interface ICurrentUserService
 {
-    Task<ApplicationUser?> GetCurrentUserAsync();
-    Task<ApplicationUser> GetRequiredCurrentUserAsync();
+    Guid? GetCurrentUserId();
+    Guid GetRequiredCurrentUserId();
 }
 
-public class CurrentUserService(
-    IHttpContextAccessor httpContextAccessor,
-    UserManager<ApplicationUser> userManager) : ICurrentUserService
+public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICurrentUserService
 {
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
-    private readonly UserManager<ApplicationUser> _userManager = userManager;
-    private ApplicationUser? _cachedUser;
-    private bool _userResolved;
 
-    public async Task<ApplicationUser?> GetCurrentUserAsync()
+    public Guid? GetCurrentUserId()
     {
-        if (_userResolved)
-            return _cachedUser;
-
-        _userResolved = true;
-
         ClaimsPrincipal? user = _httpContextAccessor.HttpContext?.User;
         if (user?.Identity?.IsAuthenticated != true)
             return null;
 
-        string? userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId))
-            return null;
-
-        _cachedUser = await _userManager.FindByIdAsync(userId);
-        return _cachedUser;
+        return Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId)
+            ? userId
+            : null;
     }
 
-    public async Task<ApplicationUser> GetRequiredCurrentUserAsync()
+    public Guid GetRequiredCurrentUserId()
     {
-        ApplicationUser? user = await GetCurrentUserAsync();
-        return user ?? throw new UnauthorizedAccessException("Unable to identify the current user.");
+        return GetCurrentUserId() ?? throw new UnauthorizedAccessException("Unable to identify the current user.");
     }
 }
