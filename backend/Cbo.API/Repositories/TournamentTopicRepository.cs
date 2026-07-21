@@ -4,11 +4,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Cbo.API.Repositories;
 
-public class PostgresTournamentTopicRepository : ITournamentTopicRepository
+public interface ITournamentTopicRepository
+{
+    Task<List<TournamentTopic>> GetAllByParticipantIdAsync(Guid tournamentId, Guid participantId);
+    Task<List<TournamentTopic>> GetAllByTournamentIdAsync(Guid tournamentId);
+    Task<List<TournamentTopic>> GetAllByTournamentIdWithAuthorsAsync(Guid tournamentId);
+    Task<List<TournamentTopic>> SetTopicsForParticipantAsync(Guid tournamentId, Guid participantId, List<TournamentTopic> topics);
+}
+
+public class TournamentTopicRepository : ITournamentTopicRepository
 {
     private readonly CboDbContext _dbContext;
 
-    public PostgresTournamentTopicRepository(CboDbContext dbContext)
+    public TournamentTopicRepository(CboDbContext dbContext)
     {
         _dbContext = dbContext;
     }

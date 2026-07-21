@@ -4,11 +4,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Cbo.API.Repositories;
 
-public class PostgresMatchRepository : IMatchRepository
+public interface IMatchRepository
+{
+    Task<Match?> GetByIdAsync(Guid id);
+    Task<Match?> GetByIdWithDetailsAsync(Guid id);
+    Task<Match?> GetByIdWithParticipantsAsync(Guid id);
+    Task<List<Match>> GetAllByTournamentIdAsync(Guid tournamentId);
+    Task<List<Match>> CreateBulkAsync(List<Match> matches);
+    Task<Match?> GetByIdWithScoreDataAsync(Guid id);
+    Task UpdateMatchParticipantsAsync(List<MatchParticipant> participants);
+}
+
+public class MatchRepository : IMatchRepository
 {
     private readonly CboDbContext _dbContext;
 
-    public PostgresMatchRepository(CboDbContext dbContext)
+    public MatchRepository(CboDbContext dbContext)
     {
         _dbContext = dbContext;
     }

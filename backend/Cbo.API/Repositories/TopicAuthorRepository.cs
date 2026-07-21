@@ -4,11 +4,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Cbo.API.Repositories;
 
-public class PostgresTopicAuthorRepository : ITopicAuthorRepository
+public interface ITopicAuthorRepository
+{
+    Task<List<TopicAuthor>> GetAllByTopicIdAsync(Guid topicId);
+    Task<TopicAuthor?> GetByAuthorIdAndTopicIdAsync(Guid authorId, Guid topicId);
+    Task<TopicAuthor?> GetByUserIdAndTopicIdAsync(Guid userId, Guid topicId);
+    Task<TopicAuthor> CreateAsync(TopicAuthor topicAuthor);
+    Task<TopicAuthor?> DeleteAsync(Guid id);
+}
+
+public class TopicAuthorRepository : ITopicAuthorRepository
 {
     private readonly CboDbContext _dbContext;
 
-    public PostgresTopicAuthorRepository(CboDbContext dbContext)
+    public TopicAuthorRepository(CboDbContext dbContext)
     {
         _dbContext = dbContext;
     }

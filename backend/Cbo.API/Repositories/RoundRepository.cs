@@ -4,11 +4,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Cbo.API.Repositories;
 
-public class PostgresRoundRepository : IRoundRepository
+public interface IRoundRepository
+{
+    Task<Round?> GetByIdWithDetailsAsync(Guid id);
+    Task<List<Round>> GetAllByTournamentIdAsync(Guid tournamentId);
+    Task<Round?> GetByMatchIdAndNumberAsync(Guid matchId, int numberInMatch);
+    Task<Round> CreateAsync(Round round);
+    Task<Round?> DeleteAsync(Guid id);
+    Task DeleteAnswersByRoundIdAsync(Guid roundId);
+    Task CreateAnswersAsync(List<RoundAnswer> answers);
+}
+
+public class RoundRepository : IRoundRepository
 {
     private readonly CboDbContext _dbContext;
 
-    public PostgresRoundRepository(CboDbContext dbContext)
+    public RoundRepository(CboDbContext dbContext)
     {
         _dbContext = dbContext;
     }

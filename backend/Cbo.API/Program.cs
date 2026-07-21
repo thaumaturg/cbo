@@ -26,13 +26,13 @@ public class Program
         builder.Services.AddDbContext<CboDbContext>(options =>
             options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention());
 
-        builder.Services.AddScoped<ITournamentRepository, PostgresTournamentRepository>();
-        builder.Services.AddScoped<ITournamentParticipantsRepository, PostgresTournamentParticipantsRepository>();
-        builder.Services.AddScoped<ITournamentTopicRepository, PostgresTournamentTopicRepository>();
-        builder.Services.AddScoped<ITopicRepository, PostgresTopicRepository>();
-        builder.Services.AddScoped<ITopicAuthorRepository, PostgresTopicAuthorRepository>();
-        builder.Services.AddScoped<IMatchRepository, PostgresMatchRepository>();
-        builder.Services.AddScoped<IRoundRepository, PostgresRoundRepository>();
+        builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
+        builder.Services.AddScoped<ITournamentParticipantsRepository, TournamentParticipantsRepository>();
+        builder.Services.AddScoped<ITournamentTopicRepository, TournamentTopicRepository>();
+        builder.Services.AddScoped<ITopicRepository, TopicRepository>();
+        builder.Services.AddScoped<ITopicAuthorRepository, TopicAuthorRepository>();
+        builder.Services.AddScoped<IMatchRepository, MatchRepository>();
+        builder.Services.AddScoped<IRoundRepository, RoundRepository>();
         builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 
         builder.Services.AddScoped<IAuthorizationHandler, TopicAuthorizationHandler>();

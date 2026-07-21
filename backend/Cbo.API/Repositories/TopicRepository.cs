@@ -4,11 +4,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Cbo.API.Repositories;
 
-public class PostgresTopicRepository : ITopicRepository
+public interface ITopicRepository
+{
+    Task<List<Topic>> GetAllByUserIdAsync(Guid userId);
+    Task<Topic?> GetByIdAsync(Guid id);
+    Task<Topic?> GetByIdIncludeQuestionsAsync(Guid id);
+    Task<Topic> CreateAsync(Topic topic);
+    Task<Topic?> UpdateAsync(Guid id, UpdateTopicParameters parameters, Guid currentUserId);
+    Task<Topic?> DeleteAsync(Guid id);
+}
+
+public class TopicRepository : ITopicRepository
 {
     private readonly CboDbContext _dbContext;
 
-    public PostgresTopicRepository(CboDbContext dbContext)
+    public TopicRepository(CboDbContext dbContext)
     {
         _dbContext = dbContext;
     }

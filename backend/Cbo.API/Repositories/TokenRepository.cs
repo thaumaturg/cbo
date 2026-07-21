@@ -6,6 +6,11 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Cbo.API.Repositories;
 
+public interface ITokenRepository
+{
+    string CreateJWTToken(ApplicationUser user);
+}
+
 public class TokenRepository : ITokenRepository
 {
     private readonly IConfiguration _configuration;
