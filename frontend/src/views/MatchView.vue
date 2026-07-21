@@ -44,7 +44,7 @@ const canAddRound = computed(() => {
   return canEdit.value && roundStates.value.length < MAX_ROUNDS;
 });
 
-const expandedPanels = computed(() => roundStates.value.map((_, idx) => String(idx)));
+const expandedPanels = ref([]);
 
 const fetchData = async () => {
   isLoading.value = true;
@@ -75,6 +75,7 @@ const fetchData = async () => {
     }
 
     initializeRoundStates();
+    expandedPanels.value = roundStates.value.map((r) => String(r.numberInMatch));
   } catch (error) {
     console.error("Error fetching data:", error);
     loadError.value = "Failed to load data. Please try again.";
@@ -147,6 +148,9 @@ const addRound = () => {
   const nextNumber = getNextRoundNumber();
   if (nextNumber !== null) {
     roundStates.value.push(createEmptyRoundState(nextNumber));
+    if (!expandedPanels.value.includes(String(nextNumber))) {
+      expandedPanels.value = [...expandedPanels.value, String(nextNumber)];
+    }
   }
 };
 
@@ -371,11 +375,11 @@ onMounted(() => {
       </div>
 
       <!-- Rounds Accordion -->
-      <Accordion v-if="roundStates.length > 0" :multiple="true" :value="expandedPanels">
+      <Accordion v-if="roundStates.length > 0" :multiple="true" v-model:value="expandedPanels">
         <AccordionPanel
           v-for="(roundState, index) in roundStates"
           :key="roundState.numberInMatch"
-          :value="String(index)"
+          :value="String(roundState.numberInMatch)"
         >
           <AccordionHeader>
             <div class="flex items-center gap-3 w-full">
