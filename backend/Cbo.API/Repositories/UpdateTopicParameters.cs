@@ -16,7 +16,7 @@ public class UpdateTopicParameters
 /// </summary>
 public class UpdateQuestionParameters
 {
-    public required Guid Id { get; init; }
+    public required Guid? Id { get; init; }
     public required int QuestionNumber { get; init; }
     public required int CostPositive { get; init; }
     public required int CostNegative { get; init; }

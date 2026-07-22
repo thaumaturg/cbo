@@ -48,6 +48,7 @@ public class Program
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
         builder.Services.AddScoped<IMatchGenerationService, MatchGenerationService>();
         builder.Services.AddScoped<IRoundService, RoundService>();
+        builder.Services.AddScoped<ITopicValidationService, TopicValidationService>();
 
         builder.Services.AddControllers()
             .AddJsonOptions(options =>

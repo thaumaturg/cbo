@@ -17,13 +17,15 @@ public partial class TopicsController(
     ITopicAuthorRepository topicAuthorRepository,
     ICurrentUserService currentUserService,
     UserManager<ApplicationUser> userManager,
-    IAuthorizationService authorizationService) : ControllerBase
+    IAuthorizationService authorizationService,
+    ITopicValidationService topicValidationService) : ControllerBase
 {
     private readonly ITopicRepository _topicRepository = topicRepository;
     private readonly ITopicAuthorRepository _topicAuthorRepository = topicAuthorRepository;
     private readonly ICurrentUserService _currentUserService = currentUserService;
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly IAuthorizationService _authorizationService = authorizationService;
+    private readonly ITopicValidationService _topicValidationService = topicValidationService;
 
     [HttpGet]
     [Authorize]
@@ -71,6 +73,14 @@ public partial class TopicsController(
     [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateTopicDto createTopicDto)
     {
+        Dictionary<string, string[]> validationErrors = _topicValidationService.ValidateQuestions(
+            createTopicDto.Questions
+                .Select(q => new QuestionValidationModel(q.QuestionNumber, q.CostPositive, q.CostNegative, q.Text, q.Answer))
+                .ToList());
+
+        if (validationErrors.Count > 0)
+            return ValidationProblem(new ValidationProblemDetails(validationErrors));
+
         Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
 
         Topic topicDomain = createTopicDto.ToDomain();
@@ -107,6 +117,14 @@ public partial class TopicsController(
     [Authorize]
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateTopicDto updateTopicDto)
     {
+        Dictionary<string, string[]> validationErrors = _topicValidationService.ValidateQuestions(
+            updateTopicDto.Questions
+                .Select(q => new QuestionValidationModel(q.QuestionNumber, q.CostPositive, q.CostNegative, q.Text, q.Answer))
+                .ToList());
+
+        if (validationErrors.Count > 0)
+            return ValidationProblem(new ValidationProblemDetails(validationErrors));
+
         Topic? existingTopic = await _topicRepository.GetByIdAsync(id);
         if (existingTopic is null)
             return NotFound();

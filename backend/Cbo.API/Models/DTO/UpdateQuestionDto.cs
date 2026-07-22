@@ -2,7 +2,7 @@ namespace Cbo.API.Models.DTO;
 
 public record UpdateQuestionDto
 {
-    public required Guid Id { get; set; }
+    public Guid? Id { get; set; }
     public required int QuestionNumber { get; set; }
     public required int CostPositive { get; set; }
     public required int CostNegative { get; set; }

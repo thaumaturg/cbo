@@ -66,32 +66,52 @@ public class TopicRepository(CboDbContext dbContext) : ITopicRepository
         if (existingTopic is null)
             return null;
 
-        // Validate all existing question IDs are present
-        HashSet<Guid> incomingQuestionIds = parameters.Questions.Select(q => q.Id).ToHashSet();
         HashSet<Guid> existingQuestionIds = existingTopic.Questions.Select(q => q.Id).ToHashSet();
+        HashSet<Guid> incomingQuestionIds = parameters.Questions
+            .Where(q => q.Id.HasValue)
+            .Select(q => q.Id!.Value)
+            .ToHashSet();
 
-        List<Guid> missingIds = existingQuestionIds.Except(incomingQuestionIds).ToList();
-        if (missingIds.Count > 0)
+        List<Guid> unknownIds = incomingQuestionIds.Except(existingQuestionIds).ToList();
+        if (unknownIds.Count > 0)
         {
             throw new InvalidOperationException(
-                $"Incomplete update request. Missing question IDs: {string.Join(", ", missingIds)}. " +
-                $"PUT requires all existing questions to be included.");
+                $"Questions with IDs {string.Join(", ", unknownIds)} do not belong to this topic.");
         }
 
         existingTopic.Title = parameters.Title;
         existingTopic.Description = parameters.Description;
 
+        // Sync questions: delete absent, update matched, insert new (Id == null)
+        List<Question> questionsToRemove = existingTopic.Questions
+            .Where(q => !incomingQuestionIds.Contains(q.Id))
+            .ToList();
+        _dbContext.Questions.RemoveRange(questionsToRemove);
+
         foreach (UpdateQuestionParameters questionParam in parameters.Questions)
         {
-            Question? existingQuestion = existingTopic.Questions.FirstOrDefault(q => q.Id == questionParam.Id);
-            if (existingQuestion is not null)
+            if (questionParam.Id.HasValue)
             {
+                Question existingQuestion = existingTopic.Questions.First(q => q.Id == questionParam.Id.Value);
                 existingQuestion.QuestionNumber = questionParam.QuestionNumber;
                 existingQuestion.CostPositive = questionParam.CostPositive;
                 existingQuestion.CostNegative = questionParam.CostNegative;
                 existingQuestion.Text = questionParam.Text;
                 existingQuestion.Answer = questionParam.Answer;
                 existingQuestion.Comment = questionParam.Comment;
+            }
+            else
+            {
+                existingTopic.Questions.Add(new Question
+                {
+                    QuestionNumber = questionParam.QuestionNumber,
+                    CostPositive = questionParam.CostPositive,
+                    CostNegative = questionParam.CostNegative,
+                    Text = questionParam.Text,
+                    Answer = questionParam.Answer,
+                    Comment = questionParam.Comment,
+                    TopicId = existingTopic.Id
+                });
             }
         }
 

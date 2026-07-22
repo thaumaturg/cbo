@@ -33,25 +33,63 @@ const generalError = ref(null);
 const isLoading = ref(false);
 const questionErrors = ref({});
 
-const questions = ref([
-  { id: null, questionNumber: 1, costPositive: 10, costNegative: 10, text: "", answer: "", comment: "" },
-  { id: null, questionNumber: 2, costPositive: 20, costNegative: 20, text: "", answer: "", comment: "" },
-  { id: null, questionNumber: 3, costPositive: 30, costNegative: 30, text: "", answer: "", comment: "" },
-  { id: null, questionNumber: 4, costPositive: 40, costNegative: 40, text: "", answer: "", comment: "" },
-  { id: null, questionNumber: 5, costPositive: 50, costNegative: 50, text: "", answer: "", comment: "" },
-]);
+const TOPIC_LIMITS = {
+  questionsPerTopicMin: 1,
+  questionsPerTopicMax: 10,
+  questionsCostMin: -1000,
+  questionsCostMax: 1000,
+};
+
+const DEFAULT_QUESTION_COUNT = 5;
+
+const defaultCost = (questionNumber) => Math.min(questionNumber * 10, TOPIC_LIMITS.questionsCostMax);
+
+const createEmptyQuestion = (questionNumber) => ({
+  id: null,
+  questionNumber,
+  costPositive: defaultCost(questionNumber),
+  costNegative: defaultCost(questionNumber),
+  text: "",
+  answer: "",
+  comment: "",
+});
+
+const questions = ref(Array.from({ length: DEFAULT_QUESTION_COUNT }, (_, index) => createEmptyQuestion(index + 1)));
+
+const canAddQuestion = computed(() => questions.value.length < TOPIC_LIMITS.questionsPerTopicMax);
+const canRemoveQuestion = computed(() => questions.value.length > TOPIC_LIMITS.questionsPerTopicMin);
+
+const renumberQuestions = () => {
+  questions.value.forEach((question, index) => {
+    question.questionNumber = index + 1;
+  });
+};
+
+const addQuestion = () => {
+  if (!canAddQuestion.value) return;
+  questions.value.push(createEmptyQuestion(questions.value.length + 1));
+  questionErrors.value = {};
+};
+
+const removeQuestion = (index) => {
+  if (!canRemoveQuestion.value) return;
+  questions.value.splice(index, 1);
+  renumberQuestions();
+  questionErrors.value = {};
+};
 
 const isFormProcessing = computed(() => formStatus.value === "loading");
 
 const validateCostField = (value, fieldName) => {
+  const { questionsCostMin, questionsCostMax } = TOPIC_LIMITS;
   if (value === null || value === undefined || value === "") {
     return `${fieldName} is required`;
   }
-  if (value < -50) {
-    return `${fieldName} must be at least -50`;
+  if (value < questionsCostMin) {
+    return `${fieldName} must be at least ${questionsCostMin}`;
   }
-  if (value > 50) {
-    return `${fieldName} must be at most 50`;
+  if (value > questionsCostMax) {
+    return `${fieldName} must be at most ${questionsCostMax}`;
   }
   return null;
 };
@@ -123,19 +161,6 @@ const fetchTopicData = async () => {
           answer: q.answer,
           comment: q.comment || "",
         }));
-
-        while (questions.value.length < 5) {
-          const nextNum = questions.value.length + 1;
-          questions.value.push({
-            id: null,
-            questionNumber: nextNum,
-            costPositive: nextNum * 10,
-            costNegative: nextNum * 10,
-            text: "",
-            answer: "",
-            comment: "",
-          });
-        }
       }
     } else {
       notify.error("Load Failed", result.error || "Could not load topic data");
@@ -168,41 +193,45 @@ const handlePaste = (event) => {
 
   const firstRowCols = rows[0].length;
 
-  if (rows.length > 5) {
-    notify.warn("Too Many Rows", "Only the first 5 rows were imported");
-  }
-
-  const rowsToProcess = rows.slice(0, 5);
-
   if (firstRowCols !== 5 && firstRowCols !== 3) return;
 
-  rowsToProcess.forEach((row, index) => {
+  const maxQuestions = TOPIC_LIMITS.questionsPerTopicMax;
+  if (rows.length > maxQuestions) {
+    notify.warn("Too Many Rows", `Only the first ${maxQuestions} rows were imported`);
+  }
+
+  const rowsToProcess = rows.slice(0, maxQuestions);
+
+  questions.value = rowsToProcess.map((row, index) => {
     const existingId = questions.value[index]?.id || null;
+    const questionNumber = index + 1;
 
     if (firstRowCols === 5) {
       // Full format: costPositive, costNegative, question, answer, comment
-      questions.value[index] = {
+      return {
         id: existingId,
-        questionNumber: index + 1,
-        costPositive: parseInt(row[0]) || (index + 1) * 10,
-        costNegative: parseInt(row[1]) || (index + 1) * 10,
+        questionNumber,
+        costPositive: parseInt(row[0]) || defaultCost(questionNumber),
+        costNegative: parseInt(row[1]) || defaultCost(questionNumber),
         text: row[2]?.trim() || "",
         answer: row[3]?.trim() || "",
         comment: row[4]?.trim() || "",
       };
-    } else {
-      // Minimal format: question, answer, comment
-      questions.value[index] = {
-        id: existingId,
-        questionNumber: index + 1,
-        costPositive: (index + 1) * 10,
-        costNegative: (index + 1) * 10,
-        text: row[0]?.trim() || "",
-        answer: row[1]?.trim() || "",
-        comment: row[2]?.trim() || "",
-      };
     }
+
+    // Minimal format: question, answer, comment
+    return {
+      id: existingId,
+      questionNumber,
+      costPositive: defaultCost(questionNumber),
+      costNegative: defaultCost(questionNumber),
+      text: row[0]?.trim() || "",
+      answer: row[1]?.trim() || "",
+      comment: row[2]?.trim() || "",
+    };
   });
+
+  questionErrors.value = {};
 
   importSuccess(event);
 };
@@ -211,6 +240,14 @@ const importSuccess = (event) => {
   notify.success("Import Complete", "Questions pasted from clipboard");
 
   event.preventDefault();
+};
+
+const extractErrorMessage = (error) => {
+  if (typeof error === "string") return error;
+  if (error?.errors) {
+    return Object.values(error.errors).flat().join(" ");
+  }
+  return error?.title || "Failed to save topic. Please try again.";
 };
 
 const onInvalidSubmit = () => {
@@ -228,17 +265,15 @@ const onSubmit = async (values) => {
   generalError.value = null;
 
   try {
-    const questionsToSend = questions.value
-      .filter((q) => (isEditMode.value ? q.id : q.text.trim() && q.answer.trim()))
-      .map((q) => ({
-        ...(q.id && { id: q.id }),
-        questionNumber: q.questionNumber,
-        costPositive: q.costPositive,
-        costNegative: q.costNegative,
-        text: q.text.trim(),
-        answer: q.answer.trim(),
-        comment: q.comment?.trim() || null,
-      }));
+    const questionsToSend = questions.value.map((q) => ({
+      ...(q.id && { id: q.id }),
+      questionNumber: q.questionNumber,
+      costPositive: q.costPositive,
+      costNegative: q.costNegative,
+      text: q.text.trim(),
+      answer: q.answer.trim(),
+      comment: q.comment?.trim() || null,
+    }));
 
     const topicData = {
       title: values.title,
@@ -258,7 +293,7 @@ const onSubmit = async (values) => {
       }, 1000);
     } else {
       formStatus.value = "error";
-      generalError.value = result.error;
+      generalError.value = extractErrorMessage(result.error);
     }
   } catch {
     formStatus.value = "error";
@@ -337,7 +372,8 @@ const onSubmit = async (values) => {
           <p class="text-sm text-blue-700 dark:text-blue-300">
             <strong>Paste Format:</strong> Select cells in Google Sheets containing your questions (5 columns:
             CostPositive, CostNegative, Question, Answer, Comment) and paste here. Alternatively, use 3 columns:
-            Question, Answer, Comment - costs will be auto-generated.
+            Question, Answer, Comment - costs will be auto-generated. Pasting replaces the whole table (up to
+            {{ TOPIC_LIMITS.questionsPerTopicMax }} rows).
           </p>
         </div>
 
@@ -430,7 +466,36 @@ const onSubmit = async (values) => {
               <Textarea v-model="data.comment" class="w-full" placeholder="Optional comment" rows="3" autoResize />
             </template>
           </Column>
+
+          <Column style="width: 60px" class="text-center">
+            <template #body="{ index }">
+              <Button
+                type="button"
+                icon="pi pi-trash"
+                severity="danger"
+                text
+                rounded
+                aria-label="Remove question"
+                :disabled="!canRemoveQuestion || isFormProcessing"
+                @click="removeQuestion(index)"
+              />
+            </template>
+          </Column>
         </DataTable>
+
+        <div class="flex items-center justify-between mt-4">
+          <Button
+            type="button"
+            label="Add Question"
+            icon="pi pi-plus"
+            outlined
+            :disabled="!canAddQuestion || isFormProcessing"
+            @click="addQuestion"
+          />
+          <span class="text-sm text-gray-500 dark:text-gray-400">
+            {{ questions.length }} / {{ TOPIC_LIMITS.questionsPerTopicMax }} questions
+          </span>
+        </div>
       </div>
 
       <!-- Status Messages -->
