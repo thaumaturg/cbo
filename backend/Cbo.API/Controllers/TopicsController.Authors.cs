@@ -64,6 +64,9 @@ public partial class TopicsController
         if (!authResult.Succeeded)
             return NotFound();
 
+        if (topic.Rounds.Count > 0)
+            return BadRequest("Cannot modify authors of a topic that has already been played in a round.");
+
         ApplicationUser? user = await _userManager.FindByNameAsync(createAuthorDto.Username);
         if (user is null)
             return NotFound($"User with username '{createAuthorDto.Username}' not found.");
@@ -99,6 +102,9 @@ public partial class TopicsController
         AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, topic, TopicOperations.ManageAuthors);
         if (!authResult.Succeeded)
             return NotFound();
+
+        if (topic.Rounds.Count > 0)
+            return BadRequest("Cannot modify authors of a topic that has already been played in a round.");
 
         TopicAuthor? existingAuthor = await _topicAuthorRepository.GetByAuthorIdAndTopicIdAsync(id, topicId);
         if (existingAuthor is null)
