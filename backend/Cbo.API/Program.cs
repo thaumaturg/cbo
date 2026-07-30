@@ -8,6 +8,7 @@ using Cbo.API.Repositories;
 using Cbo.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -21,8 +22,17 @@ public class Program
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-        string connectionString = builder.Configuration.GetConnectionString("CboDb")
-            ?? throw new InvalidOperationException("Connection string" + "'CboDb' not found.");
+        string? connectionString = builder.Configuration.GetConnectionString("CboDb");
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException("Connection string 'CboDb' is missing or empty.");
+        }
+
+        string? jwtKey = builder.Configuration["Jwt:Key"];
+        if (string.IsNullOrWhiteSpace(jwtKey))
+        {
+            throw new InvalidOperationException("Configuration value 'Jwt:Key' is missing or empty.");
+        }
 
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<AuditSaveChangesInterceptor>();
@@ -88,12 +98,27 @@ public class Program
                     ValidIssuer = builder.Configuration["Jwt:Issuer"],
                     ValidAudiences = new[] { builder.Configuration["Jwt:Audience"] },
                     IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+                        Encoding.UTF8.GetBytes(jwtKey))
                 });
 
         WebApplication app = builder.Build();
 
-        app.UseHttpsRedirection();
+        ForwardedHeadersOptions forwardedHeadersOptions = new()
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+        };
+        forwardedHeadersOptions.KnownIPNetworks.Clear();
+        forwardedHeadersOptions.KnownProxies.Clear();
+        app.UseForwardedHeaders(forwardedHeadersOptions);
+
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseHttpsRedirection();
+        }
+        else
+        {
+            app.UseStaticFiles();
+        }
 
         app.UseRouting();
 
@@ -124,6 +149,11 @@ public class Program
         else
         {
             app.MapFallbackToFile("index.html");
+        }
+
+        using (IServiceScope scope = app.Services.CreateScope())
+        {
+            scope.ServiceProvider.GetRequiredService<CboDbContext>().Database.Migrate();
         }
 
         app.Run();
