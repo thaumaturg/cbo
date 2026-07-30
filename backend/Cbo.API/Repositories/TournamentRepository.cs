@@ -81,8 +81,20 @@ public class TournamentRepository(CboDbContext dbContext) : ITournamentRepositor
         if (existingTournament is null)
             return null;
 
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+
+        await _dbContext.RoundAnswers
+            .Where(ra => ra.Round.Match.TournamentId == id)
+            .ExecuteDeleteAsync();
+
+        await _dbContext.MatchParticipants
+            .Where(mp => mp.Match.TournamentId == id)
+            .ExecuteDeleteAsync();
+
         _dbContext.Tournaments.Remove(existingTournament);
         await _dbContext.SaveChangesAsync();
+
+        await transaction.CommitAsync();
 
         return existingTournament;
     }

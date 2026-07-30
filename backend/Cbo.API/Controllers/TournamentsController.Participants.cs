@@ -5,6 +5,8 @@ using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Cbo.API.Controllers;
 
@@ -155,7 +157,15 @@ public partial class TournamentsController
         if (existingParticipant is null)
             return NotFound();
 
-        TournamentParticipant? participantDomain = await _participantsRepository.DeleteAsync(id);
+        TournamentParticipant? participantDomain;
+        try
+        {
+            participantDomain = await _participantsRepository.DeleteAsync(id);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.ForeignKeyViolation })
+        {
+            return Conflict("This participant has already played in a match and cannot be removed.");
+        }
 
         if (participantDomain is null)
             return NotFound();

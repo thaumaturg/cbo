@@ -38,10 +38,11 @@ public class TournamentParticipantConfiguration : IEntityTypeConfiguration<Tourn
             .OnDelete(DeleteBehavior.Cascade);
 
         // One-to-many: TournamentParticipant -> MatchParticipants
+        // Restrict: removing a participant must not cascade-delete their match history
         entity.HasMany(tp => tp.MatchParticipants)
             .WithOne(mp => mp.TournamentParticipant)
             .HasForeignKey(mp => mp.TournamentParticipantId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         // One-to-many: TournamentParticipant -> TournamentTopics
         entity.HasMany(tp => tp.TournamentTopics)

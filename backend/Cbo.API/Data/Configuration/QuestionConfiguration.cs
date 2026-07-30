@@ -38,8 +38,10 @@ public class QuestionConfiguration : IEntityTypeConfiguration<Question>
             .OnDelete(DeleteBehavior.Cascade);
 
         // One-to-many: Question -> RoundAnswers
+        // Restrict: deleting a question must not cascade-delete given answers (played match data)
         entity.HasMany(q => q.RoundAnswers)
             .WithOne(ra => ra.Question)
-            .HasForeignKey(ra => ra.QuestionId);
+            .HasForeignKey(ra => ra.QuestionId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

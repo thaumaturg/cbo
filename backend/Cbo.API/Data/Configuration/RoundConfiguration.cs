@@ -29,10 +29,11 @@ public class RoundConfiguration : IEntityTypeConfiguration<Round>
             .OnDelete(DeleteBehavior.Cascade);
 
         // Many-to-one: Round -> Topic
+        // Restrict: a played topic must not cascade-delete its rounds (played match data)
         entity.HasOne(r => r.Topic)
             .WithMany(t => t.Rounds)
             .HasForeignKey(r => r.TopicId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         // One-to-many: Round -> RoundAnswers
         entity.HasMany(r => r.RoundAnswers)

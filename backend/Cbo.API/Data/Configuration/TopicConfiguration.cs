@@ -35,9 +35,10 @@ public class TopicConfiguration : IEntityTypeConfiguration<Topic>
             .OnDelete(DeleteBehavior.Cascade);
 
         // One-to-many: Topic -> Rounds
+        // Restrict: a played topic must not cascade-delete its rounds (played match data)
         entity.HasMany(t => t.Rounds)
             .WithOne(r => r.Topic)
             .HasForeignKey(r => r.TopicId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

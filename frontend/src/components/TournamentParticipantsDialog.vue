@@ -1,5 +1,6 @@
 <script setup>
 import { tournamentParticipantsService } from "@/services/tournament-participants-service.js";
+import { useNotify } from "@/utils/notify.js";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
@@ -20,6 +21,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:visible"]);
+
+const notify = useNotify();
 
 const newUsername = ref("");
 const newRole = ref("Player");
@@ -156,17 +159,18 @@ const handleDeleteParticipant = async (participant) => {
       if (index > -1) {
         participants.value.splice(index, 1);
       }
+      notify.success("Participant Removed", `"${participant.username}" removed from tournament`);
     } else {
+      let message = "Failed to remove participant. Please try again.";
       if (typeof result.error === "string") {
-        addError.value = result.error;
+        message = result.error;
       } else if (result.error?.title) {
-        addError.value = result.error.title;
-      } else {
-        addError.value = "Failed to remove participant. Please try again.";
+        message = result.error.title;
       }
+      notify.error("Remove Failed", message);
     }
   } catch (error) {
-    addError.value = "An unexpected error occurred. Please try again.";
+    notify.error("Remove Failed", "An unexpected error occurred. Please try again.");
     console.error("Error deleting participant:", error);
   }
 };

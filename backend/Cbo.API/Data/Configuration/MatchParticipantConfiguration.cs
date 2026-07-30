@@ -23,10 +23,11 @@ public class MatchParticipantConfiguration : IEntityTypeConfiguration<MatchParti
             .IsRequired(false);
 
         // Many-to-one: MatchParticipant -> TournamentParticipant
+        // Restrict: removing a participant must not cascade-delete their match history
         entity.HasOne(mp => mp.TournamentParticipant)
             .WithMany(tp => tp.MatchParticipants)
             .HasForeignKey(mp => mp.TournamentParticipantId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Many-to-one: MatchParticipant -> Match
         entity.HasOne(mp => mp.Match)
@@ -41,9 +42,10 @@ public class MatchParticipantConfiguration : IEntityTypeConfiguration<MatchParti
             .OnDelete(DeleteBehavior.Restrict);
 
         // One-to-many: MatchParticipant -> RoundAnswers
+        // Restrict: given answers (played match data) must not silently cascade away
         entity.HasMany(mp => mp.RoundAnswers)
             .WithOne(ra => ra.MatchParticipant)
             .HasForeignKey(ra => ra.MatchParticipantId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

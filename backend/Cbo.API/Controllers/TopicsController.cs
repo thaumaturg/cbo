@@ -7,6 +7,8 @@ using Cbo.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Cbo.API.Controllers;
 
@@ -188,9 +190,18 @@ public partial class TopicsController(
             return NotFound();
 
         if (existingTopic.Rounds.Count > 0)
-            return BadRequest("Cannot delete a topic that has already been played in a round.");
+            return Conflict("This topic has been played in a match and cannot be deleted.");
 
-        Topic? topicDomain = await _topicRepository.DeleteAsync(id);
+        Topic? topicDomain;
+        try
+        {
+            topicDomain = await _topicRepository.DeleteAsync(id);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.ForeignKeyViolation })
+        {
+            // Safety net for the race where the topic gets played between the check above and the delete
+            return Conflict("This topic has been played in a match and cannot be deleted.");
+        }
 
         if (topicDomain is null)
             return NotFound();

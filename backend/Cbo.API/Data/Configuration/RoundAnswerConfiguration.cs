@@ -29,15 +29,17 @@ public class RoundAnswerConfiguration : IEntityTypeConfiguration<RoundAnswer>
             .OnDelete(DeleteBehavior.Cascade);
 
         // Many-to-one: RoundAnswer -> Question
+        // Restrict: deleting a question must not cascade-delete given answers (played match data)
         entity.HasOne(ra => ra.Question)
             .WithMany(q => q.RoundAnswers)
             .HasForeignKey(ra => ra.QuestionId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Many-to-one: RoundAnswer -> MatchParticipant
+        // Restrict: given answers (played match data) must not silently cascade away
         entity.HasOne(ra => ra.MatchParticipant)
             .WithMany(mp => mp.RoundAnswers)
             .HasForeignKey(ra => ra.MatchParticipantId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
