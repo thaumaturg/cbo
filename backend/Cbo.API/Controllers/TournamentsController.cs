@@ -1,4 +1,5 @@
 using Cbo.API.Authorization;
+using Cbo.API.Data;
 using Cbo.API.Mappings;
 using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
@@ -24,7 +25,8 @@ public partial class TournamentsController(
     IMatchGenerationService matchGenerationService,
     IRoundService roundService,
     UserManager<ApplicationUser> userManager,
-    IAuthorizationService authorizationService) : ControllerBase
+    IAuthorizationService authorizationService,
+    CboDbContext dbContext) : ControllerBase
 {
     private readonly ITournamentRepository _tournamentRepository = tournamentRepository;
     private readonly ITournamentParticipantsRepository _participantsRepository = participantsRepository;
@@ -37,6 +39,7 @@ public partial class TournamentsController(
     private readonly IRoundService _roundService = roundService;
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly IAuthorizationService _authorizationService = authorizationService;
+    private readonly CboDbContext _dbContext = dbContext;
 
     [HttpGet]
     [Authorize]

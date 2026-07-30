@@ -4,6 +4,7 @@ using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Cbo.API.Controllers;
 
@@ -52,8 +53,20 @@ public partial class TournamentsController
             round.RoundAnswers.Add(answer);
         }
 
-        await _roundRepository.CreateAsync(round);
-        await _roundService.RecalculateMatchScoresAsync(matchId);
+        await using (IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync())
+        {
+            try
+            {
+                await _roundRepository.CreateAsync(round);
+                await _roundService.RecalculateMatchScoresAsync(matchId);
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
 
         Round? createdRound = await _roundRepository.GetByIdWithDetailsAsync(round.Id);
         if (createdRound is null)
@@ -108,14 +121,25 @@ public partial class TournamentsController
         if (answersValidationError is not null)
             return BadRequest(answersValidationError);
 
-        await _roundRepository.DeleteAnswersByRoundIdAsync(existingRound.Id);
-
         List<RoundAnswer> newAnswers = updateRoundDto.Answers
             .Select(a => a.ToNewRoundAnswer(existingRound.Id))
             .ToList();
 
-        await _roundRepository.CreateAnswersAsync(newAnswers);
-        await _roundService.RecalculateMatchScoresAsync(matchId);
+        await using (IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync())
+        {
+            try
+            {
+                await _roundRepository.DeleteAnswersByRoundIdAsync(existingRound.Id);
+                await _roundRepository.CreateAnswersAsync(newAnswers);
+                await _roundService.RecalculateMatchScoresAsync(matchId);
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
 
         Round? updatedRound = await _roundRepository.GetByIdWithDetailsAsync(existingRound.Id);
         if (updatedRound is null)
@@ -157,8 +181,20 @@ public partial class TournamentsController
         if (existingRound is null)
             return NotFound($"Round {roundNumber} not found for this match.");
 
-        await _roundRepository.DeleteAsync(existingRound.Id);
-        await _roundService.RecalculateMatchScoresAsync(matchId);
+        await using (IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync())
+        {
+            try
+            {
+                await _roundRepository.DeleteAsync(existingRound.Id);
+                await _roundService.RecalculateMatchScoresAsync(matchId);
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
 
         return NoContent();
     }
