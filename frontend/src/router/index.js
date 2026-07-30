@@ -1,6 +1,7 @@
 import { useAuthStore } from "@/stores/auth.js";
 import HomeView from "@/views/HomeView.vue";
 import MatchView from "@/views/MatchView.vue";
+import ProfileView from "@/views/ProfileView.vue";
 import TopicView from "@/views/TopicView.vue";
 import TournamentView from "@/views/TournamentView.vue";
 import { createRouter, createWebHistory } from "vue-router";
@@ -12,6 +13,12 @@ const router = createRouter({
       path: "/",
       name: "home",
       component: HomeView,
+    },
+    {
+      path: "/profile",
+      name: "profile",
+      component: ProfileView,
+      meta: { requiresAuth: true },
     },
     {
       path: "/topics/new",

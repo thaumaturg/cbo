@@ -30,7 +30,9 @@ const handleLogout = () => {
         <Button label="Login/Register" severity="primary" outlined @click="toggleAuthModal" />
       </div>
       <div v-else class="flex items-center gap-3">
-        <span class="text-xl font-bold">{{ authStore.userName }}</span>
+        <RouterLink :to="{ name: 'profile' }" class="text-xl font-bold hover:underline" v-tooltip.bottom="'Profile'">
+          {{ authStore.userName }}
+        </RouterLink>
         <Button label="Logout" severity="secondary" outlined rounded @click="handleLogout" class="p-2" />
       </div>
     </template>

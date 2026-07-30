@@ -66,6 +66,30 @@ export const authService = {
     }
   },
 
+  /**
+   * Change the current user's password
+   * @param {Object} passwordData - Password change data
+   * @param {string} passwordData.currentPassword - Current password
+   * @param {string} passwordData.newPassword - New password
+   * @returns {Promise} - Change password response
+   */
+  async changePassword(passwordData) {
+    try {
+      await api.post("/Auth/ChangePassword", {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      });
+      return { success: true };
+    } catch (error) {
+      const problemErrors = error.response?.data?.errors;
+      const messages = problemErrors ? Object.values(problemErrors).flat() : [];
+      return {
+        success: false,
+        error: messages.length > 0 ? messages.join(" ") : "Password change failed. Please try again.",
+      };
+    }
+  },
+
   logout() {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("user_data");

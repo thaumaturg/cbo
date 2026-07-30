@@ -15,6 +15,10 @@ export default {
     defineRule("max_value", max_value);
     defineRule("regex", regex);
     defineRule("confirmed", confirmed);
+    defineRule("different", (value, [target]) => {
+      if (!value) return true;
+      return value !== target;
+    });
     defineRule("password_chars", (value) => {
       if (!value) return true;
       return /^[A-Za-z0-9!@#$%^&*]+$/.test(value);
@@ -41,6 +45,7 @@ export default {
           username_chars: "Latin letters, numbers, and underscores",
           password_chars: "Latin letters, numbers, !@#$%^&*",
           confirmed: "Passwords do not match",
+          different: "Must be different from the current password",
           latin_cyrillic_latvian: "Only English, Russian, and Latvian letters are allowed",
         };
         return messages[ctx.rule.name] ? messages[ctx.rule.name] : "Field is invalid";
