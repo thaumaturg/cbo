@@ -1,26 +1,58 @@
-# 🚧 Under Construction 🚧
-
 # Competitive Bracket Organizer
+
+**Live at [brackets.icu](https://brackets.icu)**
 
 ## Setup
 
 ### Prerequisites
 
-- [.NET 9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0) or later
-- [Node.js](https://nodejs.org/) (version 18 or later)
-- [PostgreSQL](https://www.postgresql.org/download/) database server
+- [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) or later
+- [Node.js](https://nodejs.org/) (version 22 or later)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (runs the PostgreSQL database)
 
-### Backend Configuration
+### Environment Configuration
 
-1. Copy `backend/Cbo.API/appsettings.Development.json` and update the `CboDb` connection string with your PostgreSQL credentials if needed:
-   ```json
-   {
-     "ConnectionStrings": {
-       "CboDb": "Host=localhost; Port=5432; Database=cbo_db; Username=postgres; Password=yourpassword; TimeZone=UTC"
-     }
-   }
+1. Copy `.env.example` to `.env` (gitignored) in the repo root and fill in local values:
+   - `DOMAIN=http://localhost`
+   - `POSTGRES_PASSWORD` - any password; it initializes the database volume on first start and must match the backend connection string in step 3
+   - `JWT_KEY` — any random 64+ character string
+   - `JWT_ISSUER` / `JWT_AUDIENCE` — e.g. `http://localhost:8080`
+
+2. Copy `compose.override.yaml.example` to `compose.override.yaml` (gitignored). It publishes the database and API container ports on localhost for local development. Servers skip this step, keeping those ports internal.
+
+3. Create `frontend/.env.local` (gitignored) with your PrimeVue license key, or an empty value if you have none (see `frontend/.env` for the expected variables):
+
    ```
-2. No need to ensure the target database (`cbo_db` by default) exists in your PostgreSQL instance - Entity Framework will handle creation.
+   VITE_PRIMEUI_LICENSE_KEY=your-key-here
+   ```
+
+4. Create `backend/Cbo.API/appsettings.Development.json` (gitignored)
+
+- connection string password should match `POSTGRES_PASSWORD`
+- JWT settings (see the tracked `appsettings.json` for all expected keys)
+
+```json
+{
+  "ConnectionStrings": {
+    "CboDb": "Host=localhost; Port=5432; Database=cbo_db; Username=postgres; Password=yourpassword; TimeZone=UTC"
+  },
+  "Jwt": {
+    "Key": "any random 64+ character string",
+    "Issuer": "https://localhost:7053",
+    "Audience": "https://localhost:7053"
+  }
+}
+```
+
+### Database
+
+The database runs in Docker and is published on `localhost:5432` for local development:
+
+```bash
+docker compose up -d db
+```
+
+No need to create the `cbo_db` database. Entity Framework applies migrations (and creates the database) automatically on API startup.
 
 ### Database Migrations
 
@@ -92,6 +124,20 @@ When both backend and frontend are running:
 
 - Navigate to `https://localhost:7053` in your browser
 - The backend is configured to proxy non-API requests to the Vue dev server during development
-- The frontend makes API calls to relative URLs (e.g., `/api/WeatherForecast`) which are automatically routed to the backend
+- The frontend makes API calls to relative URLs (e.g., `/api/tournaments`) which are automatically routed to the backend
 - Hot reload is enabled for both frontend (Vite) and backend (.NET)
 - The application will run entirely over HTTPS
+
+### Full Stack in Docker (production-like)
+
+SPA and API baked into one image, behind the Caddy reverse proxy run:
+
+```bash
+docker compose up -d --build
+```
+
+The app is served at `http://localhost` (through Caddy) and `http://localhost:8080` (API container directly). The same database container and data are used as in local development.
+
+## Deployment
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the step-by-step guide
