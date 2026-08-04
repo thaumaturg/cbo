@@ -1,0 +1,5 @@
+# DOMAIN comes from .env; real domains get automatic Let's Encrypt TLS,
+# DOMAIN=http://localhost serves plain HTTP for local testing.
+{$DOMAIN} {
+	reverse_proxy api:8080
+}

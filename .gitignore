@@ -344,11 +344,17 @@ web_modules/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variable files (.env is committed as documentation of expected variables)
+# dotenv environment variable files (frontend/.env is committed as documentation of expected variables)
 .env.development.local
 .env.test.local
 .env.production.local
 .env.local
+
+# Root .env holds real secrets for Docker Compose (.env.example is the committed template)
+/.env
+
+# Local-only Compose override (compose.override.yaml.example is the committed template)
+/compose.override.yaml
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache

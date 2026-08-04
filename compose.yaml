@@ -1,0 +1,63 @@
+# Production stack for single-VPS deployment; see docs/DEPLOYMENT.md.
+# For local dev conveniences, copy compose.override.yaml.example to
+# compose.override.yaml (gitignored); Compose merges it in automatically.
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cbo_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cbo_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      secrets:
+        - frontend-env
+    restart: unless-stopped
+    environment:
+      # '__' is .NET's separator for nested configuration keys
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__CboDb: "Host=db; Port=5432; Database=cbo_db; Username=postgres; Password=${POSTGRES_PASSWORD:?}; TimeZone=UTC"
+      Jwt__Key: ${JWT_KEY:?set JWT_KEY in .env}
+      Jwt__Issuer: ${JWT_ISSUER:?set JWT_ISSUER in .env}
+      Jwt__Audience: ${JWT_AUDIENCE:?set JWT_AUDIENCE in .env}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Persistent cert storage, so certificates are not re-issued on recreate
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
+
+# Consumed only by the frontend build step (see Dockerfile); must exist to build
+secrets:
+  frontend-env:
+    file: frontend/.env.local
