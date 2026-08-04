@@ -1,0 +1,29 @@
+# Build artifacts
+**/bin
+**/obj
+**/node_modules
+frontend/dist
+
+# VCS / IDE
+.git
+.github
+.vs
+.vscode
+**/*.user
+
+# Local secrets and dev-only files
+**/appsettings.Development.json
+frontend/.env.local
+frontend/localhost.crt
+frontend/localhost.key
+frontend/localhost.pfx
+
+# Docker/deploy files themselves
+Dockerfile
+.dockerignore
+compose.yaml
+compose.override.yaml
+compose.override.yaml.example
+Caddyfile
+.env
+.env.example
