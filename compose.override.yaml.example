@@ -1,6 +1,9 @@
-# Local-dev overrides. Copy to compose.override.yaml (gitignored), which Compose
-# merges into compose.yaml automatically. Servers never have the copy, so plain
-# `docker compose up -d` stays production-shaped there (see docs/DEPLOYMENT.md).
+# Loopback-only port publishes. Copy to compose.override.yaml (gitignored),
+# which Compose merges into compose.yaml automatically. Used in two places:
+# local development (db access for `dotnet run` and pgAdmin, direct API access),
+# and optionally on the server for pgAdmin over an SSH tunnel (see
+# docs/DEPLOYMENT.md). Without the copy, `docker compose up -d` stays fully
+# production-shaped: no ports published except Caddy's 80/443.
 
 services:
   db:

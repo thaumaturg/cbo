@@ -13,10 +13,11 @@
 ### Environment Configuration
 
 1. Copy `.env.example` to `.env` (gitignored) in the repo root and fill in local values:
-   - `DOMAIN=http://localhost`
-   - `POSTGRES_PASSWORD` - any password; it initializes the database volume on first start and must match the backend connection string in step 3
-   - `JWT_KEY` — any random 64+ character string
-   - `JWT_ISSUER` / `JWT_AUDIENCE` — e.g. `http://localhost:8080`
+
+- `DOMAIN` (your domain, for local development `http://localhost`)
+- `POSTGRES_PASSWORD` (any password, can generate one: `openssl rand -base64 24` _it initializes the database volume on first start and must match the backend connection string in step 3_)
+- `JWT_KEY` (any random 64+ character string, can generate one: `openssl rand -hex 64`)
+- `JWT_ISSUER` / `JWT_AUDIENCE` (your URL, for local development e.g. `http://localhost:8080`)
 
 2. Copy `compose.override.yaml.example` to `compose.override.yaml` (gitignored). It publishes the database and API container ports on localhost for local development. Servers skip this step, keeping those ports internal.
 
