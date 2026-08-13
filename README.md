@@ -15,7 +15,7 @@
 1. Copy `.env.example` to `.env` (gitignored) in the repo root and fill in local values:
 
 - `DOMAIN` (your domain, for local development `http://localhost`)
-- `POSTGRES_PASSWORD` (any password, can generate one: `openssl rand -base64 24` _it initializes the database volume on first start and must match the backend connection string in step 3_)
+- `POSTGRES_PASSWORD` (any password, can generate one: `openssl rand -base64 24` _it initializes the database volume on first start and must match the backend connection string in step 4_)
 - `JWT_KEY` (any random 64+ character string, can generate one: `openssl rand -hex 64`)
 - `JWT_ISSUER` / `JWT_AUDIENCE` (your URL, for local development e.g. `http://localhost:8080`)
 
@@ -98,7 +98,7 @@ From the root directory:
 ```bash
 cd backend/Cbo.API
 dotnet build
-dotnet run
+dotnet run --launch-profile https
 ```
 
 The API will be available at:
