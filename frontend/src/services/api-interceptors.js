@@ -47,7 +47,6 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 && !isAuthRequest(error.config)) {
       localStorage.removeItem("auth_token");
-      localStorage.removeItem("user_data");
       handleSessionExpired();
     }
     return Promise.reject(error);
