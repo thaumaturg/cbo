@@ -78,7 +78,7 @@ const onChangePasswordSubmit = async (values, { resetForm }) => {
               <VeeField
                 name="currentPassword"
                 label="Current password"
-                rules="required|password_chars|min:8|max:64"
+                rules="required|min:8|max:64"
                 v-slot="{ field, value }"
               >
                 <Password
@@ -105,7 +105,7 @@ const onChangePasswordSubmit = async (values, { resetForm }) => {
               <VeeField
                 name="newPassword"
                 label="New password"
-                rules="required|password_chars|min:8|max:64|different:@currentPassword"
+                rules="required|min:8|max:64|different:@currentPassword"
                 v-slot="{ field, value }"
               >
                 <Password
@@ -132,7 +132,7 @@ const onChangePasswordSubmit = async (values, { resetForm }) => {
               <VeeField
                 name="repeatNewPassword"
                 label="Repeat new password"
-                rules="required|password_chars|confirmed:@newPassword"
+                rules="required|confirmed:@newPassword"
                 v-slot="{ field, value }"
               >
                 <Password

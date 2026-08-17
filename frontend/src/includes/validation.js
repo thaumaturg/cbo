@@ -19,10 +19,6 @@ export default {
       if (!value) return true;
       return value !== target;
     });
-    defineRule("password_chars", (value) => {
-      if (!value) return true;
-      return /^[A-Za-z0-9!@#$%^&*]+$/.test(value);
-    });
     defineRule("username_chars", (value) => {
       if (!value) return true;
       return /^[A-Za-z0-9_]+$/.test(value);
@@ -43,7 +39,6 @@ export default {
           min_value: `Must be at least ${ctx.rule?.params?.[0]}`,
           max_value: `Must be at most ${ctx.rule?.params?.[0]}`,
           username_chars: "Latin letters, numbers, and underscores",
-          password_chars: "Latin letters, numbers, !@#$%^&*",
           confirmed: "Passwords do not match",
           different: "Must be different from the current password",
           latin_cyrillic_latvian: "Only English, Russian, and Latvian letters are allowed",
