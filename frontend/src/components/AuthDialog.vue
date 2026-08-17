@@ -5,7 +5,7 @@ import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Message from "primevue/message";
-import Password from "primevue/password";
+import PasswordField from "@/components/PasswordField.vue";
 import Tab from "primevue/tab";
 import TabList from "primevue/tablist";
 import TabPanel from "primevue/tabpanel";
@@ -128,14 +128,7 @@ const onRegisterSubmit = async (values) => {
                   rules="required|min:8|max:64"
                   v-slot="{ field }"
                 >
-                  <Password
-                    v-bind="field"
-                    inputId="loginPassword"
-                    class="flex-auto"
-                    :feedback="false"
-                    toggleMask
-                    autocomplete="off"
-                  />
+                  <PasswordField v-bind="field" id="loginPassword" class="flex-auto" autocomplete="off" />
                 </VeeField>
               </div>
               <ErrorMessage name="loginPassword" v-slot="{ message }">
@@ -223,14 +216,7 @@ const onRegisterSubmit = async (values) => {
                   rules="required|min:8|max:64"
                   v-slot="{ field }"
                 >
-                  <Password
-                    v-bind="field"
-                    inputId="registerPassword"
-                    class="flex-auto"
-                    :feedback="false"
-                    toggleMask
-                    autocomplete="off"
-                  />
+                  <PasswordField v-bind="field" id="registerPassword" class="flex-auto" autocomplete="off" />
                 </VeeField>
               </div>
               <ErrorMessage name="registerPassword" v-slot="{ message }">
@@ -248,14 +234,7 @@ const onRegisterSubmit = async (values) => {
                   rules="required|confirmed:@registerPassword"
                   v-slot="{ field }"
                 >
-                  <Password
-                    v-bind="field"
-                    inputId="registerRepeatPassword"
-                    class="flex-auto"
-                    :feedback="false"
-                    toggleMask
-                    autocomplete="off"
-                  />
+                  <PasswordField v-bind="field" id="registerRepeatPassword" class="flex-auto" autocomplete="off" />
                 </VeeField>
               </div>
               <ErrorMessage name="registerRepeatPassword" v-slot="{ message }">

@@ -6,7 +6,7 @@ import Button from "primevue/button";
 import Card from "primevue/card";
 import InputText from "primevue/inputtext";
 import Message from "primevue/message";
-import Password from "primevue/password";
+import PasswordField from "@/components/PasswordField.vue";
 import Toast from "primevue/toast";
 import { ref } from "vue";
 
@@ -81,14 +81,11 @@ const onChangePasswordSubmit = async (values, { resetForm }) => {
                 rules="required|min:8|max:64"
                 v-slot="{ field, value }"
               >
-                <Password
+                <PasswordField
                   v-bind="field"
                   :model-value="value"
-                  inputId="currentPassword"
+                  id="currentPassword"
                   class="flex-auto"
-                  fluid
-                  :feedback="false"
-                  toggleMask
                   autocomplete="current-password"
                 />
               </VeeField>
@@ -108,14 +105,11 @@ const onChangePasswordSubmit = async (values, { resetForm }) => {
                 rules="required|min:8|max:64|different:@currentPassword"
                 v-slot="{ field, value }"
               >
-                <Password
+                <PasswordField
                   v-bind="field"
                   :model-value="value"
-                  inputId="newPassword"
+                  id="newPassword"
                   class="flex-auto"
-                  fluid
-                  :feedback="false"
-                  toggleMask
                   autocomplete="new-password"
                 />
               </VeeField>
@@ -135,14 +129,11 @@ const onChangePasswordSubmit = async (values, { resetForm }) => {
                 rules="required|confirmed:@newPassword"
                 v-slot="{ field, value }"
               >
-                <Password
+                <PasswordField
                   v-bind="field"
                   :model-value="value"
-                  inputId="repeatNewPassword"
+                  id="repeatNewPassword"
                   class="flex-auto"
-                  fluid
-                  :feedback="false"
-                  toggleMask
                   autocomplete="new-password"
                 />
               </VeeField>
