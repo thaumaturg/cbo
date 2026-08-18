@@ -203,7 +203,8 @@ public partial class TournamentsController(
 
         List<TournamentParticipant> players = allParticipants
             .Where(p => p.Role == TournamentParticipantRole.Player)
-            .OrderBy(p => p.Id)
+            .OrderBy(p => p.Seed ?? int.MaxValue)
+            .ThenBy(p => p.Id)
             .ToList();
 
         if (players.Count != existingTournament.PlayersPerTournament)

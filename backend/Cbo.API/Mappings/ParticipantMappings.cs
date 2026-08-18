@@ -16,6 +16,7 @@ public static class ParticipantMappings
             Id = participant.Id,
             Username = participant.ApplicationUser?.UserName ?? string.Empty,
             Role = participant.Role,
+            Seed = participant.Seed,
             ScoreSum = participant.ScoreSum,
             PointsSum = participant.PointsSum,
             TopicsCount = participant.TournamentTopics.Count,

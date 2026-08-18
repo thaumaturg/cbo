@@ -90,6 +90,9 @@ public partial class TournamentsController
 
         TournamentParticipant participantDomain = createParticipantDto.ToNewParticipant(tournamentId, user.Id);
 
+        if (createParticipantDto.Role == TournamentParticipantRole.Player)
+            participantDomain.Seed = await GetNextPlayerSeedAsync(tournamentId);
+
         participantDomain = await _participantsRepository.CreateAsync(participantDomain);
 
         GetTournamentParticipantDto participantDto = participantDomain.ToGetDto();
@@ -125,9 +128,19 @@ public partial class TournamentsController
                 return BadRequest($"Tournament can have at most {DefaultSettings.OrganizersPerTournamentMax} organizers.");
         }
 
+        bool becomesPlayer = updateParticipantDto.Role == TournamentParticipantRole.Player && existingParticipant.Role != TournamentParticipantRole.Player;
+        bool leavesPlayerRole = updateParticipantDto.Role != TournamentParticipantRole.Player && existingParticipant.Role == TournamentParticipantRole.Player;
+
+        int? seed = existingParticipant.Seed;
+        if (becomesPlayer)
+            seed = await GetNextPlayerSeedAsync(tournamentId);
+        else if (updateParticipantDto.Role != TournamentParticipantRole.Player)
+            seed = null;
+
         var updateParameters = new Repositories.UpdateTournamentParticipantParameters
         {
-            Role = updateParticipantDto.Role
+            Role = updateParticipantDto.Role,
+            Seed = seed
         };
 
         TournamentParticipant? updatedParticipant = await _participantsRepository.UpdateAsync(id, updateParameters);
@@ -135,9 +148,41 @@ public partial class TournamentsController
         if (updatedParticipant is null)
             return NotFound();
 
+        if (leavesPlayerRole)
+            await CompactPlayerSeedsAsync(tournamentId);
+
         GetTournamentParticipantDto participantDto = updatedParticipant.ToGetDto();
 
         return Ok(participantDto);
+    }
+
+    [HttpPut]
+    [Route("{tournamentId:guid}/participants/seeding")]
+    [Authorize]
+    public async Task<IActionResult> UpdateParticipantsSeeding([FromRoute] Guid tournamentId, [FromBody] UpdateParticipantsSeedingDto seedingDto)
+    {
+        Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
+        if (tournament is null)
+            return NotFound();
+
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, tournament, TournamentOperations.ManageParticipants);
+        if (!authResult.Succeeded)
+            return NotFound();
+
+        if (tournament.CurrentStage != TournamentStage.Preparations)
+            return BadRequest("Seeding can only be changed during the Preparations stage.");
+
+        List<TournamentParticipant> players = await _participantsRepository.GetAllByTournamentIdAsync(tournamentId, TournamentParticipantRole.Player);
+
+        HashSet<Guid> playerIds = players.Select(p => p.Id).ToHashSet();
+        if (seedingDto.OrderedParticipantIds.Count != playerIds.Count || !playerIds.SetEquals(seedingDto.OrderedParticipantIds))
+            return BadRequest("Seeding must contain each player of the tournament exactly once.");
+
+        List<TournamentParticipant> reseededPlayers = await _participantsRepository.UpdateSeedsAsync(tournamentId, seedingDto.OrderedParticipantIds);
+
+        List<GetTournamentParticipantDto> playersDto = reseededPlayers.Select(p => p.ToGetDto()).ToList();
+
+        return Ok(playersDto);
     }
 
     [HttpDelete]
@@ -170,6 +215,36 @@ public partial class TournamentsController
         if (participantDomain is null)
             return NotFound();
 
+        if (participantDomain.Role == TournamentParticipantRole.Player)
+            await CompactPlayerSeedsAsync(tournamentId);
+
         return NoContent();
+    }
+
+    /// <summary>
+    /// Returns the seed for a newly added player: one past the highest seed currently taken.
+    /// </summary>
+    private async Task<int> GetNextPlayerSeedAsync(Guid tournamentId)
+    {
+        List<TournamentParticipant> players = await _participantsRepository.GetAllByTournamentIdAsync(tournamentId, TournamentParticipantRole.Player);
+
+        return players.Count == 0 ? 1 : players.Max(p => p.Seed ?? 0) + 1;
+    }
+
+    /// <summary>
+    /// Renumbers player seeds to a contiguous 1..N sequence, preserving the current order.
+    /// Used after a player leaves the seeding (removed or demoted to another role).
+    /// </summary>
+    private async Task CompactPlayerSeedsAsync(Guid tournamentId)
+    {
+        List<TournamentParticipant> players = await _participantsRepository.GetAllByTournamentIdAsync(tournamentId, TournamentParticipantRole.Player);
+
+        List<Guid> orderedIds = players
+            .OrderBy(p => p.Seed ?? int.MaxValue)
+            .ThenBy(p => p.Id)
+            .Select(p => p.Id)
+            .ToList();
+
+        await _participantsRepository.UpdateSeedsAsync(tournamentId, orderedIds);
     }
 }

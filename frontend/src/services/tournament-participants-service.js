@@ -21,6 +21,26 @@ export const tournamentParticipantsService = {
   },
 
   /**
+   * Update player seeding (bracket order) for a tournament
+   * @param {string} tournamentId - Tournament ID (GUID)
+   * @param {string[]} orderedParticipantIds - Player participant IDs in the desired seeding order
+   * @returns {Promise} - API response with the reseeded players list
+   */
+  async updateSeeding(tournamentId, orderedParticipantIds) {
+    try {
+      const response = await api.put(`/Tournaments/${tournamentId}/participants/seeding`, {
+        orderedParticipantIds,
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data || "Failed to update seeding. Please try again.",
+      };
+    }
+  },
+
+  /**
    * Get participant by ID
    * @param {string} tournamentId - Tournament ID (GUID)
    * @param {string} participantId - Participant ID (GUID)

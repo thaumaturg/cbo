@@ -6,6 +6,7 @@ public class TournamentParticipant
 {
     public Guid Id { get; set; }
     public required TournamentParticipantRole Role { get; set; }
+    public int? Seed { get; set; }
     public int? ScoreSum { get; set; }
     public decimal? PointsSum { get; set; }
     public Guid TournamentId { get; set; }

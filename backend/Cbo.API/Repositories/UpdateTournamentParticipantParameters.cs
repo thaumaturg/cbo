@@ -8,4 +8,5 @@ namespace Cbo.API.Repositories;
 public class UpdateTournamentParticipantParameters
 {
     public required TournamentParticipantRole Role { get; init; }
+    public int? Seed { get; init; }
 }

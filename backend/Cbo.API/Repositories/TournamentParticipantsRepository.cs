@@ -15,6 +15,7 @@ public interface ITournamentParticipantsRepository
     Task<TournamentParticipant?> DeleteAsync(Guid id);
     Task<List<TournamentParticipant>> GetAllByTournamentIdWithMatchDataAsync(Guid tournamentId);
     Task UpdateParticipantsAsync(List<TournamentParticipant> participants);
+    Task<List<TournamentParticipant>> UpdateSeedsAsync(Guid tournamentId, List<Guid> orderedParticipantIds);
 }
 
 public class TournamentParticipantsRepository(CboDbContext dbContext) : ITournamentParticipantsRepository
@@ -70,6 +71,7 @@ public class TournamentParticipantsRepository(CboDbContext dbContext) : ITournam
             return null;
 
         existing.Role = parameters.Role;
+        existing.Seed = parameters.Seed;
 
         await _dbContext.SaveChangesAsync();
 
@@ -107,5 +109,26 @@ public class TournamentParticipantsRepository(CboDbContext dbContext) : ITournam
     {
         _dbContext.TournamentParticipants.UpdateRange(participants);
         await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task<List<TournamentParticipant>> UpdateSeedsAsync(Guid tournamentId, List<Guid> orderedParticipantIds)
+    {
+        List<TournamentParticipant> participants = await _dbContext.TournamentParticipants
+            .Include(tp => tp.ApplicationUser)
+            .Include(tp => tp.TournamentTopics)
+            .Where(tp => tp.TournamentId == tournamentId && orderedParticipantIds.Contains(tp.Id))
+            .ToListAsync();
+
+        Dictionary<Guid, TournamentParticipant> participantsById = participants.ToDictionary(tp => tp.Id);
+
+        for (int position = 0; position < orderedParticipantIds.Count; position++)
+        {
+            if (participantsById.TryGetValue(orderedParticipantIds[position], out TournamentParticipant? participant))
+                participant.Seed = position + 1;
+        }
+
+        await _dbContext.SaveChangesAsync();
+
+        return participants.OrderBy(tp => tp.Seed).ToList();
     }
 }

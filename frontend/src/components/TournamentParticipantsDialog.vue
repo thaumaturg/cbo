@@ -2,6 +2,8 @@
 import { tournamentParticipantsService } from "@/services/tournament-participants-service.js";
 import { useNotify } from "@/utils/notify.js";
 import Button from "primevue/button";
+import Column from "primevue/column";
+import DataTable from "primevue/datatable";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Message from "primevue/message";
@@ -34,24 +36,39 @@ const roleOptions = [
 const participants = ref([]);
 const isLoadingParticipants = ref(false);
 const isAddingParticipant = ref(false);
+const isSavingSeeding = ref(false);
 const addError = ref(null);
 
 const roleOrder = {
   Creator: 0,
   Organizer: 1,
-  Player: 2,
 };
 
 const isCreator = computed(() => {
   return props.tournament?.currentUserRole === "Creator";
 });
 
-const sortedParticipants = computed(() => {
-  return [...participants.value].sort((a, b) => {
-    const roleComparison = roleOrder[a.role] - roleOrder[b.role];
-    if (roleComparison !== 0) return roleComparison;
-    return a.username.localeCompare(b.username);
-  });
+const staffParticipants = computed(() => {
+  return participants.value
+    .filter((p) => p.role !== "Player")
+    .sort((a, b) => {
+      const roleComparison = roleOrder[a.role] - roleOrder[b.role];
+      if (roleComparison !== 0) return roleComparison;
+      return a.username.localeCompare(b.username);
+    });
+});
+
+const players = computed(() => {
+  return participants.value
+    .filter((p) => p.role === "Player")
+    .sort((a, b) => {
+      if (a.seed !== b.seed) return (a.seed ?? Infinity) - (b.seed ?? Infinity);
+      return a.username.localeCompare(b.username);
+    });
+});
+
+const canReorderPlayers = computed(() => {
+  return isCreator.value && props.tournament?.currentStage === "Preparations" && players.value.length > 1;
 });
 
 const organizerCount = computed(() => {
@@ -155,11 +172,8 @@ const handleDeleteParticipant = async (participant) => {
     const result = await tournamentParticipantsService.deleteParticipant(props.tournament.id, participant.id);
 
     if (result.success) {
-      const index = participants.value.findIndex((p) => p.id === participant.id);
-      if (index > -1) {
-        participants.value.splice(index, 1);
-      }
       notify.success("Participant Removed", `"${participant.username}" removed from tournament`);
+      await fetchParticipants();
     } else {
       let message = "Failed to remove participant. Please try again.";
       if (typeof result.error === "string") {
@@ -172,6 +186,43 @@ const handleDeleteParticipant = async (participant) => {
   } catch (error) {
     notify.error("Remove Failed", "An unexpected error occurred. Please try again.");
     console.error("Error deleting participant:", error);
+  }
+};
+
+const handleRowReorder = async (event) => {
+  if (!props.tournament || isSavingSeeding.value) return;
+
+  const orderedIds = event.value.map((p) => p.id);
+
+  // Optimistically apply the new order; participants share object refs with event.value
+  event.value.forEach((player, index) => {
+    player.seed = index + 1;
+  });
+
+  isSavingSeeding.value = true;
+
+  try {
+    const result = await tournamentParticipantsService.updateSeeding(props.tournament.id, orderedIds);
+
+    if (result.success) {
+      const playersById = new Map(result.data.map((p) => [p.id, p]));
+      participants.value = participants.value.map((p) => playersById.get(p.id) ?? p);
+    } else {
+      let message = "Failed to update seeding. Please try again.";
+      if (typeof result.error === "string") {
+        message = result.error;
+      } else if (result.error?.title) {
+        message = result.error.title;
+      }
+      notify.error("Seeding Update Failed", message);
+      await fetchParticipants();
+    }
+  } catch (error) {
+    notify.error("Seeding Update Failed", "An unexpected error occurred. Please try again.");
+    console.error("Error updating seeding:", error);
+    await fetchParticipants();
+  } finally {
+    isSavingSeeding.value = false;
   }
 };
 
@@ -268,38 +319,96 @@ watch(
       </div>
 
       <!-- Participants List -->
-      <div v-else-if="sortedParticipants.length > 0" class="space-y-2">
-        <div
-          v-for="participant in sortedParticipants"
-          :key="participant.id"
-          class="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-        >
-          <div class="flex items-center gap-3 flex-1">
-            <span class="font-medium text-gray-900 dark:text-gray-100">
-              {{ participant.username }}
-            </span>
-            <span class="px-2 py-1 text-xs font-semibold rounded-full" :class="getRoleBadgeClass(participant.role)">
-              {{ participant.role }}
-            </span>
-            <span class="text-sm text-gray-500 dark:text-gray-400">
-              Topics: {{ participant.topicsCount
-              }}<template v-if="participant.role === 'Player'"> of {{ requiredTopics }}</template>
+      <div v-else-if="participants.length > 0">
+        <!-- Creator & Organizers -->
+        <div v-if="staffParticipants.length > 0" class="space-y-2 mb-6">
+          <div
+            v-for="participant in staffParticipants"
+            :key="participant.id"
+            class="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          >
+            <div class="flex items-center gap-3 flex-1">
+              <span class="font-medium text-gray-900 dark:text-gray-100">
+                {{ participant.username }}
+              </span>
+              <span class="px-2 py-1 text-xs font-semibold rounded-full" :class="getRoleBadgeClass(participant.role)">
+                {{ participant.role }}
+              </span>
+              <span class="text-sm text-gray-500 dark:text-gray-400"> Topics: {{ participant.topicsCount }} </span>
+            </div>
+
+            <!-- Delete Button (Only for non-Creator participants and only if current user is Creator) -->
+            <Button
+              v-if="isCreator && participant.role !== 'Creator'"
+              icon="pi pi-trash"
+              severity="danger"
+              outlined
+              rounded
+              size="small"
+              @click="handleDeleteParticipant(participant)"
+              v-tooltip.bottom="'Remove Participant'"
+              class="p-2"
+              aria-label="Remove Participant"
+            />
+          </div>
+        </div>
+
+        <!-- Players (Seeding) -->
+        <div v-if="players.length > 0">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="font-semibold text-gray-900 dark:text-gray-100">Players</h4>
+            <span v-if="canReorderPlayers" class="text-xs text-gray-500 dark:text-gray-400">
+              Drag rows to change bracket seeding
             </span>
           </div>
 
-          <!-- Delete Button (Only for non-Creator participants and only if current user is Creator) -->
-          <Button
-            v-if="isCreator && participant.role !== 'Creator'"
-            icon="pi pi-trash"
-            severity="danger"
-            outlined
-            rounded
+          <DataTable
+            :value="players"
+            dataKey="id"
             size="small"
-            @click="handleDeleteParticipant(participant)"
-            v-tooltip.bottom="'Remove Participant'"
-            class="p-2"
-            aria-label="Remove Participant"
-          />
+            stripedRows
+            responsiveLayout="scroll"
+            :loading="isSavingSeeding"
+            @row-reorder="handleRowReorder"
+          >
+            <Column v-if="canReorderPlayers" rowReorder style="width: 3rem" />
+
+            <Column header="Seed" style="width: 4rem" class="text-center">
+              <template #body="{ data }">
+                <span class="font-semibold text-gray-700 dark:text-gray-300">{{ data.seed }}</span>
+              </template>
+            </Column>
+
+            <Column field="username" header="Player" style="min-width: 150px">
+              <template #body="{ data }">
+                <span class="font-medium text-gray-800 dark:text-gray-200">{{ data.username }}</span>
+              </template>
+            </Column>
+
+            <Column header="Topics" style="width: 7rem" class="text-center">
+              <template #body="{ data }">
+                <span class="text-sm text-gray-500 dark:text-gray-400">
+                  {{ data.topicsCount }} of {{ requiredTopics }}
+                </span>
+              </template>
+            </Column>
+
+            <Column v-if="isCreator" style="width: 4rem" class="text-center">
+              <template #body="{ data }">
+                <Button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  outlined
+                  rounded
+                  size="small"
+                  @click="handleDeleteParticipant(data)"
+                  v-tooltip.bottom="'Remove Participant'"
+                  class="p-2"
+                  aria-label="Remove Participant"
+                />
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
 
