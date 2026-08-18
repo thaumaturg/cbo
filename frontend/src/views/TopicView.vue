@@ -1,7 +1,7 @@
 <script setup>
 import { topicService } from "@/services/topic-service.js";
 import { useNotify } from "@/utils/notify.js";
-import { parseTabSeparatedData } from "@/utils/tsv-parser.js";
+import { parseClipboardTable } from "@/utils/clipboard-parser.js";
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
 import Column from "primevue/column";
@@ -180,12 +180,9 @@ onMounted(() => {
 });
 
 const handlePaste = (event) => {
-  const clipboardData = event.clipboardData || window.clipboardData;
-  const pastedData = clipboardData.getData("text");
+  if (!event.clipboardData) return;
 
-  if (!pastedData) return;
-
-  const rows = parseTabSeparatedData(pastedData);
+  const rows = parseClipboardTable(event.clipboardData);
 
   // Expected format: costPositive, costNegative, question, answer, comment (5 columns)
   // Or: question, answer, comment (3 columns minimum)
