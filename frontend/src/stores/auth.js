@@ -2,12 +2,26 @@ import { authService } from "@/services/auth-service.js";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
+/**
+ * Map JWT claims to the user shape used by the UI.
+ * @param {Object} claims - Decoded JWT claims
+ * @returns {Object} - User object
+ */
+function mapClaimsToUser(claims) {
+  return {
+    email: claims.email,
+    username: claims.preferred_username,
+    fullName: claims.name || "",
+    emailVerified: claims.email_verified === "true",
+  };
+}
+
 export const useAuthStore = defineStore("auth", () => {
   const user = ref(null);
   const isLoading = ref(false);
   const error = ref(null);
 
-  const isAuthenticated = computed(() => !!user.value && authService.isAuthenticated());
+  const isAuthenticated = computed(() => !!user.value);
   const userEmail = computed(() => user.value?.email || null);
   const userName = computed(() => user.value?.username || null);
   const userFullName = computed(() => user.value?.fullName || null);
@@ -20,22 +34,21 @@ export const useAuthStore = defineStore("auth", () => {
     try {
       const result = await authService.login(credentials);
 
-      if (result.success) {
-        const userData = authService.getCurrentUser();
-        if (userData) {
-          user.value = {
-            email: userData.email,
-            username: userData.preferred_username,
-            fullName: userData.name || "",
-            emailVerified: userData.email_verified === "true",
-          };
-        }
-        return { success: true };
-      } else {
+      if (!result.success) {
         error.value = result.error;
         return { success: false, error: result.error };
       }
-    } catch (error) {
+
+      const claims = authService.getCurrentUser();
+      if (!claims) {
+        error.value = "Login failed: could not establish a session.";
+        return { success: false, error: error.value };
+      }
+
+      user.value = mapClaimsToUser(claims);
+      return { success: true };
+    } catch (err) {
+      console.error("Login error:", err);
       error.value = "An unexpected error occurred during login.";
       return { success: false, error: error.value };
     } finally {
@@ -76,16 +89,9 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   function initializeAuth() {
-    if (authService.isAuthenticated()) {
-      const userData = authService.getCurrentUser();
-      if (userData) {
-        user.value = {
-          email: userData.email,
-          username: userData.preferred_username,
-          fullName: userData.name || "",
-          emailVerified: userData.email_verified === "true",
-        };
-      }
+    const claims = authService.getCurrentUser();
+    if (claims) {
+      user.value = mapClaimsToUser(claims);
     }
   }
 
