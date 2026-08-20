@@ -4,6 +4,7 @@ import { RouterView, useRouter, useRoute } from "vue-router";
 import AppHeader from "@/components/AppHeader.vue";
 import AuthDialog from "./components/AuthDialog.vue";
 import { useAuthStore } from "@/stores/auth.js";
+import ConfirmDialog from "primevue/confirmdialog";
 
 const router = useRouter();
 const route = useRoute();
@@ -24,4 +25,5 @@ watch(
   <AppHeader></AppHeader>
   <RouterView />
   <AuthDialog></AuthDialog>
+  <ConfirmDialog />
 </template>

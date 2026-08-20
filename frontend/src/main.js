@@ -10,6 +10,7 @@ import PrimeVue from "primevue/config";
 import Aura from "@primeuix/themes/aura";
 import Tooltip from "primevue/tooltip";
 import ToastService from "primevue/toastservice";
+import ConfirmationService from "primevue/confirmationservice";
 
 import { useAuthStore } from "@/stores/auth";
 
@@ -33,6 +34,7 @@ app.use(PrimeVue, {
 
 app.directive("tooltip", Tooltip);
 app.use(ToastService);
+app.use(ConfirmationService);
 
 const authStore = useAuthStore();
 authStore.initializeAuth();

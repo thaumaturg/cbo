@@ -4,6 +4,7 @@ import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Button from "primevue/button";
 import Message from "primevue/message";
+import { useConfirm } from "primevue/useconfirm";
 import { topicAuthorsService } from "@/services/topic-authors-service.js";
 
 const props = defineProps({
@@ -19,6 +20,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:visible"]);
+
+const confirm = useConfirm();
 
 const newUsername = ref("");
 
@@ -109,40 +112,45 @@ const handleAddAuthor = async () => {
   }
 };
 
-const handleDeleteAuthor = async (author) => {
+const handleDeleteAuthor = (author) => {
   if (!props.topic) return;
 
   if (author.isOwner) {
     return;
   }
 
-  if (!confirm(`Are you sure you want to remove "${author.username}" from this topic?`)) {
-    return;
-  }
+  confirm.require({
+    message: `Are you sure you want to remove "${author.username}" from this topic?`,
+    header: "Remove Author",
+    icon: "pi pi-exclamation-triangle",
+    rejectProps: { label: "Cancel", severity: "secondary", outlined: true },
+    acceptProps: { label: "Remove", severity: "danger" },
+    accept: async () => {
+      addError.value = null;
 
-  addError.value = null;
+      try {
+        const result = await topicAuthorsService.deleteAuthor(props.topic.id, author.id);
 
-  try {
-    const result = await topicAuthorsService.deleteAuthor(props.topic.id, author.id);
-
-    if (result.success) {
-      const index = authors.value.findIndex((a) => a.id === author.id);
-      if (index > -1) {
-        authors.value.splice(index, 1);
+        if (result.success) {
+          const index = authors.value.findIndex((a) => a.id === author.id);
+          if (index > -1) {
+            authors.value.splice(index, 1);
+          }
+        } else {
+          if (typeof result.error === "string") {
+            addError.value = result.error;
+          } else if (result.error?.title) {
+            addError.value = result.error.title;
+          } else {
+            addError.value = "Failed to remove author. Please try again.";
+          }
+        }
+      } catch (error) {
+        addError.value = "An unexpected error occurred. Please try again.";
+        console.error("Error deleting author:", error);
       }
-    } else {
-      if (typeof result.error === "string") {
-        addError.value = result.error;
-      } else if (result.error?.title) {
-        addError.value = result.error.title;
-      } else {
-        addError.value = "Failed to remove author. Please try again.";
-      }
-    }
-  } catch (error) {
-    addError.value = "An unexpected error occurred. Please try again.";
-    console.error("Error deleting author:", error);
-  }
+    },
+  });
 };
 
 const getRoleBadges = (author) => {

@@ -8,6 +8,7 @@ import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Message from "primevue/message";
 import Select from "primevue/select";
+import { useConfirm } from "primevue/useconfirm";
 import { computed, ref, watch } from "vue";
 
 const props = defineProps({
@@ -25,6 +26,7 @@ const props = defineProps({
 const emit = defineEmits(["update:visible"]);
 
 const notify = useNotify();
+const confirm = useConfirm();
 
 const newUsername = ref("");
 const newRole = ref("Player");
@@ -155,38 +157,43 @@ const handleAddParticipant = async () => {
   }
 };
 
-const handleDeleteParticipant = async (participant) => {
+const handleDeleteParticipant = (participant) => {
   if (!props.tournament) return;
 
   if (participant.role === "Creator") {
     return;
   }
 
-  if (!confirm(`Are you sure you want to remove "${participant.username}" from this tournament?`)) {
-    return;
-  }
+  confirm.require({
+    message: `Are you sure you want to remove "${participant.username}" from this tournament?`,
+    header: "Remove Participant",
+    icon: "pi pi-exclamation-triangle",
+    rejectProps: { label: "Cancel", severity: "secondary", outlined: true },
+    acceptProps: { label: "Remove", severity: "danger" },
+    accept: async () => {
+      addError.value = null;
 
-  addError.value = null;
+      try {
+        const result = await tournamentParticipantsService.deleteParticipant(props.tournament.id, participant.id);
 
-  try {
-    const result = await tournamentParticipantsService.deleteParticipant(props.tournament.id, participant.id);
-
-    if (result.success) {
-      notify.success("Participant Removed", `"${participant.username}" removed from tournament`);
-      await fetchParticipants();
-    } else {
-      let message = "Failed to remove participant. Please try again.";
-      if (typeof result.error === "string") {
-        message = result.error;
-      } else if (result.error?.title) {
-        message = result.error.title;
+        if (result.success) {
+          notify.success("Participant Removed", `"${participant.username}" removed from tournament`);
+          await fetchParticipants();
+        } else {
+          let message = "Failed to remove participant. Please try again.";
+          if (typeof result.error === "string") {
+            message = result.error;
+          } else if (result.error?.title) {
+            message = result.error.title;
+          }
+          notify.error("Remove Failed", message);
+        }
+      } catch (error) {
+        notify.error("Remove Failed", "An unexpected error occurred. Please try again.");
+        console.error("Error deleting participant:", error);
       }
-      notify.error("Remove Failed", message);
-    }
-  } catch (error) {
-    notify.error("Remove Failed", "An unexpected error occurred. Please try again.");
-    console.error("Error deleting participant:", error);
-  }
+    },
+  });
 };
 
 const handleRowReorder = async (event) => {

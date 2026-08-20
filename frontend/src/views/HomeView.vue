@@ -11,10 +11,12 @@ import { useAuthStore } from "@/stores/auth.js";
 import { useNotify } from "@/utils/notify.js";
 import Button from "primevue/button";
 import Toast from "primevue/toast";
+import { useConfirm } from "primevue/useconfirm";
 import { onMounted, ref, watch } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 
 const notify = useNotify();
+const confirm = useConfirm();
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
@@ -114,65 +116,73 @@ const handleTournamentTopics = (tournament) => {
   showTopicsDialog.value = true;
 };
 
-const handleTournamentStart = async (tournament) => {
+const handleTournamentStart = (tournament) => {
   if (!authStore.isAuthenticated) {
     return;
   }
 
   const tournamentTitle = tournament.title;
-  if (
-    !confirm(
-      `Are you sure you want to start "${tournamentTitle}"? This will advance the tournament to the Qualifications stage.`,
-    )
-  ) {
-    return;
-  }
+  confirm.require({
+    message: `Are you sure you want to start "${tournamentTitle}"? This will advance the tournament to the Qualifications stage.`,
+    header: "Start Tournament",
+    icon: "pi pi-exclamation-triangle",
+    rejectProps: { label: "Cancel", severity: "secondary", outlined: true },
+    acceptProps: { label: "Start" },
+    accept: async () => {
+      const result = await tournamentService.advanceStage(tournament.id, "Qualifications");
 
-  const result = await tournamentService.advanceStage(tournament.id, "Qualifications");
+      if (result.success) {
+        // Update the tournament in the list
+        const index = tournaments.value.findIndex((t) => t.id === tournament.id);
+        if (index > -1) {
+          tournaments.value[index] = { ...tournaments.value[index], ...result.data };
+        }
 
-  if (result.success) {
-    // Update the tournament in the list
-    const index = tournaments.value.findIndex((t) => t.id === tournament.id);
-    if (index > -1) {
-      tournaments.value[index] = { ...tournaments.value[index], ...result.data };
-    }
+        notify.success("Tournament Started", `"${tournamentTitle}" advanced to Qualifications`);
 
-    notify.success("Tournament Started", `"${tournamentTitle}" advanced to Qualifications`);
-
-    // Background validation - ensure UI is in sync
-    await fetchTournaments();
-  } else {
-    console.error("Failed to start tournament:", result.error);
-    notify.error("Start Failed", result.error);
-  }
+        // Background validation - ensure UI is in sync
+        await fetchTournaments();
+      } else {
+        console.error("Failed to start tournament:", result.error);
+        notify.error("Start Failed", result.error);
+      }
+    },
+  });
 };
 
-const handleTournamentDelete = async (tournament) => {
+const handleTournamentDelete = (tournament) => {
   if (!authStore.isAuthenticated) {
     return;
   }
 
   const tournamentTitle = tournament.title;
-  if (confirm(`Are you sure you want to delete "${tournamentTitle}"?`)) {
-    // Optimistic update - remove from UI immediately
-    const index = tournaments.value.findIndex((t) => t.id === tournament.id);
-    if (index > -1) {
-      tournaments.value.splice(index, 1);
-    }
+  confirm.require({
+    message: `Are you sure you want to delete "${tournamentTitle}"?`,
+    header: "Delete Tournament",
+    icon: "pi pi-exclamation-triangle",
+    rejectProps: { label: "Cancel", severity: "secondary", outlined: true },
+    acceptProps: { label: "Delete", severity: "danger" },
+    accept: async () => {
+      // Optimistic update - remove from UI immediately
+      const index = tournaments.value.findIndex((t) => t.id === tournament.id);
+      if (index > -1) {
+        tournaments.value.splice(index, 1);
+      }
 
-    const result = await tournamentService.deleteTournament(tournament.id);
+      const result = await tournamentService.deleteTournament(tournament.id);
 
-    if (!result.success) {
-      console.error("Failed to delete tournament:", result.error);
-      notify.error("Delete Failed", result.error);
-      // Re-fetch to restore the tournament if deletion failed
-      await fetchTournaments();
-    } else {
-      notify.success("Tournament Deleted", `"${tournamentTitle}" removed`);
-      // Background validation - ensure UI is in sync
-      await fetchTournaments();
-    }
-  }
+      if (!result.success) {
+        console.error("Failed to delete tournament:", result.error);
+        notify.error("Delete Failed", result.error);
+        // Re-fetch to restore the tournament if deletion failed
+        await fetchTournaments();
+      } else {
+        notify.success("Tournament Deleted", `"${tournamentTitle}" removed`);
+        // Background validation - ensure UI is in sync
+        await fetchTournaments();
+      }
+    },
+  });
 };
 
 const handleTopicAuthors = (topic) => {
@@ -180,32 +190,39 @@ const handleTopicAuthors = (topic) => {
   showAuthorsDialog.value = true;
 };
 
-const handleTopicDelete = async (topic) => {
+const handleTopicDelete = (topic) => {
   if (!authStore.isAuthenticated) {
     return;
   }
 
   const topicTitle = topic.title;
-  if (confirm(`Are you sure you want to delete "${topicTitle}"?`)) {
-    // Optimistic update - remove from UI immediately
-    const index = topics.value.findIndex((t) => t.id === topic.id);
-    if (index > -1) {
-      topics.value.splice(index, 1);
-    }
+  confirm.require({
+    message: `Are you sure you want to delete "${topicTitle}"?`,
+    header: "Delete Topic",
+    icon: "pi pi-exclamation-triangle",
+    rejectProps: { label: "Cancel", severity: "secondary", outlined: true },
+    acceptProps: { label: "Delete", severity: "danger" },
+    accept: async () => {
+      // Optimistic update - remove from UI immediately
+      const index = topics.value.findIndex((t) => t.id === topic.id);
+      if (index > -1) {
+        topics.value.splice(index, 1);
+      }
 
-    const result = await topicService.deleteTopic(topic.id);
+      const result = await topicService.deleteTopic(topic.id);
 
-    if (!result.success) {
-      console.error("Failed to delete topic:", result.error);
-      notify.error("Delete Failed", result.error);
-      // Re-fetch to restore the topic if deletion failed
-      await fetchTopics();
-    } else {
-      notify.success("Topic Deleted", `"${topicTitle}" removed`);
-      // Background validation - ensure UI is in sync
-      await fetchTopics();
-    }
-  }
+      if (!result.success) {
+        console.error("Failed to delete topic:", result.error);
+        notify.error("Delete Failed", result.error);
+        // Re-fetch to restore the topic if deletion failed
+        await fetchTopics();
+      } else {
+        notify.success("Topic Deleted", `"${topicTitle}" removed`);
+        // Background validation - ensure UI is in sync
+        await fetchTopics();
+      }
+    },
+  });
 };
 
 const handleCreateTournament = () => {

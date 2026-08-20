@@ -6,6 +6,7 @@ import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import Message from "primevue/message";
 import OrderList from "primevue/orderlist";
+import { useConfirm } from "primevue/useconfirm";
 import { computed, ref, watch } from "vue";
 
 const props = defineProps({
@@ -21,6 +22,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:visible"]);
+
+const confirm = useConfirm();
 
 const assignedTopics = ref([]);
 const ownedTopics = ref([]);
@@ -95,9 +98,18 @@ const availableTopics = computed(() => {
 
 const closeDialog = () => {
   if (hasChanges.value) {
-    if (!confirm("You have unsaved changes. Are you sure you want to close?")) {
-      return;
-    }
+    confirm.require({
+      message: "You have unsaved changes. Are you sure you want to close?",
+      header: "Unsaved Changes",
+      icon: "pi pi-exclamation-triangle",
+      rejectProps: { label: "Keep Editing", severity: "secondary", outlined: true },
+      acceptProps: { label: "Discard Changes", severity: "danger" },
+      accept: () => {
+        emit("update:visible", false);
+        resetState();
+      },
+    });
+    return;
   }
   emit("update:visible", false);
   resetState();
