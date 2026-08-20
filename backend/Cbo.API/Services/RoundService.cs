@@ -175,31 +175,35 @@ public class RoundService(IMatchRepository matchRepository, ITournamentParticipa
         return [3m, 2m, 1m];
     }
 
+    // Points are split across tied places.
+    // Base points: 1st = 3, 2nd = 2, 3rd = 1, 4th = 0.
+    // Tied players share the sum of their places equally.
     private static decimal[] GetPointsFor4Players(int[] scores)
     {
-        bool s01 = scores[0] == scores[1];
-        bool s12 = scores[1] == scores[2];
-        bool s23 = scores[2] == scores[3];
+        bool firstTiedWithSecond = scores[0] == scores[1];
+        bool secondTiedWithThird = scores[1] == scores[2];
+        bool thirdTiedWithFourth = scores[2] == scores[3];
 
-        if (s01 && s12 && s23)
+        // All four tied: (3+2+1+0)/4 = 1.5 each
+        if (firstTiedWithSecond && secondTiedWithThird && thirdTiedWithFourth)
             return [1.5m, 1.5m, 1.5m, 1.5m];
 
-        if (s01 && s12 && !s23)
+        if (firstTiedWithSecond && secondTiedWithThird && !thirdTiedWithFourth)
             return [2m, 2m, 2m, 0m];
 
-        if (!s01 && s12 && s23)
+        if (!firstTiedWithSecond && secondTiedWithThird && thirdTiedWithFourth)
             return [3m, 1m, 1m, 1m];
 
-        if (s01 && !s12 && s23)
+        if (firstTiedWithSecond && !secondTiedWithThird && thirdTiedWithFourth)
             return [2.5m, 2.5m, 0.5m, 0.5m];
 
-        if (s01 && !s12 && !s23)
+        if (firstTiedWithSecond && !secondTiedWithThird && !thirdTiedWithFourth)
             return [2.5m, 2.5m, 1m, 0m];
 
-        if (!s01 && s12 && !s23)
+        if (!firstTiedWithSecond && secondTiedWithThird && !thirdTiedWithFourth)
             return [3m, 1.5m, 1.5m, 0m];
 
-        if (!s01 && !s12 && s23)
+        if (!firstTiedWithSecond && !secondTiedWithThird && thirdTiedWithFourth)
             return [3m, 2m, 0.5m, 0.5m];
 
         return [3m, 2m, 1m, 0m];
