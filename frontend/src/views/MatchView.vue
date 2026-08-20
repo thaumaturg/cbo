@@ -50,7 +50,11 @@ const fetchData = async () => {
   loadError.value = null;
 
   try {
-    const tournamentResult = await tournamentService.getTournamentById(tournamentId.value);
+    const [tournamentResult, matchResult] = await Promise.all([
+      tournamentService.getTournamentById(tournamentId.value),
+      tournamentMatchesService.getMatchWithRounds(tournamentId.value, matchId.value),
+    ]);
+
     if (!tournamentResult.success) {
       loadError.value = tournamentResult.error;
       notify.error("Tournament Load Failed", tournamentResult.error);
@@ -58,7 +62,6 @@ const fetchData = async () => {
     }
     currentUserRole.value = tournamentResult.data.currentUserRole;
 
-    const matchResult = await tournamentMatchesService.getMatchWithRounds(tournamentId.value, matchId.value);
     if (!matchResult.success) {
       loadError.value = matchResult.error;
       notify.error("Match Load Failed", matchResult.error);
@@ -314,7 +317,6 @@ onMounted(() => {
 </script>
 
 <template>
-
   <main class="container mx-auto px-4 py-8 max-w-[95%]">
     <!-- Header -->
     <div class="mb-8">
