@@ -19,6 +19,10 @@ export default {
       if (!value) return true;
       return value !== target;
     });
+    defineRule("lte_field", (value, [target]) => {
+      if (value == null || target == null) return true;
+      return value <= target;
+    });
     defineRule("username_chars", (value) => {
       if (!value) return true;
       return /^[A-Za-z0-9_]+$/.test(value);
@@ -41,6 +45,7 @@ export default {
           username_chars: "Latin letters, numbers, and underscores",
           confirmed: "Passwords do not match",
           different: "Must be different from the current password",
+          lte_field: "Must not exceed the maximum value",
           latin_cyrillic_latvian: "Only English, Russian, and Latvian letters are allowed",
         };
         return messages[ctx.rule.name] ? messages[ctx.rule.name] : "Field is invalid";

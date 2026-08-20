@@ -32,13 +32,11 @@ const DEFAULT_VALUES = {
   topicsPerParticipantMin: 6,
 };
 
-const formData = ref({
+const initialValues = {
   title: "",
   description: "",
-  playersPerTournament: DEFAULT_VALUES.playersPerTournament,
-  topicsPerParticipantMax: DEFAULT_VALUES.topicsPerParticipantMax,
-  topicsPerParticipantMin: DEFAULT_VALUES.topicsPerParticipantMin,
-});
+  ...DEFAULT_VALUES,
+};
 
 const formStatus = ref("idle"); // idle | loading | success | error
 const generalError = ref(null);
@@ -54,8 +52,6 @@ const populateForm = async (tournament = null) => {
     topicsPerParticipantMax: tournament?.topicsPerParticipantMax ?? DEFAULT_VALUES.topicsPerParticipantMax,
     topicsPerParticipantMin: tournament?.topicsPerParticipantMin ?? DEFAULT_VALUES.topicsPerParticipantMin,
   };
-
-  formData.value = values;
 
   await nextTick();
 
@@ -95,9 +91,9 @@ const onSubmit = async (values) => {
     const tournamentData = {
       title: values.title,
       description: values.description || null,
-      playersPerTournament: formData.value.playersPerTournament,
-      topicsPerParticipantMax: formData.value.topicsPerParticipantMax,
-      topicsPerParticipantMin: formData.value.topicsPerParticipantMin,
+      playersPerTournament: values.playersPerTournament,
+      topicsPerParticipantMax: values.topicsPerParticipantMax,
+      topicsPerParticipantMin: values.topicsPerParticipantMin,
     };
 
     const result =
@@ -133,7 +129,7 @@ const onSubmit = async (values) => {
     :draggable="false"
     :style="{ width: '50rem' }"
   >
-    <VeeForm ref="veeFormRef" @submit="onSubmit">
+    <VeeForm ref="veeFormRef" :initial-values="initialValues" @submit="onSubmit">
       <!-- Basic Information -->
       <div class="mb-6">
         <h3 class="text-lg font-semibold mb-4">Basic Information</h3>
@@ -173,38 +169,61 @@ const onSubmit = async (values) => {
           <!-- Players Per Tournament -->
           <div class="flex flex-col gap-1">
             <label for="playersPerTournament" class="font-semibold text-sm">Players Per Tournament</label>
-            <InputNumber
-              v-model="formData.playersPerTournament"
-              inputId="playersPerTournament"
-              :min="14"
-              :max="14"
-              showButtons
-              disabled
-            />
+            <VeeField name="playersPerTournament" v-slot="{ value, handleChange }">
+              <InputNumber
+                :modelValue="value"
+                @update:modelValue="handleChange"
+                inputId="playersPerTournament"
+                :min="14"
+                :max="14"
+                showButtons
+                disabled
+              />
+            </VeeField>
           </div>
 
           <!-- Topics Per Participant Min -->
           <div class="flex flex-col gap-1">
             <label for="topicsPerParticipantMin" class="font-semibold text-sm">Topics Per Participant Min</label>
-            <InputNumber
-              v-model="formData.topicsPerParticipantMin"
-              inputId="topicsPerParticipantMin"
-              :min="0"
-              :max="20"
-              showButtons
-            />
+            <VeeField
+              name="topicsPerParticipantMin"
+              rules="required|min_value:0|max_value:20|lte_field:@topicsPerParticipantMax"
+              v-slot="{ value, handleChange }"
+            >
+              <InputNumber
+                :modelValue="value"
+                @update:modelValue="handleChange"
+                inputId="topicsPerParticipantMin"
+                :min="0"
+                :max="20"
+                showButtons
+              />
+            </VeeField>
+            <ErrorMessage name="topicsPerParticipantMin" v-slot="{ message }">
+              <Message severity="error">{{ message }}</Message>
+            </ErrorMessage>
           </div>
 
           <!-- Topics Per Participant Max -->
           <div class="flex flex-col gap-1">
             <label for="topicsPerParticipantMax" class="font-semibold text-sm">Topics Per Participant Max</label>
-            <InputNumber
-              v-model="formData.topicsPerParticipantMax"
-              inputId="topicsPerParticipantMax"
-              :min="0"
-              :max="20"
-              showButtons
-            />
+            <VeeField
+              name="topicsPerParticipantMax"
+              rules="required|min_value:0|max_value:20"
+              v-slot="{ value, handleChange }"
+            >
+              <InputNumber
+                :modelValue="value"
+                @update:modelValue="handleChange"
+                inputId="topicsPerParticipantMax"
+                :min="0"
+                :max="20"
+                showButtons
+              />
+            </VeeField>
+            <ErrorMessage name="topicsPerParticipantMax" v-slot="{ message }">
+              <Message severity="error">{{ message }}</Message>
+            </ErrorMessage>
           </div>
         </div>
       </div>
