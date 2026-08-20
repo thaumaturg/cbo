@@ -7,7 +7,6 @@ import Card from "primevue/card";
 import InputText from "primevue/inputtext";
 import Message from "primevue/message";
 import PasswordField from "@/components/PasswordField.vue";
-import Toast from "primevue/toast";
 import { ref } from "vue";
 
 const authStore = useAuthStore();
@@ -40,7 +39,6 @@ const onChangePasswordSubmit = async (values, { resetForm }) => {
 </script>
 
 <template>
-  <Toast />
 
   <main class="container mx-auto px-4 py-8 max-w-2xl">
     <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8">Profile</h1>

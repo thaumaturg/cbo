@@ -10,7 +10,6 @@ import { tournamentService } from "@/services/tournament-service.js";
 import { useAuthStore } from "@/stores/auth.js";
 import { useNotify } from "@/utils/notify.js";
 import Button from "primevue/button";
-import Toast from "primevue/toast";
 import { useConfirm } from "primevue/useconfirm";
 import { onMounted, ref, watch } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
@@ -282,7 +281,6 @@ const handleTournamentUpdated = async (updatedTournament) => {
 </script>
 
 <template>
-  <Toast />
   <TournamentDialog
     v-model:visible="showTournamentDialog"
     :mode="tournamentDialogMode"

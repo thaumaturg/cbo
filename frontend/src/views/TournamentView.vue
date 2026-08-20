@@ -6,7 +6,6 @@ import { tournamentParticipantsService } from "@/services/tournament-participant
 import { tournamentService } from "@/services/tournament-service.js";
 import { useNotify } from "@/utils/notify.js";
 import Badge from "primevue/badge";
-import Toast from "primevue/toast";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
@@ -111,7 +110,6 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Toast />
 
   <main class="container mx-auto px-4 py-8">
     <!-- Loading State -->

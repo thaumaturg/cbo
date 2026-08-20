@@ -9,7 +9,6 @@ import AccordionContent from "primevue/accordioncontent";
 import AccordionHeader from "primevue/accordionheader";
 import AccordionPanel from "primevue/accordionpanel";
 import Button from "primevue/button";
-import Toast from "primevue/toast";
 import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
@@ -315,7 +314,6 @@ onMounted(() => {
 </script>
 
 <template>
-  <Toast />
 
   <main class="container mx-auto px-4 py-8 max-w-[95%]">
     <!-- Header -->

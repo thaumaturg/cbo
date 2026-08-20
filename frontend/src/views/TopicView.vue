@@ -10,7 +10,6 @@ import InputNumber from "primevue/inputnumber";
 import InputText from "primevue/inputtext";
 import Message from "primevue/message";
 import Textarea from "primevue/textarea";
-import Toast from "primevue/toast";
 import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 
@@ -28,7 +27,7 @@ const formData = ref({
   isAuthor: true,
 });
 
-const formStatus = ref("idle"); // idle | loading | success | error
+const formStatus = ref("idle"); // idle | loading | error
 const generalError = ref(null);
 const isLoading = ref(false);
 const questionErrors = ref({});
@@ -284,10 +283,9 @@ const onSubmit = async (values) => {
       : await topicService.createTopic(topicData);
 
     if (result.success) {
-      formStatus.value = "success";
-      setTimeout(() => {
-        router.push("/");
-      }, 1000);
+      formStatus.value = "idle";
+      notify.success(isEditMode.value ? "Topic Updated" : "Topic Created", `"${topicData.title}" saved`);
+      router.push("/");
     } else {
       formStatus.value = "error";
       generalError.value = extractErrorMessage(result.error);
@@ -300,7 +298,6 @@ const onSubmit = async (values) => {
 </script>
 
 <template>
-  <Toast />
   <main class="container mx-auto px-4 py-8 max-w-8/10">
     <!-- Page Header -->
     <div class="mb-8">
@@ -498,9 +495,6 @@ const onSubmit = async (values) => {
       <!-- Status Messages -->
       <div v-if="formStatus === 'loading'" class="mb-4">
         <Message severity="info">{{ isEditMode ? "Updating" : "Creating" }} topic, please wait...</Message>
-      </div>
-      <div v-if="formStatus === 'success'" class="mb-4">
-        <Message severity="success">Topic {{ isEditMode ? "updated" : "created" }} successfully!</Message>
       </div>
       <div v-if="formStatus === 'error' && generalError" class="mb-4">
         <Message severity="error">{{ generalError }}</Message>
