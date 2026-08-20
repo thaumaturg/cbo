@@ -12,7 +12,7 @@ function mapClaimsToUser(claims) {
     email: claims.email,
     username: claims.preferred_username,
     fullName: claims.name || "",
-    emailVerified: claims.email_verified === "true",
+    emailVerified: claims.email_verified === true || claims.email_verified === "true",
   };
 }
 
