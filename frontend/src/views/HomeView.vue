@@ -240,10 +240,7 @@ const handleTournamentCreated = async (newTournament) => {
   tournaments.value.unshift(newTournament);
 
   notify.success("Tournament Created", `"${newTournament.title}" ready`);
-
-  setTimeout(() => {
-    showTournamentDialog.value = false;
-  }, 1000);
+  showTournamentDialog.value = false;
 
   // Step 2: BACKGROUND VALIDATION - fetch from backend to ensure data consistency
   try {
@@ -269,10 +266,7 @@ const handleTournamentUpdated = async (updatedTournament) => {
   }
 
   notify.success("Tournament Updated", `"${updatedTournament.title}" saved`);
-
-  setTimeout(() => {
-    showTournamentDialog.value = false;
-  }, 1000);
+  showTournamentDialog.value = false;
 
   // Step 2: BACKGROUND VALIDATION - fetch from backend to ensure data consistency
   try {
