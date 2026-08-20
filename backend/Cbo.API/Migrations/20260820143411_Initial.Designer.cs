@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Cbo.API.Migrations
 {
     [DbContext(typeof(CboDbContext))]
-    [Migration("20260804174110_Initial")]
+    [Migration("20260820143411_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -40,6 +40,10 @@ namespace Cbo.API.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("text")
                         .HasColumnName("concurrency_stamp");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -93,6 +97,10 @@ namespace Cbo.API.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("two_factor_enabled");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
@@ -119,6 +127,10 @@ namespace Cbo.API.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("uuidv7()");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
                     b.Property<string>("CreatedOnStage")
                         .IsRequired()
                         .HasColumnType("text")
@@ -141,6 +153,10 @@ namespace Cbo.API.Migrations
                         .HasColumnType("text")
                         .HasColumnName("type");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
                     b.HasKey("Id")
                         .HasName("pk_matches");
 
@@ -157,6 +173,10 @@ namespace Cbo.API.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id")
                         .HasDefaultValueSql("uuidv7()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<Guid>("MatchId")
                         .HasColumnType("uuid")
@@ -177,6 +197,10 @@ namespace Cbo.API.Migrations
                     b.Property<Guid>("TournamentParticipantId")
                         .HasColumnType("uuid")
                         .HasColumnName("tournament_participant_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id")
                         .HasName("pk_match_participants");
@@ -219,6 +243,10 @@ namespace Cbo.API.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("cost_positive");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
                     b.Property<int>("QuestionNumber")
                         .HasColumnType("integer")
                         .HasColumnName("question_number");
@@ -231,6 +259,10 @@ namespace Cbo.API.Migrations
                     b.Property<Guid>("TopicId")
                         .HasColumnType("uuid")
                         .HasColumnName("topic_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id")
                         .HasName("pk_questions");
@@ -249,6 +281,10 @@ namespace Cbo.API.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("uuidv7()");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
                     b.Property<bool>("IsOverrideMode")
                         .HasColumnType("boolean")
                         .HasColumnName("is_override_mode");
@@ -264,6 +300,10 @@ namespace Cbo.API.Migrations
                     b.Property<Guid>("TopicId")
                         .HasColumnType("uuid")
                         .HasColumnName("topic_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id")
                         .HasName("pk_rounds");
@@ -285,6 +325,10 @@ namespace Cbo.API.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("uuidv7()");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
                     b.Property<bool?>("IsAnswerAccepted")
                         .HasColumnType("boolean")
                         .HasColumnName("is_answer_accepted");
@@ -304,6 +348,10 @@ namespace Cbo.API.Migrations
                     b.Property<Guid>("RoundId")
                         .HasColumnType("uuid")
                         .HasColumnName("round_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id")
                         .HasName("pk_round_answers");
@@ -328,6 +376,10 @@ namespace Cbo.API.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("uuidv7()");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
                     b.Property<string>("Description")
                         .HasColumnType("text")
                         .HasColumnName("description");
@@ -336,6 +388,10 @@ namespace Cbo.API.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("title");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id")
                         .HasName("pk_topics");
@@ -355,6 +411,10 @@ namespace Cbo.API.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("application_user_id");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
                     b.Property<bool>("IsAuthor")
                         .HasColumnType("boolean")
                         .HasColumnName("is_author");
@@ -366,6 +426,10 @@ namespace Cbo.API.Migrations
                     b.Property<Guid>("TopicId")
                         .HasColumnType("uuid")
                         .HasColumnName("topic_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id")
                         .HasName("pk_topic_authors");
@@ -435,6 +499,10 @@ namespace Cbo.API.Migrations
                         .HasDefaultValue(6)
                         .HasColumnName("topics_per_participant_min");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
                     b.HasKey("Id")
                         .HasName("pk_tournaments");
 
@@ -453,6 +521,10 @@ namespace Cbo.API.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("application_user_id");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
                     b.Property<decimal?>("PointsSum")
                         .HasColumnType("numeric")
                         .HasColumnName("points_sum");
@@ -468,9 +540,17 @@ namespace Cbo.API.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("score_sum");
 
+                    b.Property<int?>("Seed")
+                        .HasColumnType("integer")
+                        .HasColumnName("seed");
+
                     b.Property<Guid>("TournamentId")
                         .HasColumnType("uuid")
                         .HasColumnName("tournament_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id")
                         .HasName("pk_tournament_participants");
@@ -492,6 +572,16 @@ namespace Cbo.API.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("uuidv7()");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsApproved")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_approved");
+
                     b.Property<int>("PriorityIndex")
                         .HasColumnType("integer")
                         .HasColumnName("priority_index");
@@ -507,6 +597,10 @@ namespace Cbo.API.Migrations
                     b.Property<Guid>("TournamentParticipantId")
                         .HasColumnType("uuid")
                         .HasColumnName("tournament_participant_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id")
                         .HasName("pk_tournament_topics");

@@ -32,6 +32,8 @@ namespace Cbo.API.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     full_name = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     user_name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     normalized_user_name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -58,7 +60,9 @@ namespace Cbo.API.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuidv7()"),
                     title = table.Column<string>(type: "text", nullable: false),
-                    description = table.Column<string>(type: "text", nullable: true)
+                    description = table.Column<string>(type: "text", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -74,6 +78,7 @@ namespace Cbo.API.Migrations
                     description = table.Column<string>(type: "text", nullable: true),
                     current_stage = table.Column<string>(type: "text", nullable: false, defaultValue: "Preparations"),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     started_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ended_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     players_per_tournament = table.Column<int>(type: "integer", nullable: false, defaultValue: 14),
@@ -202,7 +207,9 @@ namespace Cbo.API.Migrations
                     text = table.Column<string>(type: "text", nullable: false),
                     answer = table.Column<string>(type: "text", nullable: false),
                     comment = table.Column<string>(type: "text", nullable: true),
-                    topic_id = table.Column<Guid>(type: "uuid", nullable: false)
+                    topic_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -223,7 +230,9 @@ namespace Cbo.API.Migrations
                     is_owner = table.Column<bool>(type: "boolean", nullable: false),
                     is_author = table.Column<bool>(type: "boolean", nullable: false),
                     application_user_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    topic_id = table.Column<Guid>(type: "uuid", nullable: false)
+                    topic_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -251,7 +260,9 @@ namespace Cbo.API.Migrations
                     number_in_stage = table.Column<int>(type: "integer", nullable: false),
                     created_on_stage = table.Column<string>(type: "text", nullable: false),
                     type = table.Column<string>(type: "text", nullable: false),
-                    tournament_id = table.Column<Guid>(type: "uuid", nullable: false)
+                    tournament_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -270,10 +281,13 @@ namespace Cbo.API.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuidv7()"),
                     role = table.Column<string>(type: "text", nullable: false, defaultValue: "Player"),
+                    seed = table.Column<int>(type: "integer", nullable: true),
                     score_sum = table.Column<int>(type: "integer", nullable: true),
                     points_sum = table.Column<decimal>(type: "numeric", nullable: true),
                     tournament_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    application_user_id = table.Column<Guid>(type: "uuid", nullable: false)
+                    application_user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -300,7 +314,9 @@ namespace Cbo.API.Migrations
                     number_in_match = table.Column<int>(type: "integer", nullable: false),
                     is_override_mode = table.Column<bool>(type: "boolean", nullable: false),
                     topic_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    match_id = table.Column<Guid>(type: "uuid", nullable: false)
+                    match_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -328,7 +344,9 @@ namespace Cbo.API.Migrations
                     points_sum = table.Column<decimal>(type: "numeric", nullable: true),
                     tournament_participant_id = table.Column<Guid>(type: "uuid", nullable: false),
                     match_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    promoted_from_id = table.Column<Guid>(type: "uuid", nullable: true)
+                    promoted_from_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -359,9 +377,12 @@ namespace Cbo.API.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuidv7()"),
                     priority_index = table.Column<int>(type: "integer", nullable: false),
+                    is_approved = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     tournament_id = table.Column<Guid>(type: "uuid", nullable: false),
                     topic_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    tournament_participant_id = table.Column<Guid>(type: "uuid", nullable: false)
+                    tournament_participant_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -395,7 +416,9 @@ namespace Cbo.API.Migrations
                     override_cost = table.Column<int>(type: "integer", nullable: true),
                     round_id = table.Column<Guid>(type: "uuid", nullable: false),
                     question_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    match_participant_id = table.Column<Guid>(type: "uuid", nullable: false)
+                    match_participant_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
