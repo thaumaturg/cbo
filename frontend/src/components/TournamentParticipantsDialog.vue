@@ -1,5 +1,6 @@
 <script setup>
 import { tournamentParticipantsService } from "@/services/tournament-participants-service.js";
+import { extractErrorMessage } from "@/utils/error.js";
 import { useNotify } from "@/utils/notify.js";
 import Button from "primevue/button";
 import Column from "primevue/column";
@@ -141,13 +142,7 @@ const handleAddParticipant = async () => {
       participants.value.push(result.data);
       resetForm();
     } else {
-      if (typeof result.error === "string") {
-        addError.value = result.error;
-      } else if (result.error?.title) {
-        addError.value = result.error.title;
-      } else {
-        addError.value = "Failed to add participant. Please try again.";
-      }
+      addError.value = extractErrorMessage(result.error, "Failed to add participant. Please try again.");
     }
   } catch (error) {
     addError.value = "An unexpected error occurred. Please try again.";
@@ -180,13 +175,10 @@ const handleDeleteParticipant = (participant) => {
           notify.success("Participant Removed", `"${participant.username}" removed from tournament`);
           await fetchParticipants();
         } else {
-          let message = "Failed to remove participant. Please try again.";
-          if (typeof result.error === "string") {
-            message = result.error;
-          } else if (result.error?.title) {
-            message = result.error.title;
-          }
-          notify.error("Remove Failed", message);
+          notify.error(
+            "Remove Failed",
+            extractErrorMessage(result.error, "Failed to remove participant. Please try again."),
+          );
         }
       } catch (error) {
         notify.error("Remove Failed", "An unexpected error occurred. Please try again.");
@@ -215,13 +207,10 @@ const handleRowReorder = async (event) => {
       const playersById = new Map(result.data.map((p) => [p.id, p]));
       participants.value = participants.value.map((p) => playersById.get(p.id) ?? p);
     } else {
-      let message = "Failed to update seeding. Please try again.";
-      if (typeof result.error === "string") {
-        message = result.error;
-      } else if (result.error?.title) {
-        message = result.error.title;
-      }
-      notify.error("Seeding Update Failed", message);
+      notify.error(
+        "Seeding Update Failed",
+        extractErrorMessage(result.error, "Failed to update seeding. Please try again."),
+      );
       await fetchParticipants();
     }
   } catch (error) {

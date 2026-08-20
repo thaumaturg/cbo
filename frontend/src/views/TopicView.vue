@@ -1,5 +1,6 @@
 <script setup>
 import { topicService } from "@/services/topic-service.js";
+import { extractErrorMessage } from "@/utils/error.js";
 import { useNotify } from "@/utils/notify.js";
 import { parseClipboardTable } from "@/utils/clipboard-parser.js";
 import Button from "primevue/button";
@@ -238,14 +239,6 @@ const importSuccess = (event) => {
   event.preventDefault();
 };
 
-const extractErrorMessage = (error) => {
-  if (typeof error === "string") return error;
-  if (error?.errors) {
-    return Object.values(error.errors).flat().join(" ");
-  }
-  return error?.title || "Failed to save topic. Please try again.";
-};
-
 const onInvalidSubmit = () => {
   // Also validate questions when VeeValidate's validation fails
   validateAllQuestions();
@@ -288,7 +281,7 @@ const onSubmit = async (values) => {
       router.push("/");
     } else {
       formStatus.value = "error";
-      generalError.value = extractErrorMessage(result.error);
+      generalError.value = extractErrorMessage(result.error, "Failed to save topic. Please try again.");
     }
   } catch {
     formStatus.value = "error";
