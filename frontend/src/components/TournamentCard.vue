@@ -1,4 +1,5 @@
 <script setup>
+import { stageBadgeSeverity } from "@/utils/tournament.js";
 import Badge from "primevue/badge";
 import Button from "primevue/button";
 import Card from "primevue/card";
@@ -16,16 +17,7 @@ const emit = defineEmits(["settings", "participants", "topics", "start", "delete
 
 const isInPreparations = computed(() => props.tournament.currentStage === "Preparations");
 
-const stageBadgeSeverity = computed(() => {
-  switch (props.tournament.currentStage) {
-    case "Preparations":
-      return "secondary";
-    case "Qualifications":
-      return "info";
-    default:
-      return "success";
-  }
-});
+const stageSeverity = computed(() => stageBadgeSeverity(props.tournament.currentStage));
 
 const handleSettings = () => {
   emit("settings", props.tournament);
@@ -60,7 +52,7 @@ const handleDelete = () => {
             >
               {{ tournament.title }}
             </RouterLink>
-            <Badge v-if="!isInPreparations" :value="tournament.currentStage" :severity="stageBadgeSeverity" />
+            <Badge v-if="!isInPreparations" :value="tournament.currentStage" :severity="stageSeverity" />
           </div>
           <p v-if="tournament.description" class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
             {{ tournament.description }}
