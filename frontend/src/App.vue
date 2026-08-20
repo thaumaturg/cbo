@@ -2,7 +2,7 @@
 import { watch } from "vue";
 import { RouterView, useRouter, useRoute } from "vue-router";
 import AppHeader from "@/components/AppHeader.vue";
-import AuthDialog from "./components/AuthDialog.vue";
+import AuthDialog from "@/components/AuthDialog.vue";
 import { useAuthStore } from "@/stores/auth.js";
 import ConfirmDialog from "primevue/confirmdialog";
 import Toast from "primevue/toast";
