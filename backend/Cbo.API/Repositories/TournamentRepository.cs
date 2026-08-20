@@ -24,6 +24,7 @@ public class TournamentRepository(CboDbContext dbContext) : ITournamentRepositor
         return await _dbContext.Tournaments
             .AsNoTracking()
             .Where(t => t.TournamentParticipants.Any(tp => tp.ApplicationUserId == userId))
+            .Include(t => t.TournamentParticipants.Where(tp => tp.ApplicationUserId == userId))
             .ToListAsync();
     }
 

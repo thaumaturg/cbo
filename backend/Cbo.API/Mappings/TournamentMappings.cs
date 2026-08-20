@@ -6,7 +6,7 @@ namespace Cbo.API.Mappings;
 
 public static class TournamentMappings
 {
-    public static GetTournamentDto ToGetDto(this Tournament tournament)
+    public static GetTournamentDto ToGetDto(this Tournament tournament, TournamentParticipantRole? currentUserRole = null)
     {
         return new GetTournamentDto
         {
@@ -19,7 +19,8 @@ public static class TournamentMappings
             EndedAt = tournament.EndedAt,
             PlayersPerTournament = tournament.PlayersPerTournament,
             TopicsPerParticipantMax = tournament.TopicsPerParticipantMax,
-            TopicsPerParticipantMin = tournament.TopicsPerParticipantMin
+            TopicsPerParticipantMin = tournament.TopicsPerParticipantMin,
+            CurrentUserRole = currentUserRole
         };
     }
 

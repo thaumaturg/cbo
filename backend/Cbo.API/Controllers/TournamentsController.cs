@@ -49,13 +49,9 @@ public partial class TournamentsController(
 
         List<Tournament> tournamentsDomain = await _tournamentRepository.GetAllByUserIdAsync(currentUserId);
 
-        List<GetTournamentDto> tournamentsDto = tournamentsDomain.Select(t => t.ToGetDto()).ToList();
-
-        foreach (GetTournamentDto tournamentDto in tournamentsDto)
-        {
-            TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUserId, tournamentDto.Id);
-            tournamentDto.CurrentUserRole = participant?.Role;
-        }
+        List<GetTournamentDto> tournamentsDto = tournamentsDomain
+            .Select(t => t.ToGetDto(t.TournamentParticipants.FirstOrDefault()?.Role))
+            .ToList();
 
         return Ok(tournamentsDto);
     }
@@ -76,10 +72,8 @@ public partial class TournamentsController(
 
         Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
 
-        GetTournamentDto tournamentDto = tournamentDomain.ToGetDto();
-
         TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUserId, id);
-        tournamentDto.CurrentUserRole = participant?.Role;
+        GetTournamentDto tournamentDto = tournamentDomain.ToGetDto(participant?.Role);
 
         return Ok(tournamentDto);
     }
