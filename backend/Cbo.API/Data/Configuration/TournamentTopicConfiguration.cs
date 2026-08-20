@@ -16,6 +16,10 @@ public class TournamentTopicConfiguration : IEntityTypeConfiguration<TournamentT
         entity.Property(tt => tt.PriorityIndex)
             .IsRequired();
 
+        entity.Property(tt => tt.IsApproved)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         entity.Property(tt => tt.TournamentId)
             .IsRequired();
 

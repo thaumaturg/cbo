@@ -2,7 +2,7 @@ using Cbo.API.Models.Constants;
 
 namespace Cbo.API.Models.Domain;
 
-public class TournamentParticipant
+public class TournamentParticipant : IAuditable
 {
     public Guid Id { get; set; }
     public required TournamentParticipantRole Role { get; set; }
@@ -11,6 +11,8 @@ public class TournamentParticipant
     public decimal? PointsSum { get; set; }
     public Guid TournamentId { get; set; }
     public required Guid ApplicationUserId { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     // Navigation properties
     public Tournament? Tournament { get; set; }

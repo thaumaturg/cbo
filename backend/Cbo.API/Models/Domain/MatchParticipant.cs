@@ -1,6 +1,6 @@
 namespace Cbo.API.Models.Domain;
 
-public class MatchParticipant
+public class MatchParticipant : IAuditable
 {
     public Guid Id { get; set; }
     public int? ScoreSum { get; set; }
@@ -8,6 +8,8 @@ public class MatchParticipant
     public required Guid TournamentParticipantId { get; set; }
     public required Guid MatchId { get; set; }
     public Guid? PromotedFromId { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     // Navigation properties
     public TournamentParticipant? TournamentParticipant { get; set; }

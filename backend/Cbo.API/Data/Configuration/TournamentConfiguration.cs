@@ -22,9 +22,6 @@ public class TournamentConfiguration : IEntityTypeConfiguration<Tournament>
             .HasConversion<string>()
             .HasDefaultValue(TournamentStage.Preparations);
 
-        // Set by AuditSaveChangesInterceptor on insert
-        entity.Property(e => e.CreatedAt)
-            .IsRequired();
 
         entity.Property(e => e.StartedAt)
             .ValueGeneratedOnAddOrUpdate();

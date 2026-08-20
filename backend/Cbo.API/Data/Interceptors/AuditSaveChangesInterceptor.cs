@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 namespace Cbo.API.Data.Interceptors;
 
 /// <summary>
-/// Writes audit timestamps on save. Currently only sets <see cref="Tournament.CreatedAt"/>;
-/// extend here when more entities gain audit fields.
+/// Writes audit timestamps on save for every <see cref="IAuditable"/> entity:
+/// <see cref="IAuditable.CreatedAt"/> on insert, <see cref="IAuditable.UpdatedAt"/> on update.
 /// </summary>
 public class AuditSaveChangesInterceptor(TimeProvider timeProvider) : SaveChangesInterceptor
 {
@@ -37,11 +37,18 @@ public class AuditSaveChangesInterceptor(TimeProvider timeProvider) : SaveChange
 
         DateTime utcNow = _timeProvider.GetUtcNow().UtcDateTime;
 
-        foreach (EntityEntry<Tournament> entry in context.ChangeTracker.Entries<Tournament>())
+        foreach (EntityEntry<IAuditable> entry in context.ChangeTracker.Entries<IAuditable>())
         {
             if (entry.State == EntityState.Added)
             {
                 entry.Entity.CreatedAt = utcNow;
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = utcNow;
+
+                // CreatedAt is immutable after insert, even if the caller changed it.
+                entry.Property(nameof(IAuditable.CreatedAt)).IsModified = false;
             }
         }
     }

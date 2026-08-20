@@ -2,13 +2,14 @@ using Cbo.API.Models.Constants;
 
 namespace Cbo.API.Models.Domain;
 
-public class Tournament
+public class Tournament : IAuditable
 {
     public Guid Id { get; set; }
     public required string Title { get; set; }
     public string? Description { get; set; }
     public required TournamentStage CurrentStage { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
     public DateTime? StartedAt { get; set; }
     public DateTime? EndedAt { get; set; }
     public required int PlayersPerTournament { get; set; }

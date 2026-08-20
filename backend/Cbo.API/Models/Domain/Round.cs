@@ -1,12 +1,14 @@
 namespace Cbo.API.Models.Domain;
 
-public class Round
+public class Round : IAuditable
 {
     public Guid Id { get; set; }
     public required int NumberInMatch { get; set; }
     public bool IsOverrideMode { get; set; }
     public required Guid TopicId { get; set; }
     public required Guid MatchId { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     // Navigation properties
     public Topic? Topic { get; set; }

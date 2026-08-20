@@ -1,6 +1,6 @@
 namespace Cbo.API.Models.Domain;
 
-public class RoundAnswer
+public class RoundAnswer : IAuditable
 {
     public Guid Id { get; set; }
     public bool? IsAnswerAccepted { get; set; }
@@ -8,6 +8,8 @@ public class RoundAnswer
     public required Guid RoundId { get; set; }
     public required Guid QuestionId { get; set; }
     public required Guid MatchParticipantId { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     // Navigation properties
     public Round? Round { get; set; }
