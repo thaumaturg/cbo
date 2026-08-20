@@ -10,16 +10,6 @@ const props = defineProps({
   match: {
     type: Object,
     required: true,
-    default: () => ({
-      id: null,
-      numberInTournament: null,
-      numberInStage: null,
-      createdOnStage: null,
-      type: null,
-      tournamentId: null,
-      matchParticipants: [],
-      roundsCount: 0,
-    }),
   },
   tournamentId: {
     type: String,

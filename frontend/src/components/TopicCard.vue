@@ -7,13 +7,6 @@ const props = defineProps({
   topic: {
     type: Object,
     required: true,
-    default: () => ({
-      id: null,
-      title: "Topic Title",
-      description: "",
-      isPlayed: false,
-      isAuthor: false,
-    }),
   },
 });
 

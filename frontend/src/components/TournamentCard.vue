@@ -9,15 +9,6 @@ const props = defineProps({
   tournament: {
     type: Object,
     required: true,
-    default: () => ({
-      id: null,
-      title: null,
-      description: null,
-      currentStage: null,
-      startedAt: null,
-      endedAt: null,
-      currentUserRole: null,
-    }),
   },
 });
 

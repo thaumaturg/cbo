@@ -8,7 +8,6 @@ defineProps({
   participants: {
     type: Array,
     required: true,
-    default: () => [],
   },
 });
 
