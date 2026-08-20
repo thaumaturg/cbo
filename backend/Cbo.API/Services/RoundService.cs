@@ -1,3 +1,4 @@
+using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
@@ -81,7 +82,7 @@ public class RoundService(IMatchRepository matchRepository, ITournamentParticipa
             participant.ScoreSum = score;
         }
 
-        if (match.Rounds.Count == 4)
+        if (match.Rounds.Count == DefaultSettings.RoundsPerMatch)
         {
             CalculatePoints(match.MatchParticipants.ToList());
         }
@@ -123,7 +124,7 @@ public class RoundService(IMatchRepository matchRepository, ITournamentParticipa
     private static void CalculatePoints(List<MatchParticipant> participants)
     {
         int count = participants.Count;
-        if (count < 2 || count > 4)
+        if (count < DefaultSettings.ParticipantsPerMatchMin || count > DefaultSettings.ParticipantsPerMatchMax)
             return;
 
         var sorted = participants.OrderByDescending(p => p.ScoreSum ?? 0).ToList();

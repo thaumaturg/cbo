@@ -1,5 +1,6 @@
 using Cbo.API.Authorization;
 using Cbo.API.Mappings;
+using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
@@ -30,8 +31,8 @@ public partial class TournamentsController
         if (match is null || match.TournamentId != tournamentId)
             return NotFound();
 
-        if (createRoundDto.NumberInMatch < 1 || createRoundDto.NumberInMatch > 4)
-            return BadRequest("Round number must be between 1 and 4.");
+        if (createRoundDto.NumberInMatch < 1 || createRoundDto.NumberInMatch > DefaultSettings.RoundsPerMatch)
+            return BadRequest($"Round number must be between 1 and {DefaultSettings.RoundsPerMatch}.");
 
         Round? existingRound = await _roundRepository.GetByMatchIdAndNumberAsync(matchId, createRoundDto.NumberInMatch);
         if (existingRound is not null)

@@ -9,6 +9,7 @@ public static class DefaultSettings
     public const int QuestionsCostMin = -1000;
     public const int QuestionsPerTopicMax = 10;
     public const int QuestionsPerTopicMin = 1;
+    public const int RoundsPerMatch = 4;
     public const int TopicsAuthorsMax = 3;
     public const int TopicsPerParticipantMax = 10;
     public const int TopicsPerParticipantMin = 6;
