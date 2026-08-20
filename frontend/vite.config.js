@@ -15,7 +15,7 @@ const httpsSettings =
         cert: fs.readFileSync(certPath),
         key: fs.readFileSync(keyPath),
       }
-    : {};
+    : false;
 
 // https://vite.dev/config/
 export default defineConfig({
