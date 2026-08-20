@@ -45,7 +45,7 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
-      path: "/catchAll.(.*)*",
+      path: "/:pathMatch(.*)*",
       redirect: { name: "home" },
     },
   ],
