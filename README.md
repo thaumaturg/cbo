@@ -92,7 +92,10 @@ then `wsl --shutdown` again.
 
 ```powershell
 winget install FiloSottile.mkcert
+# Then open a new terminal and trust the root CA:
 mkcert -install
+# Verify it landed in the Windows trust store — this must print a `mkcert` certificate:
+certutil -user -store Root | findstr mkcert
 ```
 
 Run `mkcert -CAROOT` and note the folder (typically `C:\Users\<you>\AppData\Local\mkcert`).
@@ -110,7 +113,7 @@ mkdir -p ~/.local/share/mkcert
 cp /mnt/c/Users/<you>/AppData/Local/mkcert/rootCA*.pem ~/.local/share/mkcert/
 ```
 
-Replace `<you>` with your Windows username. Do not run `mkcert -install` in WSL _before_ copying the Windows CA, that would create a second, untrusted root. Then:
+Replace `<you>` with your Windows username. Copy the files, Windows needs its originals in place. Do not run `mkcert -install` in WSL _before_ copying the Windows CA, that would create a second, untrusted root. Then:
 
 ```bash
 mkcert -install
@@ -136,6 +139,14 @@ docker compose up -d db
 ```
 
 No need to create the `cbo_db` database. Entity Framework applies migrations (and creates the database) automatically on API startup.
+
+Data lives in the `pgdata` named Docker volume (declared in `compose.yaml`) and survives container restarts and `docker compose down`. To reset your local database, delete the volume and let EF recreate the schema on the next API start:
+
+```bash
+docker compose down
+docker volume rm cbo_pgdata
+docker compose up -d db
+```
 
 WSL and Linux: `localhost:5432` from Windows tools (pgAdmin, etc.) still works. WSL forwards loopback ports to Windows.
 
