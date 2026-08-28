@@ -7,10 +7,41 @@
 ### Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) or later
-- [Node.js](https://nodejs.org/) (version 22 or later)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (runs the PostgreSQL database)
+- [Node.js](https://nodejs.org/) 22 or later
+- Docker with the Compose plugin
+  - Windows [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+  - Linux [Docker Engine](https://docs.docker.com/engine/install/)
+- [mkcert](https://github.com/FiloSottile/mkcert) (see [HTTPS certificates](#https-certificates-for-development) section)
 
-### Environment Configuration
+On WSL, Windows `PATH` is appended automatically. After installing, confirm you are using the Linux binaries (`which dotnet` and `which node` should not start with `/mnt/c`). WSL file watching (`dotnet watch`, Vite HMR), `npm install`, and `dotnet build` are much slower if the repo lives on `/mnt/c`. Always clone into `~/...`
+
+#### Docker Engine (WSL and Linux / Ubuntu)
+
+```bash
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+  https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo usermod -aG docker $USER
+```
+
+Re-enter the environment so the `docker` group applies: on Linux, log out and back in. On WSL, close terminals and run `wsl --shutdown` from Windows, then open a new WSL shell.
+
+Current Ubuntu WSL images have systemd enabled, which is what the Docker service needs. If `docker run --rm hello-world` says the daemon is not running, ensure `/etc/wsl.conf` contains:
+
+```ini
+[boot]
+systemd=true
+```
+
+then `wsl --shutdown` again.
+
+### Environment configuration
 
 1. Copy `.env.example` to `.env` (gitignored) in the repo root and fill in local values:
 
@@ -19,7 +50,7 @@
 - `JWT_KEY` (any random 64+ character string, can generate one: `openssl rand -hex 64`)
 - `JWT_ISSUER` / `JWT_AUDIENCE` (your URL, for local development e.g. `http://localhost:8080`)
 
-2. Copy `compose.override.yaml.example` to `compose.override.yaml` (gitignored). It publishes the database and API container ports on localhost for local development. Servers skip this step, keeping those ports internal.
+2. Copy `compose.override.yaml.example` to `compose.override.yaml` (gitignored). It publishes the database and API container ports on localhost for local development. Production servers skip this step, keeping those ports internal.
 
 3. Create `frontend/.env.local` (gitignored) with your PrimeVue license key, or an empty value if you have none (see `frontend/.env` for the expected variables):
 
@@ -41,13 +72,64 @@
     "Key": "any random 64+ character string",
     "Issuer": "https://localhost:7053",
     "Audience": "https://localhost:7053"
+  },
+  "Kestrel": {
+    "Certificates": {
+      "Default": {
+        "Path": "localhost.pem",
+        "KeyPath": "localhost-key.pem"
+      }
+    }
   }
 }
 ```
 
+### HTTPS certificates for development
+
+**Step 1** Install [mkcert](https://github.com/FiloSottile/mkcert) and trust its root CA (once per machine):
+
+**Windows** (native, and also the first half of the WSL setup):
+
+```powershell
+winget install FiloSottile.mkcert
+mkcert -install
+```
+
+Run `mkcert -CAROOT` and note the folder (typically `C:\Users\<you>\AppData\Local\mkcert`).
+
+**Linux:**
+
+```bash
+sudo apt install -y mkcert libnss3-tools
+```
+
+**WSL:** the API and Vite run in Linux. The browser runs on Windows. Both must trust the same root CA.
+
+```bash
+mkdir -p ~/.local/share/mkcert
+cp /mnt/c/Users/<you>/AppData/Local/mkcert/rootCA*.pem ~/.local/share/mkcert/
+```
+
+Replace `<you>` with your Windows username. Do not run `mkcert -install` in WSL _before_ copying the Windows CA, that would create a second, untrusted root. Then:
+
+```bash
+mkcert -install
+```
+
+**Step 2** issue the leaf certificates
+
+```bash
+cd frontend
+mkcert -cert-file localhost.crt -key-file localhost.key localhost 127.0.0.1 ::1
+cd ../backend/Cbo.API
+mkcert -cert-file localhost.pem -key-file localhost-key.pem localhost 127.0.0.1 ::1
+```
+
+Vite loads `localhost.crt` / `localhost.key` automatically (`frontend/vite.config.js`). Kestrel uses the PEM pair via the `Kestrel` section of `appsettings.Development.json`.
+
 ### Database
 
-The database runs in Docker and is published on `localhost:5432` for local development:
+The database runs in Docker and is published on `localhost:5432` for local development (`compose.override.yaml` binds that port on loopback only):
 
 ```bash
 docker compose up -d db
@@ -55,9 +137,11 @@ docker compose up -d db
 
 No need to create the `cbo_db` database. Entity Framework applies migrations (and creates the database) automatically on API startup.
 
+WSL and Linux: `localhost:5432` from Windows tools (pgAdmin, etc.) still works. WSL forwards loopback ports to Windows.
+
 ### Database Migrations
 
-If you add or change models, you may need to create and apply Entity Framework Core migrations:
+When you add or change models, create and apply Entity Framework Core migrations:
 
 ```bash
 # Install EF Core CLI tools if not already installed
@@ -69,25 +153,6 @@ cd backend/Cbo.API
 dotnet ef migrations add YourMigrationName
 dotnet ef database update
 ```
-
-### HTTPS Certificate Setup for Development
-
-To enable secure communication between the Vue frontend and .NET backend, you'll need to set up an SSL certificate for localhost.
-
-**Step 1:** Trust the .NET development certificate (may prompt for admin/sudo password):
-
-```bash
-dotnet dev-certs https --trust
-```
-
-**Step 2:** Export the certificate for the Vue dev server:
-
-```bash
-cd frontend
-dotnet dev-certs https --export-path localhost.crt --format Pem --no-password
-```
-
-This creates `localhost.crt` and `localhost.key` files that Vite will automatically use.
 
 ## Build and Run
 
@@ -128,6 +193,8 @@ When both backend and frontend are running:
 - The frontend makes API calls to relative URLs (e.g., `/api/tournaments`) which are automatically routed to the backend
 - Hot reload is enabled for both frontend (Vite) and backend (.NET)
 - The application will run entirely over HTTPS
+
+On WSL, use a Windows browser. If localhost stops forwarding after sleep/resume, `wsl --shutdown` from Windows and reopen the distro.
 
 ### Full Stack in Docker (production-like)
 
