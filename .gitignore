@@ -721,3 +721,5 @@ appsettings.Development.json
 # Development certificates
 localhost.crt
 localhost.key
+localhost.pem
+localhost-key.pem
