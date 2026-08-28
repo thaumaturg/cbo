@@ -11,7 +11,7 @@ indent_size = 4
 trim_trailing_whitespace = true
 guidelines = 120
 
-[*.{json,md}]
+[*.{json,md,yaml}]
 indent_size = 2
 
 [*.{cmd,bat}]
