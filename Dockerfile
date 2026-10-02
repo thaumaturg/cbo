@@ -22,6 +22,7 @@ WORKDIR /src
 
 # Copy only the files that affect NuGet restore so the restore layer is cached
 COPY backend/Directory.Packages.props ./
+COPY backend/Cbo.Results/Cbo.Results.csproj Cbo.Results/
 COPY backend/Cbo.API/Cbo.API.csproj Cbo.API/
 RUN dotnet restore Cbo.API/Cbo.API.csproj
 

@@ -4,4 +4,5 @@
     <File Path="Directory.Packages.props" />
   </Folder>
   <Project Path="Cbo.API/Cbo.API.csproj" />
+  <Project Path="Cbo.Results/Cbo.Results.csproj" />
 </Solution>
