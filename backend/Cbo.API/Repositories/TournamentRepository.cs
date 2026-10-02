@@ -8,7 +8,7 @@ namespace Cbo.API.Repositories;
 public interface ITournamentRepository
 {
     Task<List<Tournament>> GetAllByUserIdAsync(Guid userId);
-    Task<Tournament?> GetByIdAsync(Guid id);
+    Task<Tournament?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Tournament> CreateAsync(Tournament tournament);
     Task<Tournament?> UpdateAsync(Guid id, UpdateTournamentParameters parameters);
     Task<Tournament?> UpdateStageAsync(Guid id, TournamentStage stage);
@@ -28,11 +28,11 @@ public class TournamentRepository(CboDbContext dbContext) : ITournamentRepositor
             .ToListAsync();
     }
 
-    public async Task<Tournament?> GetByIdAsync(Guid id)
+    public async Task<Tournament?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Tournaments
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
     public async Task<Tournament> CreateAsync(Tournament tournament)

@@ -7,7 +7,7 @@ namespace Cbo.API.Repositories;
 public interface ITopicRepository
 {
     Task<List<Topic>> GetAllByUserIdAsync(Guid userId);
-    Task<Topic?> GetByIdAsync(Guid id);
+    Task<Topic?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Topic?> GetByIdIncludeQuestionsAsync(Guid id);
     Task<Topic> CreateAsync(Topic topic);
     Task<Topic?> UpdateAsync(Guid id, UpdateTopicParameters parameters, Guid currentUserId);
@@ -30,12 +30,12 @@ public class TopicRepository(CboDbContext dbContext) : ITopicRepository
             .ToListAsync();
     }
 
-    public async Task<Topic?> GetByIdAsync(Guid id)
+    public async Task<Topic?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Topics
             .AsNoTracking()
             .Include(t => t.Rounds)
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
     public async Task<Topic?> GetByIdIncludeQuestionsAsync(Guid id)

@@ -7,7 +7,7 @@ namespace Cbo.API.Repositories;
 public interface ITournamentTopicRepository
 {
     Task<List<TournamentTopic>> GetAllByParticipantIdAsync(Guid tournamentId, Guid participantId);
-    Task<List<TournamentTopic>> GetAllByTournamentIdAsync(Guid tournamentId);
+    Task<List<TournamentTopic>> GetAllByTournamentIdAsync(Guid tournamentId, CancellationToken cancellationToken = default);
     Task<List<TournamentTopic>> GetAllByTournamentIdWithAuthorsAsync(Guid tournamentId);
     Task<List<TournamentTopic>> SetTopicsForParticipantAsync(Guid tournamentId, Guid participantId, List<TournamentTopic> topics);
 }
@@ -28,7 +28,7 @@ public class TournamentTopicRepository(CboDbContext dbContext) : ITournamentTopi
             .ToListAsync();
     }
 
-    public async Task<List<TournamentTopic>> GetAllByTournamentIdAsync(Guid tournamentId)
+    public async Task<List<TournamentTopic>> GetAllByTournamentIdAsync(Guid tournamentId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.TournamentTopics
             .AsNoTracking()
@@ -38,7 +38,7 @@ public class TournamentTopicRepository(CboDbContext dbContext) : ITournamentTopi
             .Where(tt => tt.TournamentId == tournamentId)
             .OrderBy(tt => tt.TournamentParticipantId)
             .ThenBy(tt => tt.PriorityIndex)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<List<TournamentTopic>> GetAllByTournamentIdWithAuthorsAsync(Guid tournamentId)

@@ -6,20 +6,20 @@ namespace Cbo.API.Repositories;
 
 public interface IRoundRepository
 {
-    Task<Round?> GetByIdWithDetailsAsync(Guid id);
+    Task<Round?> GetByIdWithDetailsAsync(Guid id, CancellationToken cancellationToken = default);
     Task<List<Round>> GetAllByTournamentIdAsync(Guid tournamentId);
-    Task<Round?> GetByMatchIdAndNumberAsync(Guid matchId, int numberInMatch);
-    Task<Round> CreateAsync(Round round);
-    Task<Round?> DeleteAsync(Guid id);
-    Task DeleteAnswersByRoundIdAsync(Guid roundId);
-    Task CreateAnswersAsync(List<RoundAnswer> answers);
+    Task<Round?> GetByMatchIdAndNumberAsync(Guid matchId, int numberInMatch, CancellationToken cancellationToken = default);
+    Task<Round> CreateAsync(Round round, CancellationToken cancellationToken = default);
+    Task<Round?> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    Task DeleteAnswersByRoundIdAsync(Guid roundId, CancellationToken cancellationToken = default);
+    Task CreateAnswersAsync(List<RoundAnswer> answers, CancellationToken cancellationToken = default);
 }
 
 public class RoundRepository(CboDbContext dbContext) : IRoundRepository
 {
     private readonly CboDbContext _dbContext = dbContext;
 
-    public async Task<Round?> GetByIdWithDetailsAsync(Guid id)
+    public async Task<Round?> GetByIdWithDetailsAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Rounds
             .AsNoTracking()
@@ -31,7 +31,7 @@ public class RoundRepository(CboDbContext dbContext) : IRoundRepository
                     .ThenInclude(t => t.TournamentTopics)
                         .ThenInclude(tt => tt.TournamentParticipant)
                             .ThenInclude(tp => tp.ApplicationUser)
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
     public async Task<List<Round>> GetAllByTournamentIdAsync(Guid tournamentId)
@@ -43,49 +43,49 @@ public class RoundRepository(CboDbContext dbContext) : IRoundRepository
             .ToListAsync();
     }
 
-    public async Task<Round?> GetByMatchIdAndNumberAsync(Guid matchId, int numberInMatch)
+    public async Task<Round?> GetByMatchIdAndNumberAsync(Guid matchId, int numberInMatch, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Rounds
             .AsNoTracking()
             .Include(r => r.RoundAnswers)
-            .FirstOrDefaultAsync(r => r.MatchId == matchId && r.NumberInMatch == numberInMatch);
+            .FirstOrDefaultAsync(r => r.MatchId == matchId && r.NumberInMatch == numberInMatch, cancellationToken);
     }
 
-    public async Task<Round> CreateAsync(Round round)
+    public async Task<Round> CreateAsync(Round round, CancellationToken cancellationToken = default)
     {
-        await _dbContext.Rounds.AddAsync(round);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.Rounds.AddAsync(round, cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
         return round;
     }
 
-    public async Task DeleteAnswersByRoundIdAsync(Guid roundId)
+    public async Task DeleteAnswersByRoundIdAsync(Guid roundId, CancellationToken cancellationToken = default)
     {
         var answers = await _dbContext.RoundAnswers
             .Where(ra => ra.RoundId == roundId)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         _dbContext.RoundAnswers.RemoveRange(answers);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task CreateAnswersAsync(List<RoundAnswer> answers)
+    public async Task CreateAnswersAsync(List<RoundAnswer> answers, CancellationToken cancellationToken = default)
     {
         if (answers.Count > 0)
         {
-            await _dbContext.RoundAnswers.AddRangeAsync(answers);
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.RoundAnswers.AddRangeAsync(answers, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 
-    public async Task<Round?> DeleteAsync(Guid id)
+    public async Task<Round?> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        Round? existingRound = await _dbContext.Rounds.FirstOrDefaultAsync(x => x.Id == id);
+        Round? existingRound = await _dbContext.Rounds.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
         if (existingRound is null)
             return null;
 
         _dbContext.Rounds.Remove(existingRound);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         return existingRound;
     }

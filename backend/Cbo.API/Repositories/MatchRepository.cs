@@ -6,24 +6,24 @@ namespace Cbo.API.Repositories;
 
 public interface IMatchRepository
 {
-    Task<Match?> GetByIdAsync(Guid id);
+    Task<Match?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Match?> GetByIdWithDetailsAsync(Guid id);
     Task<Match?> GetByIdWithParticipantsAsync(Guid id);
     Task<List<Match>> GetAllByTournamentIdAsync(Guid tournamentId);
     Task<List<Match>> CreateBulkAsync(List<Match> matches);
-    Task<Match?> GetByIdWithScoreDataAsync(Guid id);
-    Task UpdateMatchParticipantsAsync(List<MatchParticipant> participants);
+    Task<Match?> GetByIdWithScoreDataAsync(Guid id, CancellationToken cancellationToken = default);
+    Task UpdateMatchParticipantsAsync(List<MatchParticipant> participants, CancellationToken cancellationToken = default);
 }
 
 public class MatchRepository(CboDbContext dbContext) : IMatchRepository
 {
     private readonly CboDbContext _dbContext = dbContext;
 
-    public async Task<Match?> GetByIdAsync(Guid id)
+    public async Task<Match?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Matches
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
     public async Task<Match?> GetByIdWithDetailsAsync(Guid id)
@@ -70,19 +70,19 @@ public class MatchRepository(CboDbContext dbContext) : IMatchRepository
         return matches;
     }
 
-    public async Task<Match?> GetByIdWithScoreDataAsync(Guid id)
+    public async Task<Match?> GetByIdWithScoreDataAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Matches
             .Include(m => m.MatchParticipants)
                 .ThenInclude(mp => mp.RoundAnswers)
                     .ThenInclude(ra => ra.Question)
             .Include(m => m.Rounds)
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
-    public async Task UpdateMatchParticipantsAsync(List<MatchParticipant> participants)
+    public async Task UpdateMatchParticipantsAsync(List<MatchParticipant> participants, CancellationToken cancellationToken = default)
     {
         _dbContext.MatchParticipants.UpdateRange(participants);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

@@ -13,8 +13,8 @@ public interface ITournamentParticipantsRepository
     Task<TournamentParticipant> CreateAsync(TournamentParticipant tournamentParticipant);
     Task<TournamentParticipant?> UpdateAsync(Guid id, UpdateTournamentParticipantParameters parameters);
     Task<TournamentParticipant?> DeleteAsync(Guid id);
-    Task<List<TournamentParticipant>> GetAllByTournamentIdWithMatchDataAsync(Guid tournamentId);
-    Task UpdateParticipantsAsync(List<TournamentParticipant> participants);
+    Task<List<TournamentParticipant>> GetAllByTournamentIdWithMatchDataAsync(Guid tournamentId, CancellationToken cancellationToken = default);
+    Task UpdateParticipantsAsync(List<TournamentParticipant> participants, CancellationToken cancellationToken = default);
     Task<List<TournamentParticipant>> UpdateSeedsAsync(Guid tournamentId, List<Guid> orderedParticipantIds);
 }
 
@@ -96,19 +96,19 @@ public class TournamentParticipantsRepository(CboDbContext dbContext) : ITournam
         return existing;
     }
 
-    public async Task<List<TournamentParticipant>> GetAllByTournamentIdWithMatchDataAsync(Guid tournamentId)
+    public async Task<List<TournamentParticipant>> GetAllByTournamentIdWithMatchDataAsync(Guid tournamentId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.TournamentParticipants
             .Include(tp => tp.ApplicationUser)
             .Include(tp => tp.MatchParticipants)
             .Where(tp => tp.TournamentId == tournamentId)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task UpdateParticipantsAsync(List<TournamentParticipant> participants)
+    public async Task UpdateParticipantsAsync(List<TournamentParticipant> participants, CancellationToken cancellationToken = default)
     {
         _dbContext.TournamentParticipants.UpdateRange(participants);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<List<TournamentParticipant>> UpdateSeedsAsync(Guid tournamentId, List<Guid> orderedParticipantIds)
