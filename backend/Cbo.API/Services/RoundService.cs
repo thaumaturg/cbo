@@ -1,32 +1,200 @@
+using System.Security.Claims;
+using Cbo.API.Authorization;
+using Cbo.API.Data;
+using Cbo.API.Mappings;
 using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
+using Cbo.Results;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Cbo.API.Services;
 
 public interface IRoundService
 {
-    string? ValidateRoundAnswers(List<CreateRoundAnswerDto> answers, bool isOverrideMode);
-    Task RecalculateMatchScoresAsync(Guid matchId);
+    Task<Result<GetRoundDto>> CreateRoundAsync(Guid tournamentId, Guid matchId, CreateRoundWithAnswersDto dto, ClaimsPrincipal user, CancellationToken cancellationToken = default);
+    Task<Result<GetRoundDto>> UpdateRoundAsync(Guid tournamentId, Guid matchId, int roundNumber, CreateRoundWithAnswersDto dto, ClaimsPrincipal user, CancellationToken cancellationToken = default);
+    Task<Result> DeleteRoundAsync(Guid tournamentId, Guid matchId, int roundNumber, ClaimsPrincipal user, CancellationToken cancellationToken = default);
 }
 
-public class RoundService(IMatchRepository matchRepository, ITournamentParticipantsRepository participantsRepository) : IRoundService
+public class RoundService(
+    ITournamentRepository tournamentRepository,
+    IMatchRepository matchRepository,
+    IRoundRepository roundRepository,
+    ITopicRepository topicRepository,
+    ITournamentTopicRepository tournamentTopicRepository,
+    ITournamentParticipantsRepository participantsRepository,
+    IAuthorizationService authorizationService,
+    CboDbContext dbContext) : IRoundService
 {
+    private readonly ITournamentRepository _tournamentRepository = tournamentRepository;
     private readonly IMatchRepository _matchRepository = matchRepository;
+    private readonly IRoundRepository _roundRepository = roundRepository;
+    private readonly ITopicRepository _topicRepository = topicRepository;
+    private readonly ITournamentTopicRepository _tournamentTopicRepository = tournamentTopicRepository;
     private readonly ITournamentParticipantsRepository _participantsRepository = participantsRepository;
+    private readonly IAuthorizationService _authorizationService = authorizationService;
+    private readonly CboDbContext _dbContext = dbContext;
 
-    public string? ValidateRoundAnswers(List<CreateRoundAnswerDto> answers, bool isOverrideMode)
+    public async Task<Result<GetRoundDto>> CreateRoundAsync(Guid tournamentId, Guid matchId, CreateRoundWithAnswersDto dto, ClaimsPrincipal user, CancellationToken cancellationToken = default)
+    {
+        Result matchAccess = await EnsureMatchAccessAsync(tournamentId, matchId, user, cancellationToken);
+        if (matchAccess.IsFailure)
+            return matchAccess.As<GetRoundDto>();
+
+        if (dto.NumberInMatch < 1 || dto.NumberInMatch > DefaultSettings.RoundsPerMatch)
+            return Result.Invalid<GetRoundDto>(RoundErrors.NumberOutOfRange());
+
+        Round? existingRound = await _roundRepository.GetByMatchIdAndNumberAsync(matchId, dto.NumberInMatch, cancellationToken);
+        if (existingRound is not null)
+            return Result.Conflict<GetRoundDto>(RoundErrors.AlreadyExists(dto.NumberInMatch));
+
+        Topic? topic = await _topicRepository.GetByIdAsync(dto.TopicId, cancellationToken);
+        if (topic is null)
+            return Result.Invalid<GetRoundDto>(RoundErrors.TopicNotFound());
+
+        Result answersValidation = ValidateRoundAnswers(dto.Answers, dto.IsOverrideMode);
+        if (answersValidation.IsFailure)
+            return answersValidation.As<GetRoundDto>();
+
+        Round round = dto.ToNewRound(matchId);
+        foreach (CreateRoundAnswerDto answerDto in dto.Answers)
+        {
+            round.RoundAnswers.Add(answerDto.ToNewRoundAnswer(Guid.Empty));
+        }
+
+        // Disposing an uncommitted transaction rolls it back; unexpected exceptions propagate to the global handler.
+        await using (IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken))
+        {
+            await _roundRepository.CreateAsync(round, cancellationToken);
+            await RecalculateMatchScoresAsync(matchId, cancellationToken);
+            await CommitAsync(transaction);
+        }
+
+        Result<GetRoundDto> loadResult = await LoadRoundDtoAsync(round.Id, tournamentId, cancellationToken);
+        if (loadResult.IsFailure)
+            return loadResult;
+
+        string location = $"/api/tournaments/{tournamentId}/matches/{matchId}/rounds/{round.NumberInMatch}";
+        return Result.Created(loadResult.Value, location);
+    }
+
+    public async Task<Result<GetRoundDto>> UpdateRoundAsync(Guid tournamentId, Guid matchId, int roundNumber, CreateRoundWithAnswersDto dto, ClaimsPrincipal user, CancellationToken cancellationToken = default)
+    {
+        Result matchAccess = await EnsureMatchAccessAsync(tournamentId, matchId, user, cancellationToken);
+        if (matchAccess.IsFailure)
+            return matchAccess.As<GetRoundDto>();
+
+        if (dto.NumberInMatch != roundNumber)
+            return Result.Invalid<GetRoundDto>(RoundErrors.NumberMismatch());
+
+        Round? existingRound = await _roundRepository.GetByMatchIdAndNumberAsync(matchId, roundNumber, cancellationToken);
+        if (existingRound is null)
+            return Result.NotFound<GetRoundDto>(RoundErrors.NotFound(roundNumber));
+
+        if (existingRound.TopicId != dto.TopicId || existingRound.IsOverrideMode != dto.IsOverrideMode)
+            return Result.Conflict<GetRoundDto>(RoundErrors.Immutable());
+
+        Result answersValidation = ValidateRoundAnswers(dto.Answers, dto.IsOverrideMode);
+        if (answersValidation.IsFailure)
+            return answersValidation.As<GetRoundDto>();
+
+        List<RoundAnswer> newAnswers = dto.Answers
+            .Select(a => a.ToNewRoundAnswer(existingRound.Id))
+            .ToList();
+
+        await using (IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken))
+        {
+            await _roundRepository.DeleteAnswersByRoundIdAsync(existingRound.Id, cancellationToken);
+            await _roundRepository.CreateAnswersAsync(newAnswers, cancellationToken);
+            await RecalculateMatchScoresAsync(matchId, cancellationToken);
+            await CommitAsync(transaction);
+        }
+
+        return await LoadRoundDtoAsync(existingRound.Id, tournamentId, cancellationToken);
+    }
+
+    public async Task<Result> DeleteRoundAsync(Guid tournamentId, Guid matchId, int roundNumber, ClaimsPrincipal user, CancellationToken cancellationToken = default)
+    {
+        Result matchAccess = await EnsureMatchAccessAsync(tournamentId, matchId, user, cancellationToken);
+        if (matchAccess.IsFailure)
+            return matchAccess;
+
+        Round? existingRound = await _roundRepository.GetByMatchIdAndNumberAsync(matchId, roundNumber, cancellationToken);
+        if (existingRound is null)
+            return Result.NotFound(RoundErrors.NotFound(roundNumber));
+
+        await using (IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken))
+        {
+            await _roundRepository.DeleteAsync(existingRound.Id, cancellationToken);
+            await RecalculateMatchScoresAsync(matchId, cancellationToken);
+            await CommitAsync(transaction);
+        }
+
+        return Result.NoContent();
+    }
+
+    /// <summary>
+    /// Commits without the request's cancellation token. Every write has already succeeded at this point;
+    /// cancelling an in-flight COMMIT would leave the client unable to tell whether it was applied.
+    /// Cancellation before this point simply rolls the transaction back on dispose.
+    /// </summary>
+    private static Task CommitAsync(IDbContextTransaction transaction) => transaction.CommitAsync(CancellationToken.None);
+
+    /// <summary>
+    /// Verifies that the tournament exists, the caller may manage its rounds, and the match belongs to it.
+    /// Every failure is <see cref="ResultStatus.NotFound"/> without details so that unauthorized callers cannot probe for existence.
+    /// </summary>
+    private async Task<Result> EnsureMatchAccessAsync(Guid tournamentId, Guid matchId, ClaimsPrincipal user, CancellationToken cancellationToken)
+    {
+        Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId, cancellationToken);
+        if (tournament is null)
+            return Result.NotFound();
+
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(user, tournament, TournamentOperations.ManageRounds);
+        if (!authResult.Succeeded)
+            return Result.NotFound();
+
+        Match? match = await _matchRepository.GetByIdAsync(matchId, cancellationToken);
+        if (match is null || match.TournamentId != tournamentId)
+            return Result.NotFound();
+
+        return Result.Ok();
+    }
+
+    /// <summary>
+    /// Reloads a saved round with the details <c>GetRoundDto</c> needs. Failures here mean the write
+    /// succeeded but the read-back did not, which is an infrastructure problem, hence <see cref="ResultStatus.Unexpected"/>.
+    /// These errors carry no <see cref="Error.Code"/>: there is nothing a client can do about them.
+    /// </summary>
+    private async Task<Result<GetRoundDto>> LoadRoundDtoAsync(Guid roundId, Guid tournamentId, CancellationToken cancellationToken)
+    {
+        Round? round = await _roundRepository.GetByIdWithDetailsAsync(roundId, cancellationToken);
+        if (round is null)
+            return Result.Unexpected<GetRoundDto>(new Error("Failed to retrieve the saved round."));
+
+        List<TournamentTopic> tournamentTopics = await _tournamentTopicRepository.GetAllByTournamentIdAsync(tournamentId, cancellationToken);
+        TournamentTopic? tournamentTopic = tournamentTopics.FirstOrDefault(tt => tt.TopicId == round.TopicId);
+        if (tournamentTopic is null)
+            return Result.Unexpected<GetRoundDto>(new Error("Failed to find the tournament topic for the round."));
+
+        string ownerUsername = tournamentTopic.TournamentParticipant.ApplicationUser?.UserName ?? string.Empty;
+        return Result.Ok(round.ToGetDto(tournamentTopic.PriorityIndex, ownerUsername));
+    }
+
+    private static Result ValidateRoundAnswers(List<CreateRoundAnswerDto> answers, bool isOverrideMode)
     {
         if (isOverrideMode)
         {
             foreach (CreateRoundAnswerDto answer in answers)
             {
                 if (answer.IsAnswerAccepted.HasValue)
-                    return "In override mode, IsAnswerAccepted must be null for all answers.";
+                    return Result.Invalid(RoundErrors.AnswerAcceptedNotAllowed());
 
                 if (!answer.OverrideCost.HasValue)
-                    return "In override mode, OverrideCost must be provided for all answers.";
+                    return Result.Invalid(RoundErrors.OverrideCostRequired());
             }
         }
         else
@@ -34,10 +202,10 @@ public class RoundService(IMatchRepository matchRepository, ITournamentParticipa
             foreach (CreateRoundAnswerDto answer in answers)
             {
                 if (!answer.IsAnswerAccepted.HasValue)
-                    return "In standard mode, IsAnswerAccepted must be provided for all answers.";
+                    return Result.Invalid(RoundErrors.AnswerAcceptedRequired());
 
                 if (answer.OverrideCost.HasValue)
-                    return "In standard mode, OverrideCost must be null for all answers.";
+                    return Result.Invalid(RoundErrors.OverrideCostNotAllowed());
             }
 
             var positiveAnswersByQuestion = answers
@@ -47,18 +215,15 @@ public class RoundService(IMatchRepository matchRepository, ITournamentParticipa
                 .ToList();
 
             if (positiveAnswersByQuestion.Count > 0)
-            {
-                Guid questionId = positiveAnswersByQuestion.First().Key;
-                return $"Question {questionId} has multiple correct answers. Only one correct answer is allowed per question.";
-            }
+                return Result.Invalid(RoundErrors.MultipleCorrectAnswers(positiveAnswersByQuestion.First().Key));
         }
 
-        return null;
+        return Result.Ok();
     }
 
-    public async Task RecalculateMatchScoresAsync(Guid matchId)
+    private async Task RecalculateMatchScoresAsync(Guid matchId, CancellationToken cancellationToken)
     {
-        Match? match = await _matchRepository.GetByIdWithScoreDataAsync(matchId);
+        Match? match = await _matchRepository.GetByIdWithScoreDataAsync(matchId, cancellationToken);
         if (match is null)
             return;
 
@@ -94,15 +259,15 @@ public class RoundService(IMatchRepository matchRepository, ITournamentParticipa
             }
         }
 
-        await _matchRepository.UpdateMatchParticipantsAsync(match.MatchParticipants.ToList());
+        await _matchRepository.UpdateMatchParticipantsAsync(match.MatchParticipants.ToList(), cancellationToken);
 
-        await RecalculateTournamentScoresAsync(match.TournamentId);
+        await RecalculateTournamentScoresAsync(match.TournamentId, cancellationToken);
     }
 
-    private async Task RecalculateTournamentScoresAsync(Guid tournamentId)
+    private async Task RecalculateTournamentScoresAsync(Guid tournamentId, CancellationToken cancellationToken)
     {
         List<TournamentParticipant> participants = await _participantsRepository
-            .GetAllByTournamentIdWithMatchDataAsync(tournamentId);
+            .GetAllByTournamentIdWithMatchDataAsync(tournamentId, cancellationToken);
 
         foreach (TournamentParticipant participant in participants)
         {
@@ -118,7 +283,7 @@ public class RoundService(IMatchRepository matchRepository, ITournamentParticipa
             participant.PointsSum = pointsSum;
         }
 
-        await _participantsRepository.UpdateParticipantsAsync(participants);
+        await _participantsRepository.UpdateParticipantsAsync(participants, cancellationToken);
     }
 
     private static void CalculatePoints(List<MatchParticipant> participants)
