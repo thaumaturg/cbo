@@ -1,6 +1,5 @@
 <script setup>
 import { topicService } from "@/services/topic-service.js";
-import { extractErrorMessage } from "@/utils/error.js";
 import { useNotify } from "@/utils/notify.js";
 import { parseClipboardTable } from "@/utils/clipboard-parser.js";
 import Button from "primevue/button";
@@ -281,7 +280,7 @@ const onSubmit = async (values) => {
       router.push("/");
     } else {
       formStatus.value = "error";
-      generalError.value = extractErrorMessage(result.error, "Failed to save topic. Please try again.");
+      generalError.value = result.error;
     }
   } catch {
     formStatus.value = "error";

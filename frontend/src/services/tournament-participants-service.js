@@ -1,4 +1,5 @@
 import api from "./api-interceptors.js";
+import { toFailure } from "@/utils/error.js";
 
 export const tournamentParticipantsService = {
   /**
@@ -13,10 +14,7 @@ export const tournamentParticipantsService = {
       const response = await api.get(`/Tournaments/${tournamentId}/participants`, { params });
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to fetch participants. Please try again.",
-      };
+      return toFailure(error, "Failed to fetch participants. Please try again.");
     }
   },
 
@@ -33,10 +31,7 @@ export const tournamentParticipantsService = {
       });
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to update seeding. Please try again.",
-      };
+      return toFailure(error, "Failed to update seeding. Please try again.");
     }
   },
 
@@ -51,10 +46,7 @@ export const tournamentParticipantsService = {
       const response = await api.get(`/Tournaments/${tournamentId}/participants/${participantId}`);
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to fetch participant details. Please try again.",
-      };
+      return toFailure(error, "Failed to fetch participant details. Please try again.");
     }
   },
 
@@ -74,10 +66,7 @@ export const tournamentParticipantsService = {
       });
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to add participant. Please try again.",
-      };
+      return toFailure(error, "Failed to add participant. Please try again.");
     }
   },
 
@@ -96,10 +85,7 @@ export const tournamentParticipantsService = {
       });
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to update participant. Please try again.",
-      };
+      return toFailure(error, "Failed to update participant. Please try again.");
     }
   },
 
@@ -114,10 +100,7 @@ export const tournamentParticipantsService = {
       await api.delete(`/Tournaments/${tournamentId}/participants/${participantId}`);
       return { success: true };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to remove participant. Please try again.",
-      };
+      return toFailure(error, "Failed to remove participant. Please try again.");
     }
   },
 };

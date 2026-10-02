@@ -1,4 +1,5 @@
 import api from "./api-interceptors.js";
+import { toFailure } from "@/utils/error.js";
 
 export const tournamentRoundsService = {
   /**
@@ -16,10 +17,7 @@ export const tournamentRoundsService = {
       const response = await api.post(`/Tournaments/${tournamentId}/matches/${matchId}/rounds`, roundData);
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to create round. Please try again.",
-      };
+      return toFailure(error, "Failed to create round. Please try again.");
     }
   },
 
@@ -42,10 +40,7 @@ export const tournamentRoundsService = {
       );
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to update round. Please try again.",
-      };
+      return toFailure(error, "Failed to update round. Please try again.");
     }
   },
 
@@ -61,10 +56,7 @@ export const tournamentRoundsService = {
       await api.delete(`/Tournaments/${tournamentId}/matches/${matchId}/rounds/${roundNumber}`);
       return { success: true };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to delete round. Please try again.",
-      };
+      return toFailure(error, "Failed to delete round. Please try again.");
     }
   },
 };

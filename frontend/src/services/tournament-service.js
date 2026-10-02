@@ -1,4 +1,5 @@
 import api from "./api-interceptors.js";
+import { toFailure } from "@/utils/error.js";
 
 export const tournamentService = {
   /**
@@ -10,10 +11,7 @@ export const tournamentService = {
       const response = await api.get("/Tournaments");
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to fetch tournaments. Please try again.",
-      };
+      return toFailure(error, "Failed to fetch tournaments. Please try again.");
     }
   },
 
@@ -27,10 +25,7 @@ export const tournamentService = {
       const response = await api.get(`/Tournaments/${tournamentId}`);
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to fetch tournament details. Please try again.",
-      };
+      return toFailure(error, "Failed to fetch tournament details. Please try again.");
     }
   },
 
@@ -55,10 +50,7 @@ export const tournamentService = {
       });
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to create tournament. Please try again.",
-      };
+      return toFailure(error, "Failed to create tournament. Please try again.");
     }
   },
 
@@ -84,10 +76,7 @@ export const tournamentService = {
       });
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to update tournament. Please try again.",
-      };
+      return toFailure(error, "Failed to update tournament. Please try again.");
     }
   },
 
@@ -101,10 +90,7 @@ export const tournamentService = {
       await api.delete(`/Tournaments/${tournamentId}`);
       return { success: true };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to delete tournament. Please try again.",
-      };
+      return toFailure(error, "Failed to delete tournament. Please try again.");
     }
   },
 
@@ -121,10 +107,7 @@ export const tournamentService = {
       });
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to advance tournament stage. Please try again.",
-      };
+      return toFailure(error, "Failed to advance tournament stage. Please try again.");
     }
   },
 };

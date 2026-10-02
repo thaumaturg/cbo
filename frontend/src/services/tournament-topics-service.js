@@ -1,4 +1,5 @@
 import api from "./api-interceptors.js";
+import { toFailure } from "@/utils/error.js";
 
 export const tournamentTopicsService = {
   /**
@@ -11,10 +12,7 @@ export const tournamentTopicsService = {
       const response = await api.get(`/Tournaments/${tournamentId}/topics`);
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to fetch topics. Please try again.",
-      };
+      return toFailure(error, "Failed to fetch topics. Please try again.");
     }
   },
 
@@ -28,10 +26,7 @@ export const tournamentTopicsService = {
       const response = await api.get(`/Tournaments/${tournamentId}/topics/all`);
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to fetch all topics. Please try again.",
-      };
+      return toFailure(error, "Failed to fetch all topics. Please try again.");
     }
   },
 
@@ -46,10 +41,7 @@ export const tournamentTopicsService = {
       const response = await api.put(`/Tournaments/${tournamentId}/topics`, topics);
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to update topics. Please try again.",
-      };
+      return toFailure(error, "Failed to update topics. Please try again.");
     }
   },
 
@@ -64,10 +56,7 @@ export const tournamentTopicsService = {
       const response = await api.get(`/Tournaments/${tournamentId}/topics/${topicId}`);
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to fetch topic. Please try again.",
-      };
+      return toFailure(error, "Failed to fetch topic. Please try again.");
     }
   },
 };

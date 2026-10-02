@@ -1,4 +1,5 @@
 import api from "./api-interceptors.js";
+import { toFailure } from "@/utils/error.js";
 
 export const topicService = {
   /**
@@ -10,10 +11,7 @@ export const topicService = {
       const response = await api.get("/Topics");
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to fetch topics. Please try again.",
-      };
+      return toFailure(error, "Failed to fetch topics. Please try again.");
     }
   },
 
@@ -27,10 +25,7 @@ export const topicService = {
       const response = await api.get(`/Topics/${topicId}`);
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to fetch topic details. Please try again.",
-      };
+      return toFailure(error, "Failed to fetch topic details. Please try again.");
     }
   },
 
@@ -44,10 +39,7 @@ export const topicService = {
       const response = await api.post("/Topics", topicData);
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to create topic. Please try again.",
-      };
+      return toFailure(error, "Failed to create topic. Please try again.");
     }
   },
 
@@ -62,10 +54,7 @@ export const topicService = {
       const response = await api.put(`/Topics/${topicId}`, topicData);
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to update topic. Please try again.",
-      };
+      return toFailure(error, "Failed to update topic. Please try again.");
     }
   },
 
@@ -79,10 +68,7 @@ export const topicService = {
       await api.delete(`/Topics/${topicId}`);
       return { success: true };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to delete topic. Please try again.",
-      };
+      return toFailure(error, "Failed to delete topic. Please try again.");
     }
   },
 };

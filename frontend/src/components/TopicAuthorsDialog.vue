@@ -6,7 +6,6 @@ import Button from "primevue/button";
 import Message from "primevue/message";
 import { useConfirm } from "primevue/useconfirm";
 import { topicAuthorsService } from "@/services/topic-authors-service.js";
-import { extractErrorMessage } from "@/utils/error.js";
 
 const props = defineProps({
   visible: {
@@ -97,7 +96,7 @@ const handleAddAuthor = async () => {
       authors.value.push(result.data);
       resetForm();
     } else {
-      addError.value = extractErrorMessage(result.error, "Failed to add author. Please try again.");
+      addError.value = result.error;
     }
   } catch (error) {
     addError.value = "An unexpected error occurred. Please try again.";
@@ -132,7 +131,7 @@ const handleDeleteAuthor = (author) => {
             authors.value.splice(index, 1);
           }
         } else {
-          addError.value = extractErrorMessage(result.error, "Failed to remove author. Please try again.");
+          addError.value = result.error;
         }
       } catch (error) {
         addError.value = "An unexpected error occurred. Please try again.";

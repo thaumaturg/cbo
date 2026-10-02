@@ -1,5 +1,6 @@
 import { jwtDecode } from "jwt-decode";
 import api from "./api-interceptors.js";
+import { toFailure } from "@/utils/error.js";
 
 const TOKEN_KEY = "auth_token";
 
@@ -28,10 +29,7 @@ export const authService = {
       });
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Registration failed. Please try again.",
-      };
+      return toFailure(error, "Registration failed. Please try again.");
     }
   },
 
@@ -60,10 +58,7 @@ export const authService = {
       localStorage.setItem(TOKEN_KEY, token);
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Login failed. Please check your credentials.",
-      };
+      return toFailure(error, "Login failed. Please check your credentials.");
     }
   },
 
@@ -82,12 +77,7 @@ export const authService = {
       });
       return { success: true };
     } catch (error) {
-      const problemErrors = error.response?.data?.errors;
-      const messages = problemErrors ? Object.values(problemErrors).flat() : [];
-      return {
-        success: false,
-        error: messages.length > 0 ? messages.join(" ") : "Password change failed. Please try again.",
-      };
+      return toFailure(error, "Password change failed. Please try again.");
     }
   },
 

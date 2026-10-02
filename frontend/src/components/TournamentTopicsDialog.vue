@@ -1,7 +1,6 @@
 <script setup>
 import { topicService } from "@/services/topic-service.js";
 import { tournamentTopicsService } from "@/services/tournament-topics-service.js";
-import { extractErrorMessage } from "@/utils/error.js";
 import AutoComplete from "primevue/autocomplete";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
@@ -136,7 +135,7 @@ const fetchAssignedTopics = async () => {
     if (result.success) {
       assignedTopics.value = buildListFromDtos(result.data);
     } else {
-      error.value = extractErrorMessage(result.error, "Failed to load assigned topics.");
+      error.value = result.error;
     }
   } catch (err) {
     error.value = "Failed to load assigned topics. Please try again.";
@@ -220,7 +219,7 @@ const saveTopics = async () => {
       assignedTopics.value = buildListFromDtos(result.data);
       hasChanges.value = false;
     } else {
-      error.value = extractErrorMessage(result.error, "Failed to save topics. Please try again.");
+      error.value = result.error;
     }
   } catch (err) {
     error.value = "An unexpected error occurred. Please try again.";

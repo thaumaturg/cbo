@@ -1,4 +1,5 @@
 import api from "./api-interceptors.js";
+import { toFailure } from "@/utils/error.js";
 
 export const topicAuthorsService = {
   /**
@@ -11,10 +12,7 @@ export const topicAuthorsService = {
       const response = await api.get(`/Topics/${topicId}/authors`);
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to fetch authors. Please try again.",
-      };
+      return toFailure(error, "Failed to fetch authors. Please try again.");
     }
   },
 
@@ -29,10 +27,7 @@ export const topicAuthorsService = {
       const response = await api.get(`/Topics/${topicId}/authors/${authorId}`);
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to fetch author details. Please try again.",
-      };
+      return toFailure(error, "Failed to fetch author details. Please try again.");
     }
   },
 
@@ -50,10 +45,7 @@ export const topicAuthorsService = {
       });
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to add author. Please try again.",
-      };
+      return toFailure(error, "Failed to add author. Please try again.");
     }
   },
 
@@ -68,10 +60,7 @@ export const topicAuthorsService = {
       await api.delete(`/Topics/${topicId}/authors/${authorId}`);
       return { success: true };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to remove author. Please try again.",
-      };
+      return toFailure(error, "Failed to remove author. Please try again.");
     }
   },
 };

@@ -1,4 +1,5 @@
 import api from "./api-interceptors.js";
+import { toFailure } from "@/utils/error.js";
 
 export const tournamentMatchesService = {
   /**
@@ -11,10 +12,7 @@ export const tournamentMatchesService = {
       const response = await api.get(`/Tournaments/${tournamentId}/matches`);
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to fetch matches. Please try again.",
-      };
+      return toFailure(error, "Failed to fetch matches. Please try again.");
     }
   },
 
@@ -29,10 +27,7 @@ export const tournamentMatchesService = {
       const response = await api.get(`/Tournaments/${tournamentId}/matches/${matchId}`);
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to fetch match details. Please try again.",
-      };
+      return toFailure(error, "Failed to fetch match details. Please try again.");
     }
   },
 
@@ -47,10 +42,7 @@ export const tournamentMatchesService = {
       const response = await api.get(`/Tournaments/${tournamentId}/matches/${matchId}/available-topics`);
       return { success: true, data: response.data };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data || "Failed to fetch available topics. Please try again.",
-      };
+      return toFailure(error, "Failed to fetch available topics. Please try again.");
     }
   },
 };
