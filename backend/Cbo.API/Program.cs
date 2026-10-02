@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Cbo.API.Authorization;
 using Cbo.API.Data;
 using Cbo.API.Data.Interceptors;
+using Cbo.API.Infrastructure;
 using Cbo.API.Models.Domain;
 using Cbo.API.Repositories;
 using Cbo.API.Services;
@@ -60,6 +61,9 @@ public class Program
         builder.Services.AddScoped<IRoundService, RoundService>();
         builder.Services.AddScoped<ITopicValidationService, TopicValidationService>();
 
+        builder.Services.AddProblemDetails();
+        builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
         builder.Services.AddControllers()
             .AddJsonOptions(options =>
             {
@@ -110,6 +114,8 @@ public class Program
         forwardedHeadersOptions.KnownIPNetworks.Clear();
         forwardedHeadersOptions.KnownProxies.Clear();
         app.UseForwardedHeaders(forwardedHeadersOptions);
+
+        app.UseExceptionHandler();
 
         if (app.Environment.IsDevelopment())
         {
