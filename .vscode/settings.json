@@ -37,5 +37,6 @@
     "editor.defaultFormatter": null
   },
   "eslint.workingDirectories": ["frontend"],
-  "eslint.validate": ["javascript", "vue"]
+  "eslint.validate": ["javascript", "vue"],
+  "dotnet.defaultSolution": "backend/backend.slnx"
 }
