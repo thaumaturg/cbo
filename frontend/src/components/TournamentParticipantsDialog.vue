@@ -1,6 +1,5 @@
 <script setup>
 import { tournamentParticipantsService } from "@/services/tournament-participants-service.js";
-import { extractErrorMessage } from "@/utils/error.js";
 import { useNotify } from "@/utils/notify.js";
 import Button from "primevue/button";
 import Column from "primevue/column";
@@ -142,7 +141,7 @@ const handleAddParticipant = async () => {
       participants.value.push(result.data);
       resetForm();
     } else {
-      addError.value = extractErrorMessage(result.error, "Failed to add participant. Please try again.");
+      addError.value = result.error;
     }
   } catch (error) {
     addError.value = "An unexpected error occurred. Please try again.";
@@ -175,10 +174,7 @@ const handleDeleteParticipant = (participant) => {
           notify.success("Participant Removed", `"${participant.username}" removed from tournament`);
           await fetchParticipants();
         } else {
-          notify.error(
-            "Remove Failed",
-            extractErrorMessage(result.error, "Failed to remove participant. Please try again."),
-          );
+          notify.error("Remove Failed", result.error);
         }
       } catch (error) {
         notify.error("Remove Failed", "An unexpected error occurred. Please try again.");
@@ -207,10 +203,7 @@ const handleRowReorder = async (event) => {
       const playersById = new Map(result.data.map((p) => [p.id, p]));
       participants.value = participants.value.map((p) => playersById.get(p.id) ?? p);
     } else {
-      notify.error(
-        "Seeding Update Failed",
-        extractErrorMessage(result.error, "Failed to update seeding. Please try again."),
-      );
+      notify.error("Seeding Update Failed", result.error);
       await fetchParticipants();
     }
   } catch (error) {

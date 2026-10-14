@@ -1,4 +1,5 @@
 import { authService } from "@/services/auth-service.js";
+import { apiFailure } from "@/utils/error.js";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
@@ -49,8 +50,9 @@ export const useAuthStore = defineStore("auth", () => {
       return { success: true };
     } catch (err) {
       console.error("Login error:", err);
-      error.value = "An unexpected error occurred during login.";
-      return { success: false, error: error.value };
+      const failure = apiFailure(err, "An unexpected error occurred during login.");
+      error.value = failure.error;
+      return failure;
     } finally {
       isLoading.value = false;
     }
@@ -71,8 +73,9 @@ export const useAuthStore = defineStore("auth", () => {
       }
     } catch (err) {
       console.error("Registration error:", err);
-      error.value = "An unexpected error occurred during registration.";
-      return { success: false, error: error.value };
+      const failure = apiFailure(err, "An unexpected error occurred during registration.");
+      error.value = failure.error;
+      return failure;
     } finally {
       isLoading.value = false;
     }
