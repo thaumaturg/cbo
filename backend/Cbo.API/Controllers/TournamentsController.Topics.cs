@@ -71,10 +71,10 @@ public partial class TournamentsController
 
         bool isPlayer = participant?.Role == TournamentParticipantRole.Player;
         if (isPlayer && topicsDto.Count < tournament.TopicsPerParticipantMin)
-            return BadRequest($"Must assign at least {tournament.TopicsPerParticipantMin} topics.");
+            return Problem(detail: $"Must assign at least {tournament.TopicsPerParticipantMin} topics.", statusCode: StatusCodes.Status400BadRequest);
 
         if (topicsDto.Count > tournament.TopicsPerParticipantMax)
-            return BadRequest($"Cannot assign more than {tournament.TopicsPerParticipantMax} topics.");
+            return Problem(detail: $"Cannot assign more than {tournament.TopicsPerParticipantMax} topics.", statusCode: StatusCodes.Status400BadRequest);
 
         List<TournamentTopic> topicsDomain = [];
         HashSet<Guid> seenTopicIds = [];
@@ -82,15 +82,15 @@ public partial class TournamentsController
         foreach (UpdateTournamentTopicDto dto in topicsDto)
         {
             if (!seenTopicIds.Add(dto.TopicId))
-                return BadRequest($"Duplicate topic ID {dto.TopicId} in the list.");
+                return Problem(detail: $"Duplicate topic ID {dto.TopicId} in the list.", statusCode: StatusCodes.Status400BadRequest);
 
             Topic? topic = await _topicRepository.GetByIdAsync(dto.TopicId);
             if (topic is null)
-                return BadRequest($"Topic with ID {dto.TopicId} not found.");
+                return Problem(detail: $"Topic with ID {dto.TopicId} not found.", statusCode: StatusCodes.Status400BadRequest);
 
             AuthorizationResult topicAuthResult = await _authorizationService.AuthorizeAsync(User, topic, TopicOperations.Read);
             if (!topicAuthResult.Succeeded)
-                return BadRequest($"You must be the owner of topic with ID {dto.TopicId} to assign it.");
+                return Problem(detail: $"You must be the owner of topic with ID {dto.TopicId} to assign it.", statusCode: StatusCodes.Status400BadRequest);
 
             TournamentTopic topicDomain = dto.ToNewTournamentTopic(tournamentId, participant!.Id);
             topicsDomain.Add(topicDomain);
@@ -117,7 +117,7 @@ public partial class TournamentsController
 
         List<TournamentTopic> tournamentTopics = await _tournamentTopicRepository.GetAllByTournamentIdAsync(tournamentId);
         if (!tournamentTopics.Any(tt => tt.TopicId == topicId))
-            return NotFound("Topic is not part of this tournament.");
+            return Problem(detail: "Topic is not part of this tournament.", statusCode: StatusCodes.Status404NotFound);
 
         Topic? topic = await _topicRepository.GetByIdIncludeQuestionsAsync(topicId);
         if (topic is null)

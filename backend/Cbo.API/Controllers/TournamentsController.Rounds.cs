@@ -32,19 +32,19 @@ public partial class TournamentsController
             return NotFound();
 
         if (createRoundDto.NumberInMatch < 1 || createRoundDto.NumberInMatch > DefaultSettings.RoundsPerMatch)
-            return BadRequest($"Round number must be between 1 and {DefaultSettings.RoundsPerMatch}.");
+            return Problem(detail: $"Round number must be between 1 and {DefaultSettings.RoundsPerMatch}.", statusCode: StatusCodes.Status400BadRequest);
 
         Round? existingRound = await _roundRepository.GetByMatchIdAndNumberAsync(matchId, createRoundDto.NumberInMatch);
         if (existingRound is not null)
-            return BadRequest($"Round {createRoundDto.NumberInMatch} already exists for this match. Use PUT to update.");
+            return Problem(detail: $"Round {createRoundDto.NumberInMatch} already exists for this match. Use PUT to update.", statusCode: StatusCodes.Status400BadRequest);
 
         Topic? topic = await _topicRepository.GetByIdAsync(createRoundDto.TopicId);
         if (topic is null)
-            return BadRequest("Topic not found.");
+            return Problem(detail: "Topic not found.", statusCode: StatusCodes.Status400BadRequest);
 
         string? answersValidationError = _roundService.ValidateRoundAnswers(createRoundDto.Answers, createRoundDto.IsOverrideMode);
         if (answersValidationError is not null)
-            return BadRequest(answersValidationError);
+            return Problem(detail: answersValidationError, statusCode: StatusCodes.Status400BadRequest);
 
         Round round = createRoundDto.ToNewRound(matchId);
 
@@ -107,20 +107,20 @@ public partial class TournamentsController
             return NotFound();
 
         if (updateRoundDto.NumberInMatch != roundNumber)
-            return BadRequest("Round number in URL must match round number in body.");
+            return Problem(detail: "Round number in URL must match round number in body.", statusCode: StatusCodes.Status400BadRequest);
 
         Round? existingRound = await _roundRepository.GetByMatchIdAndNumberAsync(matchId, roundNumber);
         if (existingRound is null)
-            return NotFound($"Round {roundNumber} not found for this match.");
+            return Problem(detail: $"Round {roundNumber} not found for this match.", statusCode: StatusCodes.Status404NotFound);
 
         if (existingRound.TopicId != updateRoundDto.TopicId ||
             existingRound.NumberInMatch != updateRoundDto.NumberInMatch ||
             existingRound.IsOverrideMode != updateRoundDto.IsOverrideMode)
-            return BadRequest("Cannot change existing round. Delete and create a new one.");
+            return Problem(detail: "Cannot change existing round. Delete and create a new one.", statusCode: StatusCodes.Status400BadRequest);
 
         string? answersValidationError = _roundService.ValidateRoundAnswers(updateRoundDto.Answers, updateRoundDto.IsOverrideMode);
         if (answersValidationError is not null)
-            return BadRequest(answersValidationError);
+            return Problem(detail: answersValidationError, statusCode: StatusCodes.Status400BadRequest);
 
         List<RoundAnswer> newAnswers = updateRoundDto.Answers
             .Select(a => a.ToNewRoundAnswer(existingRound.Id))
@@ -180,7 +180,7 @@ public partial class TournamentsController
 
         Round? existingRound = await _roundRepository.GetByMatchIdAndNumberAsync(matchId, roundNumber);
         if (existingRound is null)
-            return NotFound($"Round {roundNumber} not found for this match.");
+            return Problem(detail: $"Round {roundNumber} not found for this match.", statusCode: StatusCodes.Status404NotFound);
 
         await using (IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync())
         {

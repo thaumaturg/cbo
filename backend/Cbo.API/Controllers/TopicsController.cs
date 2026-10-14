@@ -1,4 +1,5 @@
 using Cbo.API.Authorization;
+using Cbo.API.ErrorHandling;
 using Cbo.API.Mappings;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
@@ -81,7 +82,10 @@ public partial class TopicsController(
                 .ToList());
 
         if (validationErrors.Count > 0)
-            return ValidationProblem(new ValidationProblemDetails(validationErrors));
+        {
+            ModelState.AddModelErrors(validationErrors);
+            return ValidationProblem(ModelState);
+        }
 
         Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
 
@@ -125,7 +129,10 @@ public partial class TopicsController(
                 .ToList());
 
         if (validationErrors.Count > 0)
-            return ValidationProblem(new ValidationProblemDetails(validationErrors));
+        {
+            ModelState.AddModelErrors(validationErrors);
+            return ValidationProblem(ModelState);
+        }
 
         Topic? existingTopic = await _topicRepository.GetByIdAsync(id);
         if (existingTopic is null)
@@ -136,7 +143,7 @@ public partial class TopicsController(
             return NotFound();
 
         if (existingTopic.Rounds.Count > 0)
-            return BadRequest("Cannot edit a topic that has already been played in a round.");
+            return Problem(detail: "Cannot edit a topic that has already been played in a round.", statusCode: StatusCodes.Status400BadRequest);
 
         Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
 
@@ -164,7 +171,7 @@ public partial class TopicsController(
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(ex.Message);
+            return Problem(detail: ex.Message, statusCode: StatusCodes.Status400BadRequest);
         }
 
         if (updatedTopic is null)
@@ -190,7 +197,7 @@ public partial class TopicsController(
             return NotFound();
 
         if (existingTopic.Rounds.Count > 0)
-            return Conflict("This topic has been played in a match and cannot be deleted.");
+            return Problem(detail: "This topic has been played in a match and cannot be deleted.", statusCode: StatusCodes.Status409Conflict);
 
         Topic? topicDomain;
         try
@@ -200,7 +207,7 @@ public partial class TopicsController(
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.ForeignKeyViolation })
         {
             // Safety net for the race where the topic gets played between the check above and the delete
-            return Conflict("This topic has been played in a match and cannot be deleted.");
+            return Problem(detail: "This topic has been played in a match and cannot be deleted.", statusCode: StatusCodes.Status409Conflict);
         }
 
         if (topicDomain is null)

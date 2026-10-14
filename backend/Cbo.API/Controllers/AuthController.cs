@@ -1,3 +1,4 @@
+using Cbo.API.ErrorHandling;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
@@ -37,7 +38,7 @@ public class AuthController(
             return Ok("Account created. You can now log in.");
         }
 
-        return BadRequest("Registration failed. Please check that your data.");
+        return Problem(detail: "Registration failed. Please check that your data.", statusCode: StatusCodes.Status400BadRequest);
     }
 
     [HttpPost]
@@ -60,7 +61,7 @@ public class AuthController(
             }
         }
 
-        return BadRequest("Login failed. Please check your credentials.");
+        return Problem(detail: "Login failed. Please check your credentials.", statusCode: StatusCodes.Status400BadRequest);
     }
 
     [HttpPost]
@@ -70,10 +71,8 @@ public class AuthController(
     {
         if (changePasswordDto.NewPassword == changePasswordDto.CurrentPassword)
         {
-            return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
-            {
-                [nameof(ChangePasswordDto.NewPassword)] = ["New password must be different from the current password."]
-            }));
+            ModelState.AddModelError(nameof(ChangePasswordDto.NewPassword), "New password must be different from the current password.");
+            return ValidationProblem(ModelState);
         }
 
         Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
@@ -97,6 +96,7 @@ public class AuthController(
                 : nameof(ChangePasswordDto.NewPassword))
             .ToDictionary(group => group.Key, group => group.Select(error => error.Description).ToArray());
 
-        return ValidationProblem(new ValidationProblemDetails(errors));
+        ModelState.AddModelErrors(errors);
+        return ValidationProblem(ModelState);
     }
 }
