@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Cbo.API.Authorization;
 using Cbo.API.Data;
 using Cbo.API.Data.Interceptors;
+using Cbo.API.ErrorHandling;
 using Cbo.API.Models.Domain;
 using Cbo.API.Repositories;
 using Cbo.API.Services;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -60,11 +62,18 @@ public class Program
         builder.Services.AddScoped<IRoundService, RoundService>();
         builder.Services.AddScoped<ITopicValidationService, TopicValidationService>();
 
-        builder.Services.AddControllers()
+        builder.Services.AddControllers(options =>
+            {
+                // Model-validation error keys use the JSON property names (camelCase) instead of the C# names
+                options.ModelMetadataDetailsProviders.Add(new SystemTextJsonValidationMetadataProvider());
+            })
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
+
+        builder.Services.AddProblemDetails();
+        builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi("v1", options =>
         {
@@ -103,6 +112,8 @@ public class Program
 
         WebApplication app = builder.Build();
 
+        app.UseExceptionHandler();
+
         ForwardedHeadersOptions forwardedHeadersOptions = new()
         {
             ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
@@ -119,6 +130,9 @@ public class Program
         {
             app.UseStaticFiles();
         }
+
+        // Gives error responses without a body (for example the JWT challenge 401) a problem details body
+        app.UseStatusCodePages();
 
         app.UseRouting();
 
