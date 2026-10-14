@@ -65,15 +65,15 @@ public partial class TopicsController
             return NotFound();
 
         if (topic.Rounds.Count > 0)
-            return BadRequest("Cannot modify authors of a topic that has already been played in a round.");
+            return Problem(detail: "Cannot modify authors of a topic that has already been played in a round.", statusCode: StatusCodes.Status400BadRequest);
 
         ApplicationUser? user = await _userManager.FindByNameAsync(createAuthorDto.Username);
         if (user is null)
-            return NotFound($"User with username '{createAuthorDto.Username}' not found.");
+            return Problem(detail: $"User with username '{createAuthorDto.Username}' not found.", statusCode: StatusCodes.Status404NotFound);
 
         TopicAuthor? existingAuthor = await _topicAuthorRepository.GetByUserIdAndTopicIdAsync(user.Id, topicId);
         if (existingAuthor is not null)
-            return Conflict($"User '{createAuthorDto.Username}' is already an author of this topic.");
+            return Problem(detail: $"User '{createAuthorDto.Username}' is already an author of this topic.", statusCode: StatusCodes.Status409Conflict);
 
         TopicAuthor authorDomain = new TopicAuthor
         {
@@ -104,14 +104,14 @@ public partial class TopicsController
             return NotFound();
 
         if (topic.Rounds.Count > 0)
-            return BadRequest("Cannot modify authors of a topic that has already been played in a round.");
+            return Problem(detail: "Cannot modify authors of a topic that has already been played in a round.", statusCode: StatusCodes.Status400BadRequest);
 
         TopicAuthor? existingAuthor = await _topicAuthorRepository.GetByAuthorIdAndTopicIdAsync(id, topicId);
         if (existingAuthor is null)
             return NotFound();
 
         if (existingAuthor.IsOwner)
-            return BadRequest("Cannot remove the owner from the authors list.");
+            return Problem(detail: "Cannot remove the owner from the authors list.", statusCode: StatusCodes.Status400BadRequest);
 
         TopicAuthor? authorDomain = await _topicAuthorRepository.DeleteAsync(id);
 

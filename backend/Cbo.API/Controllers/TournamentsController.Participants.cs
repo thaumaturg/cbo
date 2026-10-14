@@ -62,7 +62,7 @@ public partial class TournamentsController
     public async Task<IActionResult> CreateParticipant([FromRoute] Guid tournamentId, [FromBody] CreateTournamentParticipantDto createParticipantDto)
     {
         if (createParticipantDto.Role == TournamentParticipantRole.Creator)
-            return BadRequest("Cannot add a creator. Tournament can only have one creator.");
+            return Problem(detail: "Cannot add a creator. Tournament can only have one creator.", statusCode: StatusCodes.Status400BadRequest);
 
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
@@ -77,16 +77,16 @@ public partial class TournamentsController
             List<TournamentParticipant> allParticipants = await _participantsRepository.GetAllByTournamentIdAsync(tournamentId);
             int organizerCount = allParticipants.Count(p => p.Role == TournamentParticipantRole.Organizer);
             if (organizerCount >= DefaultSettings.OrganizersPerTournamentMax)
-                return BadRequest($"Tournament can have at most {DefaultSettings.OrganizersPerTournamentMax} organizers.");
+                return Problem(detail: $"Tournament can have at most {DefaultSettings.OrganizersPerTournamentMax} organizers.", statusCode: StatusCodes.Status400BadRequest);
         }
 
         ApplicationUser? user = await _userManager.FindByNameAsync(createParticipantDto.Username);
         if (user is null)
-            return NotFound($"User with username '{createParticipantDto.Username}' not found.");
+            return Problem(detail: $"User with username '{createParticipantDto.Username}' not found.", statusCode: StatusCodes.Status404NotFound);
 
         TournamentParticipant? existingParticipant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(user.Id, tournamentId);
         if (existingParticipant is not null)
-            return Conflict($"User '{createParticipantDto.Username}' is already a participant in this tournament.");
+            return Problem(detail: $"User '{createParticipantDto.Username}' is already a participant in this tournament.", statusCode: StatusCodes.Status409Conflict);
 
         TournamentParticipant participantDomain = createParticipantDto.ToNewParticipant(tournamentId, user.Id);
 
@@ -106,7 +106,7 @@ public partial class TournamentsController
     public async Task<IActionResult> UpdateParticipant([FromRoute] Guid tournamentId, [FromRoute] Guid id, [FromBody] UpdateTournamentParticipantDto updateParticipantDto)
     {
         if (updateParticipantDto.Role == TournamentParticipantRole.Creator)
-            return BadRequest("Cannot promote to a creator role.");
+            return Problem(detail: "Cannot promote to a creator role.", statusCode: StatusCodes.Status400BadRequest);
 
         Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
         if (tournament is null)
@@ -125,7 +125,7 @@ public partial class TournamentsController
             List<TournamentParticipant> allParticipants = await _participantsRepository.GetAllByTournamentIdAsync(tournamentId);
             int organizerCount = allParticipants.Count(p => p.Role == TournamentParticipantRole.Organizer);
             if (organizerCount >= DefaultSettings.OrganizersPerTournamentMax)
-                return BadRequest($"Tournament can have at most {DefaultSettings.OrganizersPerTournamentMax} organizers.");
+                return Problem(detail: $"Tournament can have at most {DefaultSettings.OrganizersPerTournamentMax} organizers.", statusCode: StatusCodes.Status400BadRequest);
         }
 
         bool becomesPlayer = updateParticipantDto.Role == TournamentParticipantRole.Player && existingParticipant.Role != TournamentParticipantRole.Player;
@@ -170,13 +170,13 @@ public partial class TournamentsController
             return NotFound();
 
         if (tournament.CurrentStage != TournamentStage.Preparations)
-            return BadRequest("Seeding can only be changed during the Preparations stage.");
+            return Problem(detail: "Seeding can only be changed during the Preparations stage.", statusCode: StatusCodes.Status400BadRequest);
 
         List<TournamentParticipant> players = await _participantsRepository.GetAllByTournamentIdAsync(tournamentId, TournamentParticipantRole.Player);
 
         HashSet<Guid> playerIds = players.Select(p => p.Id).ToHashSet();
         if (seedingDto.OrderedParticipantIds.Count != playerIds.Count || !playerIds.SetEquals(seedingDto.OrderedParticipantIds))
-            return BadRequest("Seeding must contain each player of the tournament exactly once.");
+            return Problem(detail: "Seeding must contain each player of the tournament exactly once.", statusCode: StatusCodes.Status400BadRequest);
 
         List<TournamentParticipant> reseededPlayers = await _participantsRepository.UpdateSeedsAsync(tournamentId, seedingDto.OrderedParticipantIds);
 
@@ -209,7 +209,7 @@ public partial class TournamentsController
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.ForeignKeyViolation })
         {
-            return Conflict("This participant has already played in a match and cannot be removed.");
+            return Problem(detail: "This participant has already played in a match and cannot be removed.", statusCode: StatusCodes.Status409Conflict);
         }
 
         if (participantDomain is null)

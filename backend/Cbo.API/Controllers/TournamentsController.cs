@@ -86,7 +86,7 @@ public partial class TournamentsController(
         if (createTournamentDto.PlayersPerTournament.HasValue &&
             createTournamentDto.PlayersPerTournament.Value != DefaultSettings.PlayersPerTournament)
         {
-            return BadRequest($"Only {DefaultSettings.PlayersPerTournament} players per tournament is currently supported.");
+            return Problem(detail: $"Only {DefaultSettings.PlayersPerTournament} players per tournament is currently supported.", statusCode: StatusCodes.Status400BadRequest);
         }
 
         Guid creatorId = _currentUserService.GetRequiredCurrentUserId();
@@ -123,7 +123,7 @@ public partial class TournamentsController(
         if (updateTournamentDto.PlayersPerTournament.HasValue &&
             updateTournamentDto.PlayersPerTournament.Value != DefaultSettings.PlayersPerTournament)
         {
-            return BadRequest($"Only {DefaultSettings.PlayersPerTournament} players per tournament is currently supported.");
+            return Problem(detail: $"Only {DefaultSettings.PlayersPerTournament} players per tournament is currently supported.", statusCode: StatusCodes.Status400BadRequest);
         }
 
         Tournament? existingTournament = await _tournamentRepository.GetByIdAsync(id);
@@ -180,7 +180,7 @@ public partial class TournamentsController(
     public async Task<IActionResult> AdvanceStage([FromRoute] Guid id, [FromBody] UpdateTournamentStageDto advanceStageDto)
     {
         if (advanceStageDto.Stage != TournamentStage.Qualifications)
-            return BadRequest("Only advancing to Qualifications stage is currently supported.");
+            return Problem(detail: "Only advancing to Qualifications stage is currently supported.", statusCode: StatusCodes.Status400BadRequest);
 
         Tournament? existingTournament = await _tournamentRepository.GetByIdAsync(id);
         if (existingTournament is null)
@@ -191,7 +191,7 @@ public partial class TournamentsController(
             return NotFound();
 
         if (existingTournament.CurrentStage != TournamentStage.Preparations)
-            return BadRequest("Tournament can only advance to Qualifications from Preparations stage.");
+            return Problem(detail: "Tournament can only advance to Qualifications from Preparations stage.", statusCode: StatusCodes.Status400BadRequest);
 
         List<TournamentParticipant> allParticipants = await _participantsRepository.GetAllByTournamentIdAsync(id);
 
@@ -202,7 +202,7 @@ public partial class TournamentsController(
             .ToList();
 
         if (players.Count != existingTournament.PlayersPerTournament)
-            return BadRequest($"Tournament requires exactly {existingTournament.PlayersPerTournament} players. Currently has {players.Count}.");
+            return Problem(detail: $"Tournament requires exactly {existingTournament.PlayersPerTournament} players. Currently has {players.Count}.", statusCode: StatusCodes.Status400BadRequest);
 
         List<TournamentTopic> allTopics = await _tournamentTopicRepository.GetAllByTournamentIdAsync(id);
 
@@ -213,15 +213,15 @@ public partial class TournamentsController(
             if (participant.Role == TournamentParticipantRole.Player)
             {
                 if (topicCount < existingTournament.TopicsPerParticipantMin)
-                    return BadRequest($"Player '{participant.ApplicationUser?.UserName ?? participant.Id.ToString()}' has {topicCount} topics, but needs at least {existingTournament.TopicsPerParticipantMin}.");
+                    return Problem(detail: $"Player '{participant.ApplicationUser?.UserName ?? participant.Id.ToString()}' has {topicCount} topics, but needs at least {existingTournament.TopicsPerParticipantMin}.", statusCode: StatusCodes.Status400BadRequest);
 
                 if (topicCount > existingTournament.TopicsPerParticipantMax)
-                    return BadRequest($"Player '{participant.ApplicationUser?.UserName ?? participant.Id.ToString()}' has {topicCount} topics, but maximum allowed is {existingTournament.TopicsPerParticipantMax}.");
+                    return Problem(detail: $"Player '{participant.ApplicationUser?.UserName ?? participant.Id.ToString()}' has {topicCount} topics, but maximum allowed is {existingTournament.TopicsPerParticipantMax}.", statusCode: StatusCodes.Status400BadRequest);
             }
             else
             {
                 if (topicCount > existingTournament.TopicsPerParticipantMax)
-                    return BadRequest($"Participant '{participant.ApplicationUser?.UserName ?? participant.Id.ToString()}' has {topicCount} topics, but maximum allowed is {existingTournament.TopicsPerParticipantMax}.");
+                    return Problem(detail: $"Participant '{participant.ApplicationUser?.UserName ?? participant.Id.ToString()}' has {topicCount} topics, but maximum allowed is {existingTournament.TopicsPerParticipantMax}.", statusCode: StatusCodes.Status400BadRequest);
             }
         }
 
