@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Cbo.API.ErrorHandling;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
@@ -71,7 +72,7 @@ public class AuthController(
     {
         if (changePasswordDto.NewPassword == changePasswordDto.CurrentPassword)
         {
-            ModelState.AddModelError(nameof(ChangePasswordDto.NewPassword), "New password must be different from the current password.");
+            ModelState.AddModelError(JsonNamingPolicy.CamelCase.ConvertName(nameof(ChangePasswordDto.NewPassword)), "New password must be different from the current password.");
             return ValidationProblem(ModelState);
         }
 
@@ -92,8 +93,8 @@ public class AuthController(
 
         Dictionary<string, string[]> errors = identityResult.Errors
             .GroupBy(error => error.Code == nameof(IdentityErrorDescriber.PasswordMismatch)
-                ? nameof(ChangePasswordDto.CurrentPassword)
-                : nameof(ChangePasswordDto.NewPassword))
+                ? JsonNamingPolicy.CamelCase.ConvertName(nameof(ChangePasswordDto.CurrentPassword))
+                : JsonNamingPolicy.CamelCase.ConvertName(nameof(ChangePasswordDto.NewPassword)))
             .ToDictionary(group => group.Key, group => group.Select(error => error.Description).ToArray());
 
         ModelState.AddModelErrors(errors);
