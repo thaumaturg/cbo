@@ -66,23 +66,16 @@ public class TopicRepository(CboDbContext dbContext) : ITopicRepository
         if (existingTopic is null)
             return null;
 
-        HashSet<Guid> existingQuestionIds = existingTopic.Questions.Select(q => q.Id).ToHashSet();
         HashSet<Guid> incomingQuestionIds = parameters.Questions
             .Where(q => q.Id.HasValue)
             .Select(q => q.Id!.Value)
             .ToHashSet();
 
-        List<Guid> unknownIds = incomingQuestionIds.Except(existingQuestionIds).ToList();
-        if (unknownIds.Count > 0)
-        {
-            throw new InvalidOperationException(
-                $"Questions with IDs {string.Join(", ", unknownIds)} do not belong to this topic.");
-        }
-
         existingTopic.Title = parameters.Title;
         existingTopic.Description = parameters.Description;
 
-        // Sync questions: delete absent, update matched, insert new (Id == null)
+        // Sync questions: delete absent, update matched, insert new (Id == null).
+        // The caller has checked that every incoming id is a question of this topic.
         List<Question> questionsToRemove = existingTopic.Questions
             .Where(q => !incomingQuestionIds.Contains(q.Id))
             .ToList();
