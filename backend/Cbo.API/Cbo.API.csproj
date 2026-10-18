@@ -25,4 +25,8 @@
     <PackageReference Include="Scalar.AspNetCore" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Cbo.Results\Cbo.Results.csproj" />
+  </ItemGroup>
+
 </Project>
