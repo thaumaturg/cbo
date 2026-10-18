@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Cbo.API.Authorization;
 using Cbo.API.Data;
 using Cbo.API.Data.Configuration;
@@ -8,10 +7,8 @@ using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
 using Cbo.Results;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
 
 namespace Cbo.API.Services;
@@ -26,27 +23,23 @@ public interface IRoundService
 
 public class RoundService(
     CboDbContext dbContext,
-    ITournamentRepository tournamentRepository,
+    ITournamentAccessService tournamentAccessService,
     IMatchRepository matchRepository,
     IRoundRepository roundRepository,
     ITopicRepository topicRepository,
     ITournamentTopicRepository tournamentTopicRepository,
-    ITournamentParticipantsRepository participantsRepository,
-    IAuthorizationService authorizationService,
-    IHttpContextAccessor httpContextAccessor) : IRoundService
+    ITournamentParticipantsRepository participantsRepository) : IRoundService
 {
     private const string ReadForbiddenMessage = "You don't have permission to view this tournament.";
     private const string ManageRoundsForbiddenMessage = "You don't have permission to manage rounds in this tournament.";
 
     private readonly CboDbContext _dbContext = dbContext;
-    private readonly ITournamentRepository _tournamentRepository = tournamentRepository;
+    private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
     private readonly IMatchRepository _matchRepository = matchRepository;
     private readonly IRoundRepository _roundRepository = roundRepository;
     private readonly ITopicRepository _topicRepository = topicRepository;
     private readonly ITournamentTopicRepository _tournamentTopicRepository = tournamentTopicRepository;
     private readonly ITournamentParticipantsRepository _participantsRepository = participantsRepository;
-    private readonly IAuthorizationService _authorizationService = authorizationService;
-    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
     public async Task<Result<GetRoundDto>> GetRoundAsync(Guid tournamentId, Guid matchId, int roundNumber)
     {
@@ -84,7 +77,7 @@ public class RoundService(
 
         try
         {
-            await ExecuteInTransactionAsync(async () =>
+            await _dbContext.Database.ExecuteInTransactionAsync(async () =>
             {
                 await _roundRepository.CreateAsync(round);
                 await RecalculateMatchScoresAsync(matchId);
@@ -124,7 +117,7 @@ public class RoundService(
             .Select(a => a.ToNewRoundAnswer(existingRound.Id))
             .ToList();
 
-        await ExecuteInTransactionAsync(async () =>
+        await _dbContext.Database.ExecuteInTransactionAsync(async () =>
         {
             await _roundRepository.DeleteAnswersByRoundIdAsync(existingRound.Id);
             await _roundRepository.CreateAnswersAsync(newAnswers);
@@ -144,7 +137,7 @@ public class RoundService(
         if (existingRound is null)
             return RoundNotFound(roundNumber);
 
-        await ExecuteInTransactionAsync(async () =>
+        await _dbContext.Database.ExecuteInTransactionAsync(async () =>
         {
             await _roundRepository.DeleteAsync(existingRound.Id);
             await RecalculateMatchScoresAsync(matchId);
@@ -162,13 +155,9 @@ public class RoundService(
         OperationAuthorizationRequirement operation,
         string forbiddenMessage)
     {
-        Tournament? tournament = await _tournamentRepository.GetByIdAsync(tournamentId);
-        if (tournament is null)
-            return Failure.NotFound("Tournament not found.");
-
-        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(GetCurrentUser(), tournament, operation);
-        if (!authResult.Succeeded)
-            return Failure.Forbidden(forbiddenMessage);
+        Result<Tournament> access = await _tournamentAccessService.LoadTournamentWithAccessAsync(tournamentId, operation, forbiddenMessage);
+        if (access.IsFailure)
+            return access.Failure;
 
         Match? match = await _matchRepository.GetByIdWithParticipantsAsync(matchId);
         if (match is null || match.TournamentId != tournamentId)
@@ -214,30 +203,6 @@ public class RoundService(
             return InvalidField("answers", $"Participant {duplicateAnswer.Key.MatchParticipantId} has more than one answer to question {duplicateAnswer.Key.QuestionId}.");
 
         return Result.Success();
-    }
-
-    private ClaimsPrincipal GetCurrentUser()
-    {
-        ClaimsPrincipal? user = _httpContextAccessor.HttpContext?.User;
-        if (user?.Identity?.IsAuthenticated != true)
-            throw new InvalidOperationException("No authenticated user in the current request. Round operations must only be called from [Authorize] endpoints.");
-
-        return user;
-    }
-
-    private async Task ExecuteInTransactionAsync(Func<Task> action)
-    {
-        await using IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync();
-        try
-        {
-            await action();
-            await transaction.CommitAsync();
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
     }
 
     private static bool IsRoundNumberUniqueViolation(DbUpdateException exception) =>

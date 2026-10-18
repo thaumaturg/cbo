@@ -7,6 +7,8 @@ namespace Cbo.API.Data.Configuration;
 
 public class TournamentParticipantConfiguration : IEntityTypeConfiguration<TournamentParticipant>
 {
+    public const string TournamentIdApplicationUserIdIndexName = "ix_tournament_participants_tournament_id_application_user_id";
+
     public void Configure(EntityTypeBuilder<TournamentParticipant> entity)
     {
         entity.HasKey(tp => tp.Id);
@@ -24,6 +26,11 @@ public class TournamentParticipantConfiguration : IEntityTypeConfiguration<Tourn
 
         entity.Property(tp => tp.ApplicationUserId)
             .IsRequired();
+
+        // A user is a participant of a tournament at most once; also stops two simultaneous adds of the same user
+        entity.HasIndex(tp => new { tp.TournamentId, tp.ApplicationUserId })
+            .IsUnique()
+            .HasDatabaseName(TournamentIdApplicationUserIdIndexName);
 
         // Many-to-one: TournamentParticipant -> Tournament
         entity.HasOne(tp => tp.Tournament)

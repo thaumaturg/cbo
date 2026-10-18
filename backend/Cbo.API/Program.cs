@@ -58,8 +58,11 @@ public class Program
 
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+        builder.Services.AddScoped<ITournamentAccessService, TournamentAccessService>();
         builder.Services.AddScoped<IMatchGenerationService, MatchGenerationService>();
         builder.Services.AddScoped<IRoundService, RoundService>();
+        builder.Services.AddScoped<ITournamentParticipantService, TournamentParticipantService>();
+        builder.Services.AddScoped<ITournamentTopicService, TournamentTopicService>();
         builder.Services.AddScoped<ITopicService, TopicService>();
         builder.Services.AddScoped<ITopicValidationService, TopicValidationService>();
 
