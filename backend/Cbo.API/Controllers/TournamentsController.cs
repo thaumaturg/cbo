@@ -6,7 +6,6 @@ using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
 using Cbo.API.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cbo.API.Controllers;
@@ -17,25 +16,25 @@ public partial class TournamentsController(
     ITournamentRepository tournamentRepository,
     ITournamentParticipantsRepository participantsRepository,
     ITournamentTopicRepository tournamentTopicRepository,
-    ITopicRepository topicRepository,
     IMatchRepository matchRepository,
     IRoundRepository roundRepository,
     ICurrentUserService currentUserService,
     IMatchGenerationService matchGenerationService,
     IRoundService roundService,
-    UserManager<ApplicationUser> userManager,
+    ITournamentParticipantService participantService,
+    ITournamentTopicService tournamentTopicService,
     IAuthorizationService authorizationService) : ControllerBase
 {
     private readonly ITournamentRepository _tournamentRepository = tournamentRepository;
     private readonly ITournamentParticipantsRepository _participantsRepository = participantsRepository;
     private readonly ITournamentTopicRepository _tournamentTopicRepository = tournamentTopicRepository;
-    private readonly ITopicRepository _topicRepository = topicRepository;
     private readonly IMatchRepository _matchRepository = matchRepository;
     private readonly IRoundRepository _roundRepository = roundRepository;
     private readonly ICurrentUserService _currentUserService = currentUserService;
     private readonly IMatchGenerationService _matchGenerationService = matchGenerationService;
     private readonly IRoundService _roundService = roundService;
-    private readonly UserManager<ApplicationUser> _userManager = userManager;
+    private readonly ITournamentParticipantService _participantService = participantService;
+    private readonly ITournamentTopicService _tournamentTopicService = tournamentTopicService;
     private readonly IAuthorizationService _authorizationService = authorizationService;
 
     [HttpGet]
