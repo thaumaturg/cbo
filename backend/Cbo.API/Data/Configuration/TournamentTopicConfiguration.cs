@@ -47,8 +47,10 @@ public class TournamentTopicConfiguration : IEntityTypeConfiguration<TournamentT
             .HasForeignKey(tt => tt.TournamentParticipantId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Unique constraint: One topic can only be added once per tournament per participant
-        entity.HasIndex(tt => new { tt.TournamentId, tt.TopicId, tt.TournamentParticipantId })
+        // A topic is in a tournament at most once.
+        // Only a topic's owner can choose it, and a user is a participant at most once
+        // Match details rely on it to find a round's tournament topic by topic id.
+        entity.HasIndex(tt => new { tt.TournamentId, tt.TopicId })
             .IsUnique();
     }
 }

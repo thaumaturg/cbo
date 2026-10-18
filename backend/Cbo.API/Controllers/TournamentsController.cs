@@ -1,10 +1,7 @@
-using Cbo.API.Authorization;
-using Cbo.API.Mappings;
-using Cbo.API.Models.Constants;
-using Cbo.API.Models.Domain;
+using Cbo.API.ErrorHandling;
 using Cbo.API.Models.DTO;
-using Cbo.API.Repositories;
 using Cbo.API.Services;
+using Cbo.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,41 +10,23 @@ namespace Cbo.API.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 public partial class TournamentsController(
-    ITournamentRepository tournamentRepository,
-    ITournamentParticipantsRepository participantsRepository,
-    ITournamentTopicRepository tournamentTopicRepository,
-    IMatchRepository matchRepository,
-    IRoundRepository roundRepository,
-    ICurrentUserService currentUserService,
-    IMatchGenerationService matchGenerationService,
+    ITournamentService tournamentService,
+    IMatchService matchService,
     IRoundService roundService,
     ITournamentParticipantService participantService,
-    ITournamentTopicService tournamentTopicService,
-    IAuthorizationService authorizationService) : ControllerBase
+    ITournamentTopicService tournamentTopicService) : ControllerBase
 {
-    private readonly ITournamentRepository _tournamentRepository = tournamentRepository;
-    private readonly ITournamentParticipantsRepository _participantsRepository = participantsRepository;
-    private readonly ITournamentTopicRepository _tournamentTopicRepository = tournamentTopicRepository;
-    private readonly IMatchRepository _matchRepository = matchRepository;
-    private readonly IRoundRepository _roundRepository = roundRepository;
-    private readonly ICurrentUserService _currentUserService = currentUserService;
-    private readonly IMatchGenerationService _matchGenerationService = matchGenerationService;
+    private readonly ITournamentService _tournamentService = tournamentService;
+    private readonly IMatchService _matchService = matchService;
     private readonly IRoundService _roundService = roundService;
     private readonly ITournamentParticipantService _participantService = participantService;
     private readonly ITournamentTopicService _tournamentTopicService = tournamentTopicService;
-    private readonly IAuthorizationService _authorizationService = authorizationService;
 
     [HttpGet]
     [Authorize]
     public async Task<IActionResult> GetAll()
     {
-        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
-
-        List<Tournament> tournamentsDomain = await _tournamentRepository.GetAllByUserIdAsync(currentUserId);
-
-        List<GetTournamentDto> tournamentsDto = tournamentsDomain
-            .Select(t => t.ToGetDto(t.TournamentParticipants.FirstOrDefault()?.Role))
-            .ToList();
+        List<GetTournamentDto> tournamentsDto = await _tournamentService.GetTournamentsAsync();
 
         return Ok(tournamentsDto);
     }
@@ -57,58 +36,23 @@ public partial class TournamentsController(
     [Authorize]
     public async Task<IActionResult> GetById([FromRoute] Guid id)
     {
-        Tournament? tournamentDomain = await _tournamentRepository.GetByIdAsync(id);
+        Result<GetTournamentDto> result = await _tournamentService.GetTournamentAsync(id);
+        if (result.IsFailure)
+            return this.Problem(result.Failure);
 
-        if (tournamentDomain is null)
-            return NotFound();
-
-        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, tournamentDomain, TournamentOperations.Read);
-        if (!authResult.Succeeded)
-            return NotFound();
-
-        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
-
-        TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUserId, id);
-        GetTournamentDto tournamentDto = tournamentDomain.ToGetDto(participant?.Role);
-
-        return Ok(tournamentDto);
+        return Ok(result.Value);
     }
-
 
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateTournamentDto createTournamentDto)
     {
-        if (createTournamentDto.PlayersPerTournament.HasValue &&
-            createTournamentDto.PlayersPerTournament.Value != DefaultSettings.PlayersPerTournament)
-        {
-            return Problem(detail: $"Only {DefaultSettings.PlayersPerTournament} players per tournament is currently supported.", statusCode: StatusCodes.Status400BadRequest);
-        }
+        Result<GetTournamentDto> result = await _tournamentService.CreateTournamentAsync(createTournamentDto);
+        if (result.IsFailure)
+            return this.Problem(result.Failure);
 
-        Guid creatorId = _currentUserService.GetRequiredCurrentUserId();
-
-        int playersPerTournament = createTournamentDto.PlayersPerTournament ?? DefaultSettings.PlayersPerTournament;
-        int topicsPerParticipantMax = createTournamentDto.TopicsPerParticipantMax ?? DefaultSettings.TopicsPerParticipantMax;
-        int topicsPerParticipantMin = createTournamentDto.TopicsPerParticipantMin ?? DefaultSettings.TopicsPerParticipantMin;
-
-        Tournament tournamentDomain = createTournamentDto.ToNewTournament(
-            TournamentStage.Preparations,
-            playersPerTournament,
-            topicsPerParticipantMax,
-            topicsPerParticipantMin);
-
-        tournamentDomain.TournamentParticipants.Add(new TournamentParticipant
-        {
-            Role = TournamentParticipantRole.Creator,
-            PointsSum = null,
-            ApplicationUserId = creatorId,
-        });
-
-        tournamentDomain = await _tournamentRepository.CreateAsync(tournamentDomain);
-
-        GetTournamentDto tournamentDto = tournamentDomain.ToGetDto();
-
-        return CreatedAtAction(nameof(GetById), new { id = tournamentDomain.Id }, tournamentDto);
+        GetTournamentDto tournamentDto = result.Value;
+        return CreatedAtAction(nameof(GetById), new { id = tournamentDto.Id }, tournamentDto);
     }
 
     [HttpPut]
@@ -116,37 +60,11 @@ public partial class TournamentsController(
     [Authorize]
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateTournamentDto updateTournamentDto)
     {
-        if (updateTournamentDto.PlayersPerTournament.HasValue &&
-            updateTournamentDto.PlayersPerTournament.Value != DefaultSettings.PlayersPerTournament)
-        {
-            return Problem(detail: $"Only {DefaultSettings.PlayersPerTournament} players per tournament is currently supported.", statusCode: StatusCodes.Status400BadRequest);
-        }
+        Result<GetTournamentDto> result = await _tournamentService.UpdateTournamentAsync(id, updateTournamentDto);
+        if (result.IsFailure)
+            return this.Problem(result.Failure);
 
-        Tournament? existingTournament = await _tournamentRepository.GetByIdAsync(id);
-        if (existingTournament is null)
-            return NotFound();
-
-        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, existingTournament, TournamentOperations.Update);
-        if (!authResult.Succeeded)
-            return NotFound();
-
-        var updateParameters = new UpdateTournamentParameters
-        {
-            Title = updateTournamentDto.Title,
-            Description = updateTournamentDto.Description,
-            PlayersPerTournament = updateTournamentDto.PlayersPerTournament ?? DefaultSettings.PlayersPerTournament,
-            TopicsPerParticipantMax = updateTournamentDto.TopicsPerParticipantMax ?? DefaultSettings.TopicsPerParticipantMax,
-            TopicsPerParticipantMin = updateTournamentDto.TopicsPerParticipantMin ?? DefaultSettings.TopicsPerParticipantMin
-        };
-
-        Tournament? updatedTournament = await _tournamentRepository.UpdateAsync(id, updateParameters);
-
-        if (updatedTournament is null)
-            return NotFound();
-
-        GetTournamentDto tournamentDto = updatedTournament.ToGetDto();
-
-        return Ok(tournamentDto);
+        return Ok(result.Value);
     }
 
     [HttpDelete]
@@ -154,18 +72,9 @@ public partial class TournamentsController(
     [Authorize]
     public async Task<IActionResult> Delete([FromRoute] Guid id)
     {
-        Tournament? existingTournament = await _tournamentRepository.GetByIdAsync(id);
-        if (existingTournament is null)
-            return NotFound();
-
-        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, existingTournament, TournamentOperations.Delete);
-        if (!authResult.Succeeded)
-            return NotFound();
-
-        Tournament? tournamentDomain = await _tournamentRepository.DeleteAsync(id);
-
-        if (tournamentDomain is null)
-            return NotFound();
+        Result result = await _tournamentService.DeleteTournamentAsync(id);
+        if (result.IsFailure)
+            return this.Problem(result.Failure);
 
         return NoContent();
     }
@@ -175,62 +84,10 @@ public partial class TournamentsController(
     [Authorize]
     public async Task<IActionResult> AdvanceStage([FromRoute] Guid id, [FromBody] UpdateTournamentStageDto advanceStageDto)
     {
-        if (advanceStageDto.Stage != TournamentStage.Qualifications)
-            return Problem(detail: "Only advancing to Qualifications stage is currently supported.", statusCode: StatusCodes.Status400BadRequest);
+        Result<GetTournamentDto> result = await _tournamentService.AdvanceStageAsync(id, advanceStageDto);
+        if (result.IsFailure)
+            return this.Problem(result.Failure);
 
-        Tournament? existingTournament = await _tournamentRepository.GetByIdAsync(id);
-        if (existingTournament is null)
-            return NotFound();
-
-        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, existingTournament, TournamentOperations.AdvanceStage);
-        if (!authResult.Succeeded)
-            return NotFound();
-
-        if (existingTournament.CurrentStage != TournamentStage.Preparations)
-            return Problem(detail: "Tournament can only advance to Qualifications from Preparations stage.", statusCode: StatusCodes.Status400BadRequest);
-
-        List<TournamentParticipant> allParticipants = await _participantsRepository.GetAllByTournamentIdAsync(id);
-
-        List<TournamentParticipant> players = allParticipants
-            .Where(p => p.Role == TournamentParticipantRole.Player)
-            .OrderBy(p => p.Seed ?? int.MaxValue)
-            .ThenBy(p => p.Id)
-            .ToList();
-
-        if (players.Count != existingTournament.PlayersPerTournament)
-            return Problem(detail: $"Tournament requires exactly {existingTournament.PlayersPerTournament} players. Currently has {players.Count}.", statusCode: StatusCodes.Status400BadRequest);
-
-        List<TournamentTopic> allTopics = await _tournamentTopicRepository.GetAllByTournamentIdAsync(id);
-
-        foreach (TournamentParticipant participant in allParticipants)
-        {
-            int topicCount = allTopics.Count(t => t.TournamentParticipantId == participant.Id);
-
-            if (participant.Role == TournamentParticipantRole.Player)
-            {
-                if (topicCount < existingTournament.TopicsPerParticipantMin)
-                    return Problem(detail: $"Player '{participant.ApplicationUser?.UserName ?? participant.Id.ToString()}' has {topicCount} topics, but needs at least {existingTournament.TopicsPerParticipantMin}.", statusCode: StatusCodes.Status400BadRequest);
-
-                if (topicCount > existingTournament.TopicsPerParticipantMax)
-                    return Problem(detail: $"Player '{participant.ApplicationUser?.UserName ?? participant.Id.ToString()}' has {topicCount} topics, but maximum allowed is {existingTournament.TopicsPerParticipantMax}.", statusCode: StatusCodes.Status400BadRequest);
-            }
-            else
-            {
-                if (topicCount > existingTournament.TopicsPerParticipantMax)
-                    return Problem(detail: $"Participant '{participant.ApplicationUser?.UserName ?? participant.Id.ToString()}' has {topicCount} topics, but maximum allowed is {existingTournament.TopicsPerParticipantMax}.", statusCode: StatusCodes.Status400BadRequest);
-            }
-        }
-
-        List<Match> matches = _matchGenerationService.GenerateQualificationMatches(existingTournament, players);
-        await _matchRepository.CreateBulkAsync(matches);
-
-        Tournament? tournamentDomain = await _tournamentRepository.UpdateStageAsync(id, advanceStageDto.Stage);
-
-        if (tournamentDomain is null)
-            return NotFound();
-
-        GetTournamentDto tournamentDto = tournamentDomain.ToGetDto();
-
-        return Ok(tournamentDto);
+        return Ok(result.Value);
     }
 }

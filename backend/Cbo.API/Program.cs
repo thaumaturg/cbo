@@ -60,6 +60,8 @@ public class Program
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
         builder.Services.AddScoped<ITournamentAccessService, TournamentAccessService>();
         builder.Services.AddScoped<IMatchGenerationService, MatchGenerationService>();
+        builder.Services.AddScoped<ITournamentService, TournamentService>();
+        builder.Services.AddScoped<IMatchService, MatchService>();
         builder.Services.AddScoped<IRoundService, RoundService>();
         builder.Services.AddScoped<ITournamentParticipantService, TournamentParticipantService>();
         builder.Services.AddScoped<ITournamentTopicService, TournamentTopicService>();

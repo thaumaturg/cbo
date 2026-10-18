@@ -74,6 +74,9 @@ public class TournamentParticipantService(
         if (user is null)
             return InvalidField("username", $"User '{createParticipantDto.Username}' doesn't exist.");
 
+        if (access.Value.CurrentStage != TournamentStage.Preparations)
+            return ParticipantsLocked();
+
         if (createParticipantDto.Role == TournamentParticipantRole.Organizer && await HasMaxOrganizersAsync(tournamentId))
             return TooManyOrganizers();
 
@@ -114,6 +117,9 @@ public class TournamentParticipantService(
 
         if (updateParticipantDto.Role == TournamentParticipantRole.Creator)
             return InvalidField("role", "A participant can't be promoted to creator.");
+
+        if (access.Value.CurrentStage != TournamentStage.Preparations)
+            return ParticipantsLocked();
 
         bool becomesOrganizer = updateParticipantDto.Role == TournamentParticipantRole.Organizer && existingParticipant.Role != TournamentParticipantRole.Organizer;
         if (becomesOrganizer && await HasMaxOrganizersAsync(tournamentId))
@@ -184,6 +190,9 @@ public class TournamentParticipantService(
         if (existingParticipant.Role == TournamentParticipantRole.Creator)
             return Failure.Invalid("The tournament's creator can't be removed.");
 
+        if (access.Value.CurrentStage != TournamentStage.Preparations)
+            return ParticipantsLocked();
+
         TournamentParticipant? deletedParticipant = null;
         try
         {
@@ -197,7 +206,7 @@ public class TournamentParticipantService(
         }
         catch (DbUpdateException exception) when (exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.ForeignKeyViolation })
         {
-            // The participant's match history still references them
+            // The participant's match history still references them (the tournament started meanwhile)
             return Failure.Conflict("This participant has already played in a match, so they can't be removed.");
         }
 
@@ -253,6 +262,9 @@ public class TournamentParticipantService(
 
     private static Failure ParticipantNotFound() =>
         Failure.NotFound("Participant not found in this tournament.");
+
+    private static Failure ParticipantsLocked() =>
+        Failure.Conflict("Participants can only be changed during the Preparations stage.");
 
     private static Failure TooManyOrganizers() =>
         Failure.Conflict($"A tournament can have at most {DefaultSettings.OrganizersPerTournamentMax} organizers.");
