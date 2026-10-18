@@ -22,6 +22,10 @@ public class RoundAnswerConfiguration : IEntityTypeConfiguration<RoundAnswer>
         entity.Property(ra => ra.MatchParticipantId)
             .IsRequired();
 
+        // A participant answers each question of a round at most once
+        entity.HasIndex(ra => new { ra.RoundId, ra.QuestionId, ra.MatchParticipantId })
+            .IsUnique();
+
         // Many-to-one: RoundAnswer -> Round
         entity.HasOne(ra => ra.Round)
             .WithMany(r => r.RoundAnswers)
