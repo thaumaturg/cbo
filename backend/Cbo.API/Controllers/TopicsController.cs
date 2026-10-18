@@ -1,50 +1,23 @@
-using Cbo.API.Authorization;
 using Cbo.API.ErrorHandling;
-using Cbo.API.Mappings;
-using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
-using Cbo.API.Repositories;
 using Cbo.API.Services;
+using Cbo.Results;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace Cbo.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public partial class TopicsController(
-    ITopicRepository topicRepository,
-    ITopicAuthorRepository topicAuthorRepository,
-    ICurrentUserService currentUserService,
-    UserManager<ApplicationUser> userManager,
-    IAuthorizationService authorizationService,
-    ITopicValidationService topicValidationService) : ControllerBase
+public partial class TopicsController(ITopicService topicService) : ControllerBase
 {
-    private readonly ITopicRepository _topicRepository = topicRepository;
-    private readonly ITopicAuthorRepository _topicAuthorRepository = topicAuthorRepository;
-    private readonly ICurrentUserService _currentUserService = currentUserService;
-    private readonly UserManager<ApplicationUser> _userManager = userManager;
-    private readonly IAuthorizationService _authorizationService = authorizationService;
-    private readonly ITopicValidationService _topicValidationService = topicValidationService;
+    private readonly ITopicService _topicService = topicService;
 
     [HttpGet]
     [Authorize]
     public async Task<IActionResult> GetAll()
     {
-        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
-
-        List<Topic> topicsDomain = await _topicRepository.GetAllByUserIdAsync(currentUserId);
-
-        List<GetTopicDto> topicsDto = topicsDomain.Select(topic =>
-        {
-            TopicAuthor? topicAuthor = topic.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUserId);
-            bool isAuthor = topicAuthor?.IsAuthor ?? false;
-            bool isPlayed = topic.Rounds.Count > 0;
-            return topic.ToGetDto(isPlayed, isAuthor);
-        }).ToList();
+        List<GetTopicDto> topicsDto = await _topicService.GetTopicsAsync();
 
         return Ok(topicsDto);
     }
@@ -54,68 +27,23 @@ public partial class TopicsController(
     [Authorize]
     public async Task<IActionResult> GetById([FromRoute] Guid id)
     {
-        Topic? topicDomain = await _topicRepository.GetByIdIncludeQuestionsAsync(id);
+        Result<GetTopicDto> result = await _topicService.GetTopicAsync(id);
+        if (result.IsFailure)
+            return this.Problem(result.Failure);
 
-        if (topicDomain is null)
-            return NotFound();
-
-        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, topicDomain, TopicOperations.Read);
-        if (!authResult.Succeeded)
-            return NotFound();
-
-        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
-
-        TopicAuthor? topicAuthor = topicDomain.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUserId);
-        bool isAuthor = topicAuthor?.IsAuthor ?? false;
-        bool isPlayed = topicDomain.Rounds.Count > 0;
-
-        return Ok(topicDomain.ToGetDto(isPlayed, isAuthor));
+        return Ok(result.Value);
     }
 
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateTopicDto createTopicDto)
     {
-        Dictionary<string, string[]> validationErrors = _topicValidationService.ValidateQuestions(
-            createTopicDto.Questions
-                .Select(q => new QuestionValidationModel(q.QuestionNumber, q.CostPositive, q.CostNegative, q.Text, q.Answer))
-                .ToList());
+        Result<GetTopicDto> result = await _topicService.CreateTopicAsync(createTopicDto);
+        if (result.IsFailure)
+            return this.Problem(result.Failure);
 
-        if (validationErrors.Count > 0)
-        {
-            ModelState.AddModelErrors(validationErrors);
-            return ValidationProblem(ModelState);
-        }
-
-        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
-
-        Topic topicDomain = createTopicDto.ToDomain();
-
-        // Map and add questions
-        foreach (CreateQuestionDto questionDto in createTopicDto.Questions)
-        {
-            topicDomain.Questions.Add(questionDto.ToDomain(Guid.Empty));
-        }
-
-        // Create TopicAuthor entry for the current user as owner
-        topicDomain.TopicAuthors.Add(new TopicAuthor
-        {
-            IsOwner = true,
-            IsAuthor = createTopicDto.IsAuthor,
-            ApplicationUserId = currentUserId,
-            TopicId = Guid.Empty
-        });
-
-        topicDomain = await _topicRepository.CreateAsync(topicDomain);
-
-        Topic? topicIncludeQuestions = await _topicRepository.GetByIdIncludeQuestionsAsync(topicDomain.Id);
-
-        if (topicIncludeQuestions is null)
-            return BadRequest();
-
-        GetTopicDto getTopicDto = topicIncludeQuestions.ToGetDto(isPlayed: false, isAuthor: createTopicDto.IsAuthor);
-
-        return CreatedAtAction(nameof(GetById), new { id = topicDomain.Id }, getTopicDto);
+        GetTopicDto topicDto = result.Value;
+        return CreatedAtAction(nameof(GetById), new { id = topicDto.Id }, topicDto);
     }
 
     [HttpPut]
@@ -123,64 +51,11 @@ public partial class TopicsController(
     [Authorize]
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateTopicDto updateTopicDto)
     {
-        Dictionary<string, string[]> validationErrors = _topicValidationService.ValidateQuestions(
-            updateTopicDto.Questions
-                .Select(q => new QuestionValidationModel(q.QuestionNumber, q.CostPositive, q.CostNegative, q.Text, q.Answer))
-                .ToList());
+        Result<GetTopicDto> result = await _topicService.UpdateTopicAsync(id, updateTopicDto);
+        if (result.IsFailure)
+            return this.Problem(result.Failure);
 
-        if (validationErrors.Count > 0)
-        {
-            ModelState.AddModelErrors(validationErrors);
-            return ValidationProblem(ModelState);
-        }
-
-        Topic? existingTopic = await _topicRepository.GetByIdAsync(id);
-        if (existingTopic is null)
-            return NotFound();
-
-        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, existingTopic, TopicOperations.Update);
-        if (!authResult.Succeeded)
-            return NotFound();
-
-        if (existingTopic.Rounds.Count > 0)
-            return Problem(detail: "Cannot edit a topic that has already been played in a round.", statusCode: StatusCodes.Status400BadRequest);
-
-        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
-
-        var updateParameters = new UpdateTopicParameters
-        {
-            Title = updateTopicDto.Title,
-            Description = updateTopicDto.Description,
-            IsAuthor = updateTopicDto.IsAuthor,
-            Questions = updateTopicDto.Questions.Select(q => new UpdateQuestionParameters
-            {
-                Id = q.Id,
-                QuestionNumber = q.QuestionNumber,
-                CostPositive = q.CostPositive,
-                CostNegative = q.CostNegative,
-                Text = q.Text,
-                Answer = q.Answer,
-                Comment = q.Comment
-            }).ToList()
-        };
-
-        Topic? updatedTopic;
-        try
-        {
-            updatedTopic = await _topicRepository.UpdateAsync(id, updateParameters, currentUserId);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Problem(detail: ex.Message, statusCode: StatusCodes.Status400BadRequest);
-        }
-
-        if (updatedTopic is null)
-            return NotFound();
-
-        TopicAuthor? topicAuthor = updatedTopic.TopicAuthors.FirstOrDefault(ta => ta.ApplicationUserId == currentUserId);
-        bool isAuthor = topicAuthor?.IsAuthor ?? false;
-
-        return Ok(updatedTopic.ToGetDto(isPlayed: false, isAuthor));
+        return Ok(result.Value);
     }
 
     [HttpDelete]
@@ -188,30 +63,9 @@ public partial class TopicsController(
     [Authorize]
     public async Task<IActionResult> Delete([FromRoute] Guid id)
     {
-        Topic? existingTopic = await _topicRepository.GetByIdAsync(id);
-        if (existingTopic is null)
-            return NotFound();
-
-        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(User, existingTopic, TopicOperations.Delete);
-        if (!authResult.Succeeded)
-            return NotFound();
-
-        if (existingTopic.Rounds.Count > 0)
-            return Problem(detail: "This topic has been played in a match and cannot be deleted.", statusCode: StatusCodes.Status409Conflict);
-
-        Topic? topicDomain;
-        try
-        {
-            topicDomain = await _topicRepository.DeleteAsync(id);
-        }
-        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.ForeignKeyViolation })
-        {
-            // Safety net for the race where the topic gets played between the check above and the delete
-            return Problem(detail: "This topic has been played in a match and cannot be deleted.", statusCode: StatusCodes.Status409Conflict);
-        }
-
-        if (topicDomain is null)
-            return NotFound();
+        Result result = await _topicService.DeleteTopicAsync(id);
+        if (result.IsFailure)
+            return this.Problem(result.Failure);
 
         return NoContent();
     }
