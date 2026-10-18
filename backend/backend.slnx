@@ -5,4 +5,5 @@
   </Folder>
   <Project Path="Cbo.API/Cbo.API.csproj" />
   <Project Path="Cbo.Results/Cbo.Results.csproj" />
+  <Project Path="Cbo.Tests/Cbo.Tests.csproj" />
 </Solution>
