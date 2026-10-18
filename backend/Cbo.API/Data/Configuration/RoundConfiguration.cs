@@ -6,6 +6,8 @@ namespace Cbo.API.Data.Configuration;
 
 public class RoundConfiguration : IEntityTypeConfiguration<Round>
 {
+    public const string MatchIdNumberInMatchIndexName = "ix_rounds_match_id_number_in_match";
+
     public void Configure(EntityTypeBuilder<Round> entity)
     {
         entity.HasKey(r => r.Id);
@@ -21,6 +23,11 @@ public class RoundConfiguration : IEntityTypeConfiguration<Round>
 
         entity.Property(r => r.MatchId)
             .IsRequired();
+
+        // A match has each round number at most once; also stops two simultaneous creates of the same round
+        entity.HasIndex(r => new { r.MatchId, r.NumberInMatch })
+            .IsUnique()
+            .HasDatabaseName(MatchIdNumberInMatchIndexName);
 
         // Many-to-one: Round -> Match
         entity.HasOne(r => r.Match)
