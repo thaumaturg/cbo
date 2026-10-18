@@ -6,6 +6,8 @@ namespace Cbo.API.Data.Configuration;
 
 public class MatchConfiguration : IEntityTypeConfiguration<Match>
 {
+    public const string TournamentIdNumberInTournamentIndexName = "ix_matches_tournament_id_number_in_tournament";
+
     public void Configure(EntityTypeBuilder<Match> entity)
     {
         entity.HasKey(m => m.Id);
@@ -29,6 +31,11 @@ public class MatchConfiguration : IEntityTypeConfiguration<Match>
 
         entity.Property(m => m.TournamentId)
             .IsRequired();
+
+        // A tournament has each match number at most once; also stops two simultaneous stage advances from generating the matches twice
+        entity.HasIndex(m => new { m.TournamentId, m.NumberInTournament })
+            .IsUnique()
+            .HasDatabaseName(TournamentIdNumberInTournamentIndexName);
 
         // Many-to-one: Match -> Tournament
         entity.HasOne(m => m.Tournament)
