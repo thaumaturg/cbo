@@ -58,6 +58,7 @@ public class Program
 
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+        builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<ITournamentAccessService, TournamentAccessService>();
         builder.Services.AddScoped<IMatchGenerationService, MatchGenerationService>();
         builder.Services.AddScoped<ITournamentService, TournamentService>();
@@ -100,6 +101,8 @@ public class Program
             options.Password.RequireNonAlphanumeric = false;
             options.Password.RequiredLength = 8;
             options.Password.RequiredUniqueChars = 1;
+
+            options.User.RequireUniqueEmail = true;
         });
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
