@@ -25,6 +25,6 @@ public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICur
 
     public Guid GetRequiredCurrentUserId()
     {
-        return GetCurrentUserId() ?? throw new UnauthorizedAccessException("Unable to identify the current user.");
+        return GetCurrentUserId() ?? throw new InvalidOperationException("No authenticated user in the current request. This must only be called from [Authorize] endpoints.");
     }
 }
