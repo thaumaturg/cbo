@@ -1,6 +1,7 @@
 <script setup>
 import { topicService } from "@/services/topic-service.js";
 import { tournamentTopicsService } from "@/services/tournament-topics-service.js";
+import { isPreparationsStage } from "@/utils/tournament.js";
 import AutoComplete from "primevue/autocomplete";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
@@ -36,6 +37,7 @@ const error = ref(null);
 const hasChanges = ref(false);
 
 const isPlayerRole = computed(() => props.tournament?.currentUserRole === "Player");
+const canChangeTopics = computed(() => isPreparationsStage(props.tournament?.currentStage));
 const minTopics = computed(() => props.tournament?.topicsPerParticipantMin ?? 6);
 const maxTopics = computed(() => props.tournament?.topicsPerParticipantMax ?? 10);
 const canAddMore = computed(() => assignedTopics.value.length < maxTopics.value);
@@ -68,6 +70,9 @@ const buildListFromDtos = (dtos) => {
 };
 
 const topicsStatus = computed(() => {
+  if (!canChangeTopics.value) {
+    return { severity: "info", message: "The tournament has started, so your topics can't change anymore." };
+  }
   const count = maxPriorityNumber.value;
   if (isPlayerRole.value && count < minTopics.value) {
     return { severity: "warn", message: `${count}/${minTopics.value} topics (need ${minTopics.value - count} more)` };
@@ -265,7 +270,7 @@ watch(
     </div>
 
     <!-- Add Topic Section -->
-    <div class="mb-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+    <div v-if="canChangeTopics" class="mb-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
       <h3 class="text-lg font-semibold mb-4">Add Topic</h3>
 
       <div class="flex gap-2">
@@ -325,6 +330,7 @@ watch(
         @reorder="onReorder"
         :metaKeySelection="true"
         :autoOptionFocus="false"
+        :disabled="!canChangeTopics"
       >
         <template #option="{ item, index }">
           <div class="flex items-center justify-between w-full py-1 px-2">
@@ -339,6 +345,7 @@ watch(
               <span v-else class="text-sm text-gray-900 dark:text-gray-100 truncate">{{ item.title }}</span>
             </div>
             <Button
+              v-if="canChangeTopics"
               icon="pi pi-times"
               severity="danger"
               text
@@ -364,8 +371,14 @@ watch(
           </span>
         </div>
         <div class="flex gap-2">
-          <Button label="Cancel" severity="secondary" @click="closeDialog" :disabled="isSaving" />
           <Button
+            :label="canChangeTopics ? 'Cancel' : 'Close'"
+            severity="secondary"
+            @click="closeDialog"
+            :disabled="isSaving"
+          />
+          <Button
+            v-if="canChangeTopics"
             label="Save"
             severity="success"
             @click="saveTopics"

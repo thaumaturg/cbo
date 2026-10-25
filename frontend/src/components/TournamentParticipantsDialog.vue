@@ -1,6 +1,7 @@
 <script setup>
 import { tournamentParticipantsService } from "@/services/tournament-participants-service.js";
 import { useNotify } from "@/utils/notify.js";
+import { isPreparationsStage } from "@/utils/tournament.js";
 import Button from "primevue/button";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
@@ -50,6 +51,10 @@ const isCreator = computed(() => {
   return props.tournament?.currentUserRole === "Creator";
 });
 
+const canManageParticipants = computed(() => {
+  return isCreator.value && isPreparationsStage(props.tournament?.currentStage);
+});
+
 const staffParticipants = computed(() => {
   return participants.value
     .filter((p) => p.role !== "Player")
@@ -70,7 +75,7 @@ const players = computed(() => {
 });
 
 const canReorderPlayers = computed(() => {
-  return isCreator.value && props.tournament?.currentStage === "Preparations" && players.value.length > 1;
+  return canManageParticipants.value && players.value.length > 1;
 });
 
 const organizerCount = computed(() => {
@@ -250,8 +255,8 @@ watch(
     :draggable="false"
     :style="{ width: '40rem' }"
   >
-    <!-- Add Participant Section (Only for Creator) -->
-    <div v-if="isCreator" class="mb-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+    <!-- Add Participant Section (Only for Creator, during Preparations) -->
+    <div v-if="canManageParticipants" class="mb-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
       <h3 class="text-lg font-semibold mb-4">Add Participant</h3>
 
       <!-- Error Message -->
@@ -289,8 +294,8 @@ watch(
       </div>
     </div>
 
-    <!-- Error Message for non-creators -->
-    <div v-if="!isCreator && addError" class="mb-4">
+    <!-- Error Message when the Add Participant Section is hidden -->
+    <div v-if="!canManageParticipants && addError" class="mb-4">
       <Message severity="error">{{ addError }}</Message>
     </div>
 
@@ -326,9 +331,9 @@ watch(
               <span class="text-sm text-gray-500 dark:text-gray-400"> Topics: {{ participant.topicsCount }} </span>
             </div>
 
-            <!-- Delete Button (Only for non-Creator participants and only if current user is Creator) -->
+            <!-- Delete Button (Only for non-Creator participants, if current user is Creator, during Preparations) -->
             <Button
-              v-if="isCreator && participant.role !== 'Creator'"
+              v-if="canManageParticipants && participant.role !== 'Creator'"
               icon="pi pi-trash"
               severity="danger"
               outlined
@@ -382,7 +387,7 @@ watch(
               </template>
             </Column>
 
-            <Column v-if="isCreator" style="width: 4rem" class="text-center">
+            <Column v-if="canManageParticipants" style="width: 4rem" class="text-center">
               <template #body="{ data }">
                 <Button
                   icon="pi pi-trash"
