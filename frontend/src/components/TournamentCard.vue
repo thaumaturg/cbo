@@ -1,5 +1,5 @@
 <script setup>
-import { stageBadgeSeverity } from "@/utils/tournament.js";
+import { isPreparationsStage, stageBadgeSeverity } from "@/utils/tournament.js";
 import Badge from "primevue/badge";
 import Button from "primevue/button";
 import Card from "primevue/card";
@@ -15,7 +15,7 @@ const props = defineProps({
 
 const emit = defineEmits(["settings", "participants", "topics", "start", "delete"]);
 
-const isInPreparations = computed(() => props.tournament.currentStage === "Preparations");
+const isInPreparations = computed(() => isPreparationsStage(props.tournament.currentStage));
 
 const stageSeverity = computed(() => stageBadgeSeverity(props.tournament.currentStage));
 
@@ -61,7 +61,7 @@ const handleDelete = () => {
 
         <div class="flex items-center gap-3">
           <Button
-            v-if="tournament.currentUserRole === 'Creator'"
+            v-if="tournament.currentUserRole === 'Creator' && isInPreparations"
             icon="pi pi-cog"
             severity="secondary"
             outlined

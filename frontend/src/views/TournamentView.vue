@@ -5,7 +5,7 @@ import { tournamentMatchesService } from "@/services/tournament-matches-service.
 import { tournamentParticipantsService } from "@/services/tournament-participants-service.js";
 import { tournamentService } from "@/services/tournament-service.js";
 import { useNotify } from "@/utils/notify.js";
-import { stageBadgeSeverity } from "@/utils/tournament.js";
+import { isPreparationsStage, stageBadgeSeverity } from "@/utils/tournament.js";
 import Badge from "primevue/badge";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
@@ -22,7 +22,7 @@ const isLoadingMatches = ref(false);
 const isLoadingParticipants = ref(false);
 const loadError = ref(null);
 
-const isInPreparations = computed(() => tournament.value?.currentStage === "Preparations");
+const isInPreparations = computed(() => isPreparationsStage(tournament.value?.currentStage));
 
 const stageSeverity = computed(() => stageBadgeSeverity(tournament.value?.currentStage));
 
