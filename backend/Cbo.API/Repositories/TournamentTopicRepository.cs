@@ -9,7 +9,8 @@ public interface ITournamentTopicRepository
     Task<List<TournamentTopic>> GetAllByParticipantIdAsync(Guid tournamentId, Guid participantId);
     Task<List<TournamentTopic>> GetAllByTournamentIdAsync(Guid tournamentId);
     Task<List<TournamentTopic>> GetAllByTournamentIdWithAuthorsAsync(Guid tournamentId);
-    Task<List<TournamentTopic>> SetTopicsForParticipantAsync(Guid tournamentId, Guid participantId, List<TournamentTopic> topics);
+    Task DeleteAllByParticipantIdAsync(Guid tournamentId, Guid participantId);
+    Task CreateBulkAsync(List<TournamentTopic> topics);
 }
 
 public class TournamentTopicRepository(CboDbContext dbContext) : ITournamentTopicRepository
@@ -54,30 +55,19 @@ public class TournamentTopicRepository(CboDbContext dbContext) : ITournamentTopi
             .ToListAsync();
     }
 
-    public async Task<List<TournamentTopic>> SetTopicsForParticipantAsync(Guid tournamentId, Guid participantId, List<TournamentTopic> topics)
+    public async Task DeleteAllByParticipantIdAsync(Guid tournamentId, Guid participantId)
     {
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        await _dbContext.TournamentTopics
+            .Where(tt => tt.TournamentId == tournamentId && tt.TournamentParticipantId == participantId)
+            .ExecuteDeleteAsync();
+    }
 
-        try
+    public async Task CreateBulkAsync(List<TournamentTopic> topics)
+    {
+        if (topics.Count > 0)
         {
-            List<TournamentTopic> existingTopics = await _dbContext.TournamentTopics
-                .Where(tt => tt.TournamentId == tournamentId && tt.TournamentParticipantId == participantId)
-                .ToListAsync();
-
-            _dbContext.TournamentTopics.RemoveRange(existingTopics);
-
-            if (topics.Count > 0)
-                await _dbContext.TournamentTopics.AddRangeAsync(topics);
-
+            await _dbContext.TournamentTopics.AddRangeAsync(topics);
             await _dbContext.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            return await GetAllByParticipantIdAsync(tournamentId, participantId);
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
         }
     }
 }

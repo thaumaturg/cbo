@@ -138,7 +138,12 @@ public class TournamentService(
         if (access.IsFailure)
             return access.Failure;
 
-        Tournament? deletedTournament = await _tournamentRepository.DeleteAsync(tournamentId);
+        Tournament? deletedTournament = null;
+        await _dbContext.Database.ExecuteInTransactionAsync(async () =>
+        {
+            deletedTournament = await _tournamentRepository.DeleteAsync(tournamentId);
+        });
+
         if (deletedTournament is null)
             return TournamentNotFound();
 
