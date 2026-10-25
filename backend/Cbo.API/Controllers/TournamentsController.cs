@@ -24,6 +24,8 @@ public partial class TournamentsController(
 
     [HttpGet]
     [Authorize]
+    [ProducesResponseType<List<GetTournamentDto>>(StatusCodes.Status200OK)]
+    [ProducesProblem(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetAll()
     {
         List<GetTournamentDto> tournamentsDto = await _tournamentService.GetTournamentsAsync();
@@ -34,6 +36,10 @@ public partial class TournamentsController(
     [HttpGet]
     [Route("{id:guid}")]
     [Authorize]
+    [ProducesResponseType<GetTournamentDto>(StatusCodes.Status200OK)]
+    [ProducesProblem(StatusCodes.Status401Unauthorized)]
+    [ProducesProblem(StatusCodes.Status403Forbidden)]
+    [ProducesProblem(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById([FromRoute] Guid id)
     {
         Result<GetTournamentDto> result = await _tournamentService.GetTournamentAsync(id);
@@ -45,6 +51,9 @@ public partial class TournamentsController(
 
     [HttpPost]
     [Authorize]
+    [ProducesResponseType<GetTournamentDto>(StatusCodes.Status201Created)]
+    [ProducesValidationProblem]
+    [ProducesProblem(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Create([FromBody] CreateTournamentDto createTournamentDto)
     {
         Result<GetTournamentDto> result = await _tournamentService.CreateTournamentAsync(createTournamentDto);
@@ -58,6 +67,12 @@ public partial class TournamentsController(
     [HttpPut]
     [Route("{id:guid}")]
     [Authorize]
+    [ProducesResponseType<GetTournamentDto>(StatusCodes.Status200OK)]
+    [ProducesValidationProblem]
+    [ProducesProblem(StatusCodes.Status401Unauthorized)]
+    [ProducesProblem(StatusCodes.Status403Forbidden)]
+    [ProducesProblem(StatusCodes.Status404NotFound)]
+    [ProducesProblem(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateTournamentDto updateTournamentDto)
     {
         Result<GetTournamentDto> result = await _tournamentService.UpdateTournamentAsync(id, updateTournamentDto);
@@ -70,6 +85,10 @@ public partial class TournamentsController(
     [HttpDelete]
     [Route("{id:guid}")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesProblem(StatusCodes.Status401Unauthorized)]
+    [ProducesProblem(StatusCodes.Status403Forbidden)]
+    [ProducesProblem(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete([FromRoute] Guid id)
     {
         Result result = await _tournamentService.DeleteTournamentAsync(id);
@@ -82,6 +101,12 @@ public partial class TournamentsController(
     [HttpPatch]
     [Route("{id:guid}")]
     [Authorize]
+    [ProducesResponseType<GetTournamentDto>(StatusCodes.Status200OK)]
+    [ProducesValidationProblem]
+    [ProducesProblem(StatusCodes.Status401Unauthorized)]
+    [ProducesProblem(StatusCodes.Status403Forbidden)]
+    [ProducesProblem(StatusCodes.Status404NotFound)]
+    [ProducesProblem(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> AdvanceStage([FromRoute] Guid id, [FromBody] UpdateTournamentStageDto advanceStageDto)
     {
         Result<GetTournamentDto> result = await _tournamentService.AdvanceStageAsync(id, advanceStageDto);

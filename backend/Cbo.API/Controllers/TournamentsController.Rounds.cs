@@ -11,6 +11,10 @@ public partial class TournamentsController
     [HttpGet]
     [Route("{tournamentId:guid}/matches/{matchId:guid}/rounds/{roundNumber:int}")]
     [Authorize]
+    [ProducesResponseType<GetRoundDto>(StatusCodes.Status200OK)]
+    [ProducesProblem(StatusCodes.Status401Unauthorized)]
+    [ProducesProblem(StatusCodes.Status403Forbidden)]
+    [ProducesProblem(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetRound(
         [FromRoute] Guid tournamentId,
         [FromRoute] Guid matchId,
@@ -26,6 +30,12 @@ public partial class TournamentsController
     [HttpPost]
     [Route("{tournamentId:guid}/matches/{matchId:guid}/rounds")]
     [Authorize]
+    [ProducesResponseType<GetRoundDto>(StatusCodes.Status201Created)]
+    [ProducesValidationProblem]
+    [ProducesProblem(StatusCodes.Status401Unauthorized)]
+    [ProducesProblem(StatusCodes.Status403Forbidden)]
+    [ProducesProblem(StatusCodes.Status404NotFound)]
+    [ProducesProblem(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> CreateRound(
         [FromRoute] Guid tournamentId,
         [FromRoute] Guid matchId,
@@ -42,6 +52,12 @@ public partial class TournamentsController
     [HttpPut]
     [Route("{tournamentId:guid}/matches/{matchId:guid}/rounds/{roundNumber:int}")]
     [Authorize]
+    [ProducesResponseType<GetRoundDto>(StatusCodes.Status200OK)]
+    [ProducesValidationProblem]
+    [ProducesProblem(StatusCodes.Status401Unauthorized)]
+    [ProducesProblem(StatusCodes.Status403Forbidden)]
+    [ProducesProblem(StatusCodes.Status404NotFound)]
+    [ProducesProblem(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> UpdateRound(
         [FromRoute] Guid tournamentId,
         [FromRoute] Guid matchId,
@@ -58,6 +74,10 @@ public partial class TournamentsController
     [HttpDelete]
     [Route("{tournamentId:guid}/matches/{matchId:guid}/rounds/{roundNumber:int}")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesProblem(StatusCodes.Status401Unauthorized)]
+    [ProducesProblem(StatusCodes.Status403Forbidden)]
+    [ProducesProblem(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteRound(
         [FromRoute] Guid tournamentId,
         [FromRoute] Guid matchId,

@@ -15,6 +15,8 @@ public partial class TopicsController(ITopicService topicService) : ControllerBa
 
     [HttpGet]
     [Authorize]
+    [ProducesResponseType<List<GetTopicDto>>(StatusCodes.Status200OK)]
+    [ProducesProblem(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetAll()
     {
         List<GetTopicDto> topicsDto = await _topicService.GetTopicsAsync();
@@ -25,6 +27,10 @@ public partial class TopicsController(ITopicService topicService) : ControllerBa
     [HttpGet]
     [Route("{id:guid}")]
     [Authorize]
+    [ProducesResponseType<GetTopicDto>(StatusCodes.Status200OK)]
+    [ProducesProblem(StatusCodes.Status401Unauthorized)]
+    [ProducesProblem(StatusCodes.Status403Forbidden)]
+    [ProducesProblem(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById([FromRoute] Guid id)
     {
         Result<GetTopicDto> result = await _topicService.GetTopicAsync(id);
@@ -36,6 +42,9 @@ public partial class TopicsController(ITopicService topicService) : ControllerBa
 
     [HttpPost]
     [Authorize]
+    [ProducesResponseType<GetTopicDto>(StatusCodes.Status201Created)]
+    [ProducesValidationProblem]
+    [ProducesProblem(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Create([FromBody] CreateTopicDto createTopicDto)
     {
         Result<GetTopicDto> result = await _topicService.CreateTopicAsync(createTopicDto);
@@ -49,6 +58,12 @@ public partial class TopicsController(ITopicService topicService) : ControllerBa
     [HttpPut]
     [Route("{id:guid}")]
     [Authorize]
+    [ProducesResponseType<GetTopicDto>(StatusCodes.Status200OK)]
+    [ProducesValidationProblem]
+    [ProducesProblem(StatusCodes.Status401Unauthorized)]
+    [ProducesProblem(StatusCodes.Status403Forbidden)]
+    [ProducesProblem(StatusCodes.Status404NotFound)]
+    [ProducesProblem(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateTopicDto updateTopicDto)
     {
         Result<GetTopicDto> result = await _topicService.UpdateTopicAsync(id, updateTopicDto);
@@ -61,6 +76,11 @@ public partial class TopicsController(ITopicService topicService) : ControllerBa
     [HttpDelete]
     [Route("{id:guid}")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesProblem(StatusCodes.Status401Unauthorized)]
+    [ProducesProblem(StatusCodes.Status403Forbidden)]
+    [ProducesProblem(StatusCodes.Status404NotFound)]
+    [ProducesProblem(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Delete([FromRoute] Guid id)
     {
         Result result = await _topicService.DeleteTopicAsync(id);
