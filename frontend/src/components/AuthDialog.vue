@@ -1,6 +1,7 @@
 <script setup>
 import { useAuthDialogStore } from "@/stores/auth-dialog.js";
 import { useAuthStore } from "@/stores/auth.js";
+import { toFormErrors } from "@/utils/error.js";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
@@ -27,6 +28,15 @@ const activeTab = ref("0");
 
 const isFormProcessing = computed(() => formStatus.value === "loading" || authStore.isLoading);
 
+// The form's field names are prefixed per tab, the API's are not
+const LOGIN_FIELDS = { email: "loginEmail", password: "loginPassword" };
+const REGISTER_FIELDS = {
+  email: "registerEmail",
+  username: "registerUsername",
+  fullName: "registerFullName",
+  password: "registerPassword",
+};
+
 watch(
   () => authDialogStore.isOpen,
   (isOpen) => {
@@ -43,7 +53,7 @@ watch(activeTab, () => {
   generalError.value = null;
 });
 
-const onLoginSubmit = async (values) => {
+const onLoginSubmit = async (values, { setErrors }) => {
   formStatus.value = "loading";
   generalError.value = null;
 
@@ -62,6 +72,7 @@ const onLoginSubmit = async (values) => {
     } else {
       formStatus.value = "error";
       generalError.value = result.error;
+      setErrors(toFormErrors(result.errors, LOGIN_FIELDS));
     }
   } catch {
     formStatus.value = "error";
@@ -69,7 +80,7 @@ const onLoginSubmit = async (values) => {
   }
 };
 
-const onRegisterSubmit = async (values) => {
+const onRegisterSubmit = async (values, { setErrors }) => {
   formStatus.value = "loading";
   generalError.value = null;
 
@@ -86,6 +97,7 @@ const onRegisterSubmit = async (values) => {
     } else {
       formStatus.value = "error";
       generalError.value = result.error;
+      setErrors(toFormErrors(result.errors, REGISTER_FIELDS));
     }
   } catch {
     formStatus.value = "error";

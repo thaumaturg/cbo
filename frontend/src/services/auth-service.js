@@ -52,6 +52,7 @@ export const authService = {
         return {
           success: false,
           error: "Received an invalid token from the server. Please try again.",
+          errors: {},
         };
       }
 
