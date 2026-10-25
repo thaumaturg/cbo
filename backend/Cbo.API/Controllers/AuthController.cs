@@ -15,6 +15,9 @@ public class AuthController(IAuthService authService) : ControllerBase
 
     [HttpPost]
     [Route("Register")]
+    [ProducesResponseType<string>(StatusCodes.Status200OK)]
+    [ProducesValidationProblem]
+    [ProducesValidationProblem(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Register([FromBody] RegisterUserDto registerUserDto)
     {
         Result result = await _authService.RegisterAsync(registerUserDto);
@@ -26,6 +29,9 @@ public class AuthController(IAuthService authService) : ControllerBase
 
     [HttpPost]
     [Route("Login")]
+    [ProducesResponseType<LoginResponseDto>(StatusCodes.Status200OK)]
+    [ProducesValidationProblem]
+    [ProducesProblem(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginUserDto loginUserDto)
     {
         Result<LoginResponseDto> result = await _authService.LoginAsync(loginUserDto);
@@ -38,6 +44,9 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost]
     [Route("ChangePassword")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesValidationProblem]
+    [ProducesProblem(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
     {
         Result result = await _authService.ChangePasswordAsync(changePasswordDto);
