@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Cbo.API.Authorization;
+using Cbo.API.Data;
 using Cbo.API.Mappings;
 using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
@@ -19,6 +20,7 @@ public interface ITournamentTopicService
 }
 
 public class TournamentTopicService(
+    CboDbContext dbContext,
     ITournamentAccessService tournamentAccessService,
     ITournamentParticipantsRepository participantsRepository,
     ITournamentTopicRepository tournamentTopicRepository,
@@ -30,6 +32,7 @@ public class TournamentTopicService(
     private const string ChooseTopicsForbiddenMessage = "You don't have permission to choose topics in this tournament.";
     private const string ViewAllTopicsForbiddenMessage = "You don't have permission to view all topics of this tournament.";
 
+    private readonly CboDbContext _dbContext = dbContext;
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
     private readonly ITournamentParticipantsRepository _participantsRepository = participantsRepository;
     private readonly ITournamentTopicRepository _tournamentTopicRepository = tournamentTopicRepository;
@@ -88,7 +91,13 @@ public class TournamentTopicService(
             .Select(dto => dto.ToNewTournamentTopic(tournamentId, participant.Id))
             .ToList();
 
-        List<TournamentTopic> savedTopics = await _tournamentTopicRepository.SetTopicsForParticipantAsync(tournamentId, participant.Id, topics);
+        await _dbContext.Database.ExecuteInTransactionAsync(async () =>
+        {
+            await _tournamentTopicRepository.DeleteAllByParticipantIdAsync(tournamentId, participant.Id);
+            await _tournamentTopicRepository.CreateBulkAsync(topics);
+        });
+
+        List<TournamentTopic> savedTopics = await _tournamentTopicRepository.GetAllByParticipantIdAsync(tournamentId, participant.Id);
 
         return savedTopics.Select(t => t.ToGetDto()).ToList();
     }

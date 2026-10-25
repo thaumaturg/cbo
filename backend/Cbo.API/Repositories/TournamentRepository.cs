@@ -75,14 +75,15 @@ public class TournamentRepository(CboDbContext dbContext) : ITournamentRepositor
         return existingTournament;
     }
 
+    /// <summary>
+    /// Deletes the round answers and match participants first, because they block the cascade. Run it in a transaction.
+    /// </summary>
     public async Task<Tournament?> DeleteAsync(Guid id)
     {
         Tournament? existingTournament = await _dbContext.Tournaments.FirstOrDefaultAsync(x => x.Id == id);
 
         if (existingTournament is null)
             return null;
-
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
         await _dbContext.RoundAnswers
             .Where(ra => ra.Round.Match.TournamentId == id)
@@ -94,8 +95,6 @@ public class TournamentRepository(CboDbContext dbContext) : ITournamentRepositor
 
         _dbContext.Tournaments.Remove(existingTournament);
         await _dbContext.SaveChangesAsync();
-
-        await transaction.CommitAsync();
 
         return existingTournament;
     }
