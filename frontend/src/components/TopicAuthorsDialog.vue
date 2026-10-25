@@ -6,6 +6,7 @@ import Button from "primevue/button";
 import Message from "primevue/message";
 import { useConfirm } from "primevue/useconfirm";
 import { topicAuthorsService } from "@/services/topic-authors-service.js";
+import { toFormErrors } from "@/utils/error.js";
 
 const props = defineProps({
   visible: {
@@ -29,6 +30,7 @@ const authors = ref([]);
 const isLoadingAuthors = ref(false);
 const isAddingAuthor = ref(false);
 const addError = ref(null);
+const addFieldErrors = ref({});
 
 const roleOrder = {
   Owner: 0,
@@ -54,6 +56,7 @@ const closeDialog = () => {
 const resetForm = () => {
   newUsername.value = "";
   addError.value = null;
+  addFieldErrors.value = {};
 };
 
 const fetchAuthors = async () => {
@@ -86,6 +89,7 @@ const handleAddAuthor = async () => {
 
   isAddingAuthor.value = true;
   addError.value = null;
+  addFieldErrors.value = {};
 
   try {
     const result = await topicAuthorsService.createAuthor(props.topic.id, {
@@ -97,6 +101,7 @@ const handleAddAuthor = async () => {
       resetForm();
     } else {
       addError.value = result.error;
+      addFieldErrors.value = toFormErrors(result.errors, ["username"]);
     }
   } catch (error) {
     addError.value = "An unexpected error occurred. Please try again.";
@@ -162,6 +167,10 @@ watch(
     }
   }
 );
+
+watch(newUsername, () => {
+  addFieldErrors.value = {};
+});
 </script>
 
 <template>
@@ -183,18 +192,23 @@ watch(
       </div>
 
       <div class="flex gap-2">
-        <div class="flex-1">
+        <div class="flex-1 flex flex-col gap-1">
           <InputText
             v-model="newUsername"
             placeholder="Username"
             class="w-full"
+            :invalid="!!addFieldErrors.username"
             :disabled="isAddingAuthor"
             @keyup.enter="handleAddAuthor"
           />
+          <Message v-if="addFieldErrors.username" severity="error" variant="simple">
+            {{ addFieldErrors.username }}
+          </Message>
         </div>
         <Button
           label="Add"
           severity="success"
+          class="self-start"
           @click="handleAddAuthor"
           :loading="isAddingAuthor"
           :disabled="!newUsername.trim() || isAddingAuthor"

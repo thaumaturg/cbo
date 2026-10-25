@@ -37,13 +37,13 @@ export const useAuthStore = defineStore("auth", () => {
 
       if (!result.success) {
         error.value = result.error;
-        return { success: false, error: result.error };
+        return result;
       }
 
       const claims = authService.getCurrentUser();
       if (!claims) {
         error.value = "Login failed: could not establish a session.";
-        return { success: false, error: error.value };
+        return { success: false, error: error.value, errors: {} };
       }
 
       user.value = mapClaimsToUser(claims);
@@ -69,7 +69,7 @@ export const useAuthStore = defineStore("auth", () => {
         return { success: true };
       } else {
         error.value = result.error;
-        return { success: false, error: result.error };
+        return result;
       }
     } catch (err) {
       console.error("Registration error:", err);

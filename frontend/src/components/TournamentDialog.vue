@@ -1,5 +1,6 @@
 <script setup>
 import { tournamentService } from "@/services/tournament-service.js";
+import { toFormErrors } from "@/utils/error.js";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import InputNumber from "primevue/inputnumber";
@@ -37,6 +38,8 @@ const initialValues = {
   description: "",
   ...DEFAULT_VALUES,
 };
+
+const FORM_FIELDS = Object.keys(initialValues);
 
 const formStatus = ref("idle"); // idle | loading | success | error
 const generalError = ref(null);
@@ -83,7 +86,7 @@ const closeDialog = () => {
   emit("update:visible", false);
 };
 
-const onSubmit = async (values) => {
+const onSubmit = async (values, { setErrors }) => {
   formStatus.value = "loading";
   generalError.value = null;
 
@@ -112,6 +115,7 @@ const onSubmit = async (values) => {
     } else {
       formStatus.value = "error";
       generalError.value = result.error;
+      setErrors(toFormErrors(result.errors, FORM_FIELDS));
     }
   } catch {
     formStatus.value = "error";
@@ -180,6 +184,9 @@ const onSubmit = async (values) => {
                 disabled
               />
             </VeeField>
+            <ErrorMessage name="playersPerTournament" v-slot="{ message }">
+              <Message severity="error">{{ message }}</Message>
+            </ErrorMessage>
           </div>
 
           <!-- Topics Per Participant Min -->

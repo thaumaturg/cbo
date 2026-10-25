@@ -1,5 +1,6 @@
 <script setup>
 import { topicService } from "@/services/topic-service.js";
+import { toFormErrors } from "@/utils/error.js";
 import { useNotify } from "@/utils/notify.js";
 import { parseClipboardTable } from "@/utils/clipboard-parser.js";
 import Button from "primevue/button";
@@ -132,6 +133,20 @@ const getFieldError = (index, field) => {
   return questionErrors.value[index]?.[field] || null;
 };
 
+const SERVER_QUESTION_FIELD = /^questions\[(\d+)\]\.(costPositive|costNegative|text|answer)$/;
+
+// Server errors for the table's cells, in the shape validateAllQuestions produces
+const toQuestionErrors = (errors = {}) => {
+  const byIndex = {};
+  for (const [field, messages] of Object.entries(errors)) {
+    const match = SERVER_QUESTION_FIELD.exec(field);
+    if (!match) continue;
+    const [, index, name] = match;
+    byIndex[index] = { ...byIndex[index], [name]: messages.join(" ") };
+  }
+  return byIndex;
+};
+
 const hasFieldError = (index, field) => {
   return !!getFieldError(index, field);
 };
@@ -243,7 +258,7 @@ const onInvalidSubmit = () => {
   validateAllQuestions();
 };
 
-const onSubmit = async (values) => {
+const onSubmit = async (values, { setErrors }) => {
   if (!validateAllQuestions()) {
     generalError.value = "Please fix the errors in the questions table.";
     return;
@@ -281,6 +296,8 @@ const onSubmit = async (values) => {
     } else {
       formStatus.value = "error";
       generalError.value = result.error;
+      setErrors(toFormErrors(result.errors, ["title"]));
+      questionErrors.value = toQuestionErrors(result.errors);
     }
   } catch {
     formStatus.value = "error";

@@ -1,6 +1,7 @@
 <script setup>
 import { authService } from "@/services/auth-service.js";
 import { useAuthStore } from "@/stores/auth.js";
+import { toFormErrors } from "@/utils/error.js";
 import { useNotify } from "@/utils/notify.js";
 import Button from "primevue/button";
 import Card from "primevue/card";
@@ -14,7 +15,7 @@ const notify = useNotify();
 
 const isChangingPassword = ref(false);
 
-const onChangePasswordSubmit = async (values, { resetForm }) => {
+const onChangePasswordSubmit = async (values, { resetForm, setErrors }) => {
   isChangingPassword.value = true;
 
   try {
@@ -28,6 +29,7 @@ const onChangePasswordSubmit = async (values, { resetForm }) => {
       resetForm();
     } else {
       notify.error("Password Change Failed", result.error);
+      setErrors(toFormErrors(result.errors, ["currentPassword", "newPassword"]));
     }
   } catch (error) {
     console.error("Error changing password:", error);

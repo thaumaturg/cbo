@@ -1,5 +1,6 @@
 <script setup>
 import { tournamentParticipantsService } from "@/services/tournament-participants-service.js";
+import { toFormErrors } from "@/utils/error.js";
 import { useNotify } from "@/utils/notify.js";
 import { isPreparationsStage } from "@/utils/tournament.js";
 import Button from "primevue/button";
@@ -41,6 +42,7 @@ const isLoadingParticipants = ref(false);
 const isAddingParticipant = ref(false);
 const isSavingSeeding = ref(false);
 const addError = ref(null);
+const addFieldErrors = ref({});
 
 const roleOrder = {
   Creator: 0,
@@ -103,6 +105,7 @@ const resetForm = () => {
   newUsername.value = "";
   newRole.value = "Player";
   addError.value = null;
+  addFieldErrors.value = {};
 };
 
 const fetchParticipants = async () => {
@@ -135,6 +138,7 @@ const handleAddParticipant = async () => {
 
   isAddingParticipant.value = true;
   addError.value = null;
+  addFieldErrors.value = {};
 
   try {
     const result = await tournamentParticipantsService.createParticipant(props.tournament.id, {
@@ -147,6 +151,7 @@ const handleAddParticipant = async () => {
       resetForm();
     } else {
       addError.value = result.error;
+      addFieldErrors.value = toFormErrors(result.errors, ["username", "role"]);
     }
   } catch (error) {
     addError.value = "An unexpected error occurred. Please try again.";
@@ -244,6 +249,10 @@ watch(
     }
   },
 );
+
+watch([newUsername, newRole], () => {
+  addFieldErrors.value = {};
+});
 </script>
 
 <template>
@@ -265,28 +274,37 @@ watch(
       </div>
 
       <div class="flex gap-2">
-        <div class="flex-1">
+        <div class="flex-1 flex flex-col gap-1">
           <InputText
             v-model="newUsername"
             placeholder="Username"
             class="w-full"
+            :invalid="!!addFieldErrors.username"
             :disabled="isAddingParticipant"
             @keyup.enter="handleAddParticipant"
           />
+          <Message v-if="addFieldErrors.username" severity="error" variant="simple">
+            {{ addFieldErrors.username }}
+          </Message>
         </div>
-        <div class="w-40">
+        <div class="w-40 flex flex-col gap-1">
           <Select
             v-model="newRole"
             :options="roleOptions"
             optionLabel="label"
             optionValue="value"
             class="w-full"
+            :invalid="!!addFieldErrors.role"
             :disabled="isAddingParticipant"
           />
+          <Message v-if="addFieldErrors.role" severity="error" variant="simple">
+            {{ addFieldErrors.role }}
+          </Message>
         </div>
         <Button
           label="Add"
           severity="success"
+          class="self-start"
           @click="handleAddParticipant"
           :loading="isAddingParticipant"
           :disabled="!newUsername.trim() || isAddingParticipant"
