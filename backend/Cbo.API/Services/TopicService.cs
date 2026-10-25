@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Cbo.API.Authorization;
 using Cbo.API.Data.Configuration;
 using Cbo.API.Mappings;
@@ -34,8 +33,7 @@ public class TopicService(
     ITopicValidationService topicValidationService,
     UserManager<ApplicationUser> userManager,
     ICurrentUserService currentUserService,
-    IAuthorizationService authorizationService,
-    IHttpContextAccessor httpContextAccessor) : ITopicService
+    IAuthorizationService authorizationService) : ITopicService
 {
     private const string ReadForbiddenMessage = "You don't have permission to view this topic.";
     private const string UpdateForbiddenMessage = "You don't have permission to edit this topic.";
@@ -48,7 +46,6 @@ public class TopicService(
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly ICurrentUserService _currentUserService = currentUserService;
     private readonly IAuthorizationService _authorizationService = authorizationService;
-    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
     public async Task<List<GetTopicDto>> GetTopicsAsync()
     {
@@ -272,7 +269,7 @@ public class TopicService(
         if (topic is null)
             return TopicNotFound();
 
-        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(GetCurrentUser(), topic, operation);
+        AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(_currentUserService.GetRequiredCurrentUser(), topic, operation);
         if (!authResult.Succeeded)
             return Failure.Forbidden(forbiddenMessage);
 
@@ -297,15 +294,6 @@ public class TopicService(
             else if (!seenQuestionIds.Add(questionId))
                 yield return new FieldError($"questions[{i}].id", "This question appears more than once.");
         }
-    }
-
-    private ClaimsPrincipal GetCurrentUser()
-    {
-        ClaimsPrincipal? user = _httpContextAccessor.HttpContext?.User;
-        if (user?.Identity?.IsAuthenticated != true)
-            throw new InvalidOperationException("No authenticated user in the current request. Topic operations must only be called from [Authorize] endpoints.");
-
-        return user;
     }
 
     /// <summary>

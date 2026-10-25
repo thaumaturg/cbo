@@ -24,8 +24,7 @@ public class TournamentTopicService(
     ITournamentTopicRepository tournamentTopicRepository,
     ITopicRepository topicRepository,
     ICurrentUserService currentUserService,
-    IAuthorizationService authorizationService,
-    IHttpContextAccessor httpContextAccessor) : ITournamentTopicService
+    IAuthorizationService authorizationService) : ITournamentTopicService
 {
     private const string ReadForbiddenMessage = "You don't have permission to view this tournament.";
     private const string ChooseTopicsForbiddenMessage = "You don't have permission to choose topics in this tournament.";
@@ -37,7 +36,6 @@ public class TournamentTopicService(
     private readonly ITopicRepository _topicRepository = topicRepository;
     private readonly ICurrentUserService _currentUserService = currentUserService;
     private readonly IAuthorizationService _authorizationService = authorizationService;
-    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
     public async Task<Result<List<GetTournamentTopicDto>>> GetMyTopicsAsync(Guid tournamentId)
     {
@@ -124,7 +122,7 @@ public class TournamentTopicService(
     {
         List<FieldError> fieldErrors = [];
         HashSet<Guid> seenTopicIds = [];
-        ClaimsPrincipal user = GetCurrentUser();
+        ClaimsPrincipal user = _currentUserService.GetRequiredCurrentUser();
 
         for (int i = 0; i < topicsDto.Count; i++)
         {
@@ -161,15 +159,6 @@ public class TournamentTopicService(
 
         return await _participantsRepository.GetByUserIdAndTournamentIdAsync(currentUserId, tournamentId)
             ?? throw new InvalidOperationException($"User {currentUserId} passed a permission check on tournament {tournamentId} but isn't a participant of it.");
-    }
-
-    private ClaimsPrincipal GetCurrentUser()
-    {
-        ClaimsPrincipal? user = _httpContextAccessor.HttpContext?.User;
-        if (user?.Identity?.IsAuthenticated != true)
-            throw new InvalidOperationException("No authenticated user in the current request. Tournament topic operations must only be called from [Authorize] endpoints.");
-
-        return user;
     }
 
     private static Failure TopicNotFound() =>
