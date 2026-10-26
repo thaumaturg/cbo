@@ -15,12 +15,10 @@ namespace Cbo.API.Controllers;
 [ApiController]
 public partial class TournamentsController(
     IMatchService matchService,
-    IRoundService roundService,
-    ITournamentTopicService tournamentTopicService) : ControllerBase
+    IRoundService roundService) : ControllerBase
 {
     private readonly IMatchService _matchService = matchService;
     private readonly IRoundService _roundService = roundService;
-    private readonly ITournamentTopicService _tournamentTopicService = tournamentTopicService;
 
     [HttpGet]
     [Authorize]

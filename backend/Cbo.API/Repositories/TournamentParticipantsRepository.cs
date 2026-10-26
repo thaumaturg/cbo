@@ -6,7 +6,6 @@ namespace Cbo.API.Repositories;
 
 public interface ITournamentParticipantsRepository
 {
-    Task<TournamentParticipant?> GetByUserIdAndTournamentIdAsync(Guid userId, Guid tournamentId);
     Task<List<TournamentParticipant>> GetAllByTournamentIdWithMatchDataAsync(Guid tournamentId);
     Task UpdateParticipantsAsync(List<TournamentParticipant> participants);
 }
@@ -14,13 +13,6 @@ public interface ITournamentParticipantsRepository
 public class TournamentParticipantsRepository(CboDbContext dbContext) : ITournamentParticipantsRepository
 {
     private readonly CboDbContext _dbContext = dbContext;
-
-    public async Task<TournamentParticipant?> GetByUserIdAndTournamentIdAsync(Guid userId, Guid tournamentId)
-    {
-        return await _dbContext.TournamentParticipants
-            .AsNoTracking()
-            .FirstOrDefaultAsync(tp => tp.ApplicationUserId == userId && tp.TournamentId == tournamentId);
-    }
 
     public async Task<List<TournamentParticipant>> GetAllByTournamentIdWithMatchDataAsync(Guid tournamentId)
     {
