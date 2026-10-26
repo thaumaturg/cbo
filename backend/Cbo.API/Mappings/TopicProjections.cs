@@ -13,6 +13,7 @@ public static class TopicProjections
     public static Expression<Func<Topic, GetTopicDto>> ToGetDto(Guid currentUserId)
     {
         Expression<Func<TopicAuthor, GetTopicAuthorDto>> toAuthorDto = TopicAuthorProjections.ToGetDto();
+        Expression<Func<Question, GetQuestionDto>> toQuestionDto = QuestionProjections.ToGetDto();
 
         return t => new GetTopicDto
         {
@@ -25,18 +26,9 @@ public static class TopicProjections
                 .Select(ta => ta.IsAuthor)
                 .FirstOrDefault(),
             Questions = t.Questions
+                .AsQueryable()
                 .OrderBy(q => q.QuestionNumber)
-                .Select(q => new GetQuestionDto
-                {
-                    Id = q.Id,
-                    QuestionNumber = q.QuestionNumber,
-                    CostPositive = q.CostPositive,
-                    CostNegative = q.CostNegative,
-                    Text = q.Text,
-                    Answer = q.Answer,
-                    Comment = q.Comment,
-                    TopicId = q.TopicId,
-                })
+                .Select(toQuestionDto)
                 .ToList(),
             Authors = t.TopicAuthors
                 .AsQueryable()

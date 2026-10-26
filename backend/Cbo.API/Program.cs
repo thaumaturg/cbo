@@ -45,11 +45,6 @@ public class Program
                 .UseSnakeCaseNamingConvention()
                 .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
-        builder.Services.AddScoped<ITournamentParticipantsRepository, TournamentParticipantsRepository>();
-        builder.Services.AddScoped<ITournamentTopicRepository, TournamentTopicRepository>();
-        builder.Services.AddScoped<ITopicRepository, TopicRepository>();
-        builder.Services.AddScoped<IMatchRepository, MatchRepository>();
-        builder.Services.AddScoped<IRoundRepository, RoundRepository>();
         builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 
         builder.Services.AddScoped<IAuthorizationHandler, TopicAuthorizationHandler>();
@@ -61,8 +56,7 @@ public class Program
         builder.Services.AddScoped<ITournamentAccessService, TournamentAccessService>();
         builder.Services.AddScoped<ITopicAccessService, TopicAccessService>();
         builder.Services.AddScoped<IMatchGenerationService, MatchGenerationService>();
-        builder.Services.AddScoped<IMatchService, MatchService>();
-        builder.Services.AddScoped<IRoundService, RoundService>();
+        builder.Services.AddScoped<IMatchScoringService, MatchScoringService>();
         builder.Services.AddScoped<ITopicValidationService, TopicValidationService>();
 
         builder.Services.AddCqrsHandlers(typeof(Program).Assembly);
