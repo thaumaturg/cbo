@@ -1,3 +1,4 @@
+using Cbo.API.Data;
 using Cbo.API.Data.Configuration;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
@@ -5,7 +6,6 @@ using Cbo.API.Repositories;
 using Cbo.Results;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace Cbo.API.Services;
 
@@ -50,11 +50,11 @@ public class AuthService(
             identityResult = await _userManager.CreateAsync(applicationUser, registerUserDto.Password);
         }
         // Lost a race with a simultaneous registration of the same username or email
-        catch (DbUpdateException exception) when (IsUniqueViolation(exception, ApplicationUserConfiguration.UserNameIndexName))
+        catch (DbUpdateException exception) when (PostgresConstraint.IsUniqueViolation(exception, ApplicationUserConfiguration.UserNameIndexName))
         {
             return AlreadyRegistered([new FieldError("username", _userManager.ErrorDescriber.DuplicateUserName(registerUserDto.Username).Description)]);
         }
-        catch (DbUpdateException exception) when (IsUniqueViolation(exception, ApplicationUserConfiguration.EmailIndexName))
+        catch (DbUpdateException exception) when (PostgresConstraint.IsUniqueViolation(exception, ApplicationUserConfiguration.EmailIndexName))
         {
             return AlreadyRegistered([new FieldError("email", _userManager.ErrorDescriber.DuplicateEmail(registerUserDto.Email).Description)]);
         }
@@ -135,13 +135,6 @@ public class AuthService(
 
         return InvalidPasswordChange(fieldErrors);
     }
-
-    private static bool IsUniqueViolation(DbUpdateException exception, string constraintName) =>
-        exception.InnerException is PostgresException
-        {
-            SqlState: PostgresErrorCodes.UniqueViolation,
-        } postgresException
-        && postgresException.ConstraintName == constraintName;
 
     private static Failure AlreadyRegistered(IEnumerable<FieldError> duplicates) =>
         Failure.Conflict("An account with this username or email already exists.", duplicates);
