@@ -12,9 +12,6 @@ public class MatchConfiguration : IEntityTypeConfiguration<Match>
     {
         entity.HasKey(m => m.Id);
 
-        entity.Property(m => m.Id)
-            .HasDefaultValueSql("uuidv7()");
-
         entity.Property(m => m.NumberInTournament)
             .IsRequired();
 

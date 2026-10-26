@@ -10,9 +10,6 @@ public class TopicConfiguration : IEntityTypeConfiguration<Topic>
     {
         entity.HasKey(t => t.Id);
 
-        entity.Property(t => t.Id)
-            .HasDefaultValueSql("uuidv7()");
-
         entity.Property(t => t.Title)
             .IsRequired();
 

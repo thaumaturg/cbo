@@ -10,9 +10,6 @@ public class TournamentTopicConfiguration : IEntityTypeConfiguration<TournamentT
     {
         entity.HasKey(tt => tt.Id);
 
-        entity.Property(tt => tt.Id)
-            .HasDefaultValueSql("uuidv7()");
-
         entity.Property(tt => tt.PriorityIndex)
             .IsRequired();
 

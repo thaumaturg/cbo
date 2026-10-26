@@ -11,9 +11,6 @@ public class TournamentConfiguration : IEntityTypeConfiguration<Tournament>
     {
         entity.HasKey(e => e.Id);
 
-        entity.Property(e => e.Id)
-            .HasDefaultValueSql("uuidv7()");
-
         entity.Property(e => e.Title)
             .IsRequired();
 

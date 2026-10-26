@@ -12,9 +12,6 @@ public class RoundAnswerConfiguration : IEntityTypeConfiguration<RoundAnswer>
     {
         entity.HasKey(ra => ra.Id);
 
-        entity.Property(ra => ra.Id)
-            .HasDefaultValueSql("uuidv7()");
-
         entity.Property(ra => ra.RoundId)
             .IsRequired();
 

@@ -10,9 +10,6 @@ public class QuestionConfiguration : IEntityTypeConfiguration<Question>
     {
         entity.HasKey(q => q.Id);
 
-        entity.Property(q => q.Id)
-            .HasDefaultValueSql("uuidv7()");
-
         entity.Property(q => q.QuestionNumber)
             .IsRequired();
 
