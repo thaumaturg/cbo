@@ -12,9 +12,6 @@ public class TopicAuthorConfiguration : IEntityTypeConfiguration<TopicAuthor>
     {
         entity.HasKey(ta => ta.Id);
 
-        entity.Property(ta => ta.Id)
-            .HasDefaultValueSql("uuidv7()");
-
         entity.Property(ta => ta.IsOwner)
             .IsRequired();
 

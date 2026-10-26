@@ -12,9 +12,6 @@ public class RoundConfiguration : IEntityTypeConfiguration<Round>
     {
         entity.HasKey(r => r.Id);
 
-        entity.Property(r => r.Id)
-            .HasDefaultValueSql("uuidv7()");
-
         entity.Property(r => r.NumberInMatch)
             .IsRequired();
 

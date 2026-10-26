@@ -13,9 +13,6 @@ public class TournamentParticipantConfiguration : IEntityTypeConfiguration<Tourn
     {
         entity.HasKey(tp => tp.Id);
 
-        entity.Property(tp => tp.Id)
-            .HasDefaultValueSql("uuidv7()");
-
         entity.Property(tp => tp.Role)
             .IsRequired()
             .HasConversion<string>()

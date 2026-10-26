@@ -10,9 +10,6 @@ public class MatchParticipantConfiguration : IEntityTypeConfiguration<MatchParti
     {
         entity.HasKey(mp => mp.Id);
 
-        entity.Property(mp => mp.Id)
-            .HasDefaultValueSql("uuidv7()");
-
         entity.Property(mp => mp.TournamentParticipantId)
             .IsRequired();
 
