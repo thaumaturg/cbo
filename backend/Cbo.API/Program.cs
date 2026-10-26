@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json.Serialization;
 using Cbo.API.Authorization;
+using Cbo.API.Cqrs;
 using Cbo.API.Data;
 using Cbo.API.Data.Interceptors;
 using Cbo.API.ErrorHandling;
@@ -44,7 +45,6 @@ public class Program
                 .UseSnakeCaseNamingConvention()
                 .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
-        builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
         builder.Services.AddScoped<ITournamentParticipantsRepository, TournamentParticipantsRepository>();
         builder.Services.AddScoped<ITournamentTopicRepository, TournamentTopicRepository>();
         builder.Services.AddScoped<ITopicRepository, TopicRepository>();
@@ -61,13 +61,14 @@ public class Program
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<ITournamentAccessService, TournamentAccessService>();
         builder.Services.AddScoped<IMatchGenerationService, MatchGenerationService>();
-        builder.Services.AddScoped<ITournamentService, TournamentService>();
         builder.Services.AddScoped<IMatchService, MatchService>();
         builder.Services.AddScoped<IRoundService, RoundService>();
         builder.Services.AddScoped<ITournamentParticipantService, TournamentParticipantService>();
         builder.Services.AddScoped<ITournamentTopicService, TournamentTopicService>();
         builder.Services.AddScoped<ITopicService, TopicService>();
         builder.Services.AddScoped<ITopicValidationService, TopicValidationService>();
+
+        builder.Services.AddCqrsHandlers(typeof(Program).Assembly);
 
         builder.Services.AddControllers(options =>
             {

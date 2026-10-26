@@ -1,5 +1,9 @@
+using Cbo.API.Commands.Tournaments;
+using Cbo.API.Cqrs;
 using Cbo.API.ErrorHandling;
+using Cbo.API.Models.Constants;
 using Cbo.API.Models.DTO;
+using Cbo.API.Queries.Tournaments;
 using Cbo.API.Services;
 using Cbo.Results;
 using Microsoft.AspNetCore.Authorization;
@@ -10,13 +14,11 @@ namespace Cbo.API.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 public partial class TournamentsController(
-    ITournamentService tournamentService,
     IMatchService matchService,
     IRoundService roundService,
     ITournamentParticipantService participantService,
     ITournamentTopicService tournamentTopicService) : ControllerBase
 {
-    private readonly ITournamentService _tournamentService = tournamentService;
     private readonly IMatchService _matchService = matchService;
     private readonly IRoundService _roundService = roundService;
     private readonly ITournamentParticipantService _participantService = participantService;
@@ -26,11 +28,15 @@ public partial class TournamentsController(
     [Authorize]
     [ProducesResponseType<List<GetTournamentDto>>(StatusCodes.Status200OK)]
     [ProducesProblem(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll(
+        [FromServices] IQueryHandler<GetTournamentsQuery, List<GetTournamentDto>> getTournaments,
+        CancellationToken cancellationToken)
     {
-        List<GetTournamentDto> tournamentsDto = await _tournamentService.GetTournamentsAsync();
+        Result<List<GetTournamentDto>> result = await getTournaments.HandleAsync(new GetTournamentsQuery(), cancellationToken);
+        if (result.IsFailure)
+            return this.Problem(result.Failure);
 
-        return Ok(tournamentsDto);
+        return Ok(result.Value);
     }
 
     [HttpGet]
@@ -40,9 +46,12 @@ public partial class TournamentsController(
     [ProducesProblem(StatusCodes.Status401Unauthorized)]
     [ProducesProblem(StatusCodes.Status403Forbidden)]
     [ProducesProblem(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById([FromRoute] Guid id)
+    public async Task<IActionResult> GetById(
+        [FromRoute] Guid id,
+        [FromServices] IQueryHandler<GetTournamentQuery, GetTournamentDto> getTournament,
+        CancellationToken cancellationToken)
     {
-        Result<GetTournamentDto> result = await _tournamentService.GetTournamentAsync(id);
+        Result<GetTournamentDto> result = await getTournament.HandleAsync(new GetTournamentQuery(id), cancellationToken);
         if (result.IsFailure)
             return this.Problem(result.Failure);
 
@@ -54,14 +63,28 @@ public partial class TournamentsController(
     [ProducesResponseType<GetTournamentDto>(StatusCodes.Status201Created)]
     [ProducesValidationProblem]
     [ProducesProblem(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Create([FromBody] CreateTournamentDto createTournamentDto)
+    public async Task<IActionResult> Create(
+        [FromBody] CreateTournamentDto createTournamentDto,
+        [FromServices] ICommandHandler<CreateTournamentCommand, Guid> createTournament,
+        [FromServices] IQueryHandler<GetTournamentQuery, GetTournamentDto> getTournament,
+        CancellationToken cancellationToken)
     {
-        Result<GetTournamentDto> result = await _tournamentService.CreateTournamentAsync(createTournamentDto);
-        if (result.IsFailure)
-            return this.Problem(result.Failure);
+        var command = new CreateTournamentCommand(
+            createTournamentDto.Title,
+            createTournamentDto.Description,
+            createTournamentDto.PlayersPerTournament,
+            createTournamentDto.TopicsPerParticipantMax,
+            createTournamentDto.TopicsPerParticipantMin);
 
-        GetTournamentDto tournamentDto = result.Value;
-        return CreatedAtAction(nameof(GetById), new { id = tournamentDto.Id }, tournamentDto);
+        Result<Guid> created = await createTournament.HandleAsync(command, cancellationToken);
+        if (created.IsFailure)
+            return this.Problem(created.Failure);
+
+        Result<GetTournamentDto> tournament = await getTournament.HandleAsync(new GetTournamentQuery(created.Value), cancellationToken);
+        if (tournament.IsFailure)
+            return this.Problem(tournament.Failure);
+
+        return CreatedAtAction(nameof(GetById), new { id = tournament.Value.Id }, tournament.Value);
     }
 
     [HttpPut]
@@ -73,13 +96,30 @@ public partial class TournamentsController(
     [ProducesProblem(StatusCodes.Status403Forbidden)]
     [ProducesProblem(StatusCodes.Status404NotFound)]
     [ProducesProblem(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateTournamentDto updateTournamentDto)
+    public async Task<IActionResult> Update(
+        [FromRoute] Guid id,
+        [FromBody] UpdateTournamentDto updateTournamentDto,
+        [FromServices] ICommandHandler<UpdateTournamentCommand> updateTournament,
+        [FromServices] IQueryHandler<GetTournamentQuery, GetTournamentDto> getTournament,
+        CancellationToken cancellationToken)
     {
-        Result<GetTournamentDto> result = await _tournamentService.UpdateTournamentAsync(id, updateTournamentDto);
-        if (result.IsFailure)
-            return this.Problem(result.Failure);
+        var command = new UpdateTournamentCommand(
+            id,
+            updateTournamentDto.Title,
+            updateTournamentDto.Description,
+            updateTournamentDto.PlayersPerTournament,
+            updateTournamentDto.TopicsPerParticipantMax,
+            updateTournamentDto.TopicsPerParticipantMin);
 
-        return Ok(result.Value);
+        Result updated = await updateTournament.HandleAsync(command, cancellationToken);
+        if (updated.IsFailure)
+            return this.Problem(updated.Failure);
+
+        Result<GetTournamentDto> tournament = await getTournament.HandleAsync(new GetTournamentQuery(id), cancellationToken);
+        if (tournament.IsFailure)
+            return this.Problem(tournament.Failure);
+
+        return Ok(tournament.Value);
     }
 
     [HttpDelete]
@@ -89,9 +129,12 @@ public partial class TournamentsController(
     [ProducesProblem(StatusCodes.Status401Unauthorized)]
     [ProducesProblem(StatusCodes.Status403Forbidden)]
     [ProducesProblem(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete([FromRoute] Guid id)
+    public async Task<IActionResult> Delete(
+        [FromRoute] Guid id,
+        [FromServices] ICommandHandler<DeleteTournamentCommand> deleteTournament,
+        CancellationToken cancellationToken)
     {
-        Result result = await _tournamentService.DeleteTournamentAsync(id);
+        Result result = await deleteTournament.HandleAsync(new DeleteTournamentCommand(id), cancellationToken);
         if (result.IsFailure)
             return this.Problem(result.Failure);
 
@@ -107,12 +150,27 @@ public partial class TournamentsController(
     [ProducesProblem(StatusCodes.Status403Forbidden)]
     [ProducesProblem(StatusCodes.Status404NotFound)]
     [ProducesProblem(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> AdvanceStage([FromRoute] Guid id, [FromBody] UpdateTournamentStageDto advanceStageDto)
+    public async Task<IActionResult> Start(
+        [FromRoute] Guid id,
+        [FromBody] UpdateTournamentStageDto updateTournamentStageDto,
+        [FromServices] ICommandHandler<StartTournamentCommand> startTournament,
+        [FromServices] IQueryHandler<GetTournamentQuery, GetTournamentDto> getTournament,
+        CancellationToken cancellationToken)
     {
-        Result<GetTournamentDto> result = await _tournamentService.AdvanceStageAsync(id, advanceStageDto);
-        if (result.IsFailure)
-            return this.Problem(result.Failure);
+        // Keeps the PATCH { stage } shape: starting is the only supported stage change
+        if (updateTournamentStageDto.Stage != TournamentStage.Qualifications)
+            return this.Problem(Failure.Invalid(
+                "Some of the stage data is invalid.",
+                new FieldError("stage", "Only advancing to the Qualifications stage is currently supported.")));
 
-        return Ok(result.Value);
+        Result started = await startTournament.HandleAsync(new StartTournamentCommand(id), cancellationToken);
+        if (started.IsFailure)
+            return this.Problem(started.Failure);
+
+        Result<GetTournamentDto> tournament = await getTournament.HandleAsync(new GetTournamentQuery(id), cancellationToken);
+        if (tournament.IsFailure)
+            return this.Problem(tournament.Failure);
+
+        return Ok(tournament.Value);
     }
 }
