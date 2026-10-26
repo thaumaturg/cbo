@@ -63,7 +63,6 @@ public class Program
         builder.Services.AddScoped<IMatchGenerationService, MatchGenerationService>();
         builder.Services.AddScoped<IMatchService, MatchService>();
         builder.Services.AddScoped<IRoundService, RoundService>();
-        builder.Services.AddScoped<ITournamentParticipantService, TournamentParticipantService>();
         builder.Services.AddScoped<ITournamentTopicService, TournamentTopicService>();
         builder.Services.AddScoped<ITopicService, TopicService>();
         builder.Services.AddScoped<ITopicValidationService, TopicValidationService>();
