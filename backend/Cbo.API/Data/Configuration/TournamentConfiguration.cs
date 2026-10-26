@@ -23,22 +23,14 @@ public class TournamentConfiguration : IEntityTypeConfiguration<Tournament>
             .HasDefaultValue(TournamentStage.Preparations);
 
 
-        entity.Property(e => e.StartedAt)
-            .ValueGeneratedOnAddOrUpdate();
-
-        entity.Property(e => e.EndedAt)
-            .ValueGeneratedOnAddOrUpdate();
 
         entity.Property(e => e.PlayersPerTournament)
-            .HasDefaultValue(DefaultSettings.PlayersPerTournament)
             .IsRequired();
 
         entity.Property(e => e.TopicsPerParticipantMax)
-            .HasDefaultValue(DefaultSettings.TopicsPerParticipantMax)
             .IsRequired();
 
         entity.Property(e => e.TopicsPerParticipantMin)
-            .HasDefaultValue(DefaultSettings.TopicsPerParticipantMin)
             .IsRequired();
 
         // One-to-many: Tournament -> TournamentParticipants
