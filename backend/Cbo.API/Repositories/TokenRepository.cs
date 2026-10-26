@@ -17,6 +17,11 @@ public class TokenRepository(IConfiguration configuration) : ITokenRepository
 
     public string CreateJWTToken(ApplicationUser user)
     {
+        string email = user.Email ?? throw new InvalidOperationException($"User {user.Id} has no email.");
+        string userName = user.UserName ?? throw new InvalidOperationException($"User {user.Id} has no username.");
+
+        string jwtKey = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("Configuration value 'Jwt:Key' is missing.");
+
         long issuedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         var claims = new List<Claim>
@@ -27,13 +32,13 @@ public class TokenRepository(IConfiguration configuration) : ITokenRepository
             new(JwtRegisteredClaimNames.Iat, issuedAt.ToString(), ClaimValueTypes.Integer64),
 
             // OIDC standard claims
-            new(JwtRegisteredClaimNames.Email, user.Email),
+            new(JwtRegisteredClaimNames.Email, email),
             new(JwtRegisteredClaimNames.Name, user.FullName ?? string.Empty),
-            new("preferred_username", user.UserName),
+            new("preferred_username", userName),
             new("email_verified", user.EmailConfirmed.ToString().ToLower())
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
