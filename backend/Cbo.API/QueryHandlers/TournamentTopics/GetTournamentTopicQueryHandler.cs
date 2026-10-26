@@ -1,6 +1,7 @@
 using Cbo.API.Authorization;
 using Cbo.API.Cqrs;
 using Cbo.API.Data;
+using Cbo.API.Mappings;
 using Cbo.API.Models.Domain;
 using Cbo.API.Models.DTO;
 using Cbo.API.Queries.TournamentTopics;
@@ -33,42 +34,7 @@ public sealed class GetTournamentTopicQueryHandler(
 
         GetTopicDto? topic = await _dbContext.Topics
             .Where(t => t.Id == query.TopicId && t.TournamentTopics.Any(tt => tt.TournamentId == query.TournamentId))
-            .Select(t => new GetTopicDto
-            {
-                Id = t.Id,
-                Title = t.Title,
-                Description = t.Description,
-                IsPlayed = t.Rounds.Any(),
-                IsAuthor = t.TopicAuthors
-                    .Where(ta => ta.ApplicationUserId == currentUserId)
-                    .Select(ta => ta.IsAuthor)
-                    .FirstOrDefault(),
-                Questions = t.Questions
-                    .OrderBy(q => q.QuestionNumber)
-                    .Select(q => new GetQuestionDto
-                    {
-                        Id = q.Id,
-                        QuestionNumber = q.QuestionNumber,
-                        CostPositive = q.CostPositive,
-                        CostNegative = q.CostNegative,
-                        Text = q.Text,
-                        Answer = q.Answer,
-                        Comment = q.Comment,
-                        TopicId = q.TopicId,
-                    })
-                    .ToList(),
-                Authors = t.TopicAuthors
-                    .Select(ta => new GetTopicAuthorDto
-                    {
-                        Id = ta.Id,
-                        Username = ta.ApplicationUser!.UserName ?? string.Empty,
-                        IsOwner = ta.IsOwner,
-                        IsAuthor = ta.IsAuthor,
-                        TopicId = ta.TopicId,
-                        ApplicationUserId = ta.ApplicationUserId,
-                    })
-                    .ToList(),
-            })
+            .Select(TopicProjections.ToGetDto(currentUserId))
             .FirstOrDefaultAsync(cancellationToken);
         if (topic is null)
             return Failure.NotFound(NotFoundMessage);

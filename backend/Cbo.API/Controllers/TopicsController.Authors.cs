@@ -1,5 +1,8 @@
+using Cbo.API.Commands.Topics;
+using Cbo.API.Cqrs;
 using Cbo.API.ErrorHandling;
 using Cbo.API.Models.DTO;
+using Cbo.API.Queries.Topics;
 using Cbo.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,9 +18,12 @@ public partial class TopicsController
     [ProducesProblem(StatusCodes.Status401Unauthorized)]
     [ProducesProblem(StatusCodes.Status403Forbidden)]
     [ProducesProblem(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetAllAuthors([FromRoute] Guid topicId)
+    public async Task<IActionResult> GetAllAuthors(
+        [FromRoute] Guid topicId,
+        [FromServices] IQueryHandler<GetTopicAuthorsQuery, List<GetTopicAuthorDto>> getAuthors,
+        CancellationToken cancellationToken)
     {
-        Result<List<GetTopicAuthorDto>> result = await _topicService.GetAuthorsAsync(topicId);
+        Result<List<GetTopicAuthorDto>> result = await getAuthors.HandleAsync(new GetTopicAuthorsQuery(topicId), cancellationToken);
         if (result.IsFailure)
             return this.Problem(result.Failure);
 
@@ -31,9 +37,13 @@ public partial class TopicsController
     [ProducesProblem(StatusCodes.Status401Unauthorized)]
     [ProducesProblem(StatusCodes.Status403Forbidden)]
     [ProducesProblem(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetAuthorById([FromRoute] Guid topicId, [FromRoute] Guid id)
+    public async Task<IActionResult> GetAuthorById(
+        [FromRoute] Guid topicId,
+        [FromRoute] Guid id,
+        [FromServices] IQueryHandler<GetTopicAuthorQuery, GetTopicAuthorDto> getAuthor,
+        CancellationToken cancellationToken)
     {
-        Result<GetTopicAuthorDto> result = await _topicService.GetAuthorAsync(topicId, id);
+        Result<GetTopicAuthorDto> result = await getAuthor.HandleAsync(new GetTopicAuthorQuery(topicId, id), cancellationToken);
         if (result.IsFailure)
             return this.Problem(result.Failure);
 
@@ -49,14 +59,24 @@ public partial class TopicsController
     [ProducesProblem(StatusCodes.Status403Forbidden)]
     [ProducesProblem(StatusCodes.Status404NotFound)]
     [ProducesProblem(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> CreateAuthor([FromRoute] Guid topicId, [FromBody] CreateTopicAuthorDto createAuthorDto)
+    public async Task<IActionResult> CreateAuthor(
+        [FromRoute] Guid topicId,
+        [FromBody] CreateTopicAuthorDto createAuthorDto,
+        [FromServices] ICommandHandler<CreateTopicAuthorCommand, Guid> createAuthor,
+        [FromServices] IQueryHandler<GetTopicAuthorQuery, GetTopicAuthorDto> getAuthor,
+        CancellationToken cancellationToken)
     {
-        Result<GetTopicAuthorDto> result = await _topicService.CreateAuthorAsync(topicId, createAuthorDto);
-        if (result.IsFailure)
-            return this.Problem(result.Failure);
+        Result<Guid> created = await createAuthor.HandleAsync(
+            new CreateTopicAuthorCommand(topicId, createAuthorDto.Username), cancellationToken);
+        if (created.IsFailure)
+            return this.Problem(created.Failure);
 
-        GetTopicAuthorDto authorDto = result.Value;
-        return CreatedAtAction(nameof(GetAuthorById), new { topicId, id = authorDto.Id }, authorDto);
+        Result<GetTopicAuthorDto> author = await getAuthor.HandleAsync(
+            new GetTopicAuthorQuery(topicId, created.Value), cancellationToken);
+        if (author.IsFailure)
+            return this.Problem(author.Failure);
+
+        return CreatedAtAction(nameof(GetAuthorById), new { topicId, id = author.Value.Id }, author.Value);
     }
 
     [HttpDelete]
@@ -68,9 +88,13 @@ public partial class TopicsController
     [ProducesProblem(StatusCodes.Status403Forbidden)]
     [ProducesProblem(StatusCodes.Status404NotFound)]
     [ProducesProblem(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> DeleteAuthor([FromRoute] Guid topicId, [FromRoute] Guid id)
+    public async Task<IActionResult> DeleteAuthor(
+        [FromRoute] Guid topicId,
+        [FromRoute] Guid id,
+        [FromServices] ICommandHandler<DeleteTopicAuthorCommand> deleteAuthor,
+        CancellationToken cancellationToken)
     {
-        Result result = await _topicService.DeleteAuthorAsync(topicId, id);
+        Result result = await deleteAuthor.HandleAsync(new DeleteTopicAuthorCommand(topicId, id), cancellationToken);
         if (result.IsFailure)
             return this.Problem(result.Failure);
 
