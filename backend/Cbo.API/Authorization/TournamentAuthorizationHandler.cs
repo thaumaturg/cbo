@@ -1,16 +1,17 @@
 using System.Security.Claims;
+using Cbo.API.Data;
 using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
-using Cbo.API.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 namespace Cbo.API.Authorization;
 
 public class TournamentAuthorizationHandler(
-    ITournamentParticipantsRepository participantsRepository) : AuthorizationHandler<OperationAuthorizationRequirement, Tournament>
+    CboDbContext dbContext) : AuthorizationHandler<OperationAuthorizationRequirement, Tournament>
 {
-    private readonly ITournamentParticipantsRepository _participantsRepository = participantsRepository;
+    private readonly CboDbContext _dbContext = dbContext;
 
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
@@ -20,7 +21,9 @@ public class TournamentAuthorizationHandler(
         if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId))
             return;
 
-        TournamentParticipant? participant = await _participantsRepository.GetByUserIdAndTournamentIdAsync(userId, resource.Id);
+        TournamentParticipant? participant = await _dbContext.TournamentParticipants
+            .AsNoTracking()
+            .FirstOrDefaultAsync(tp => tp.ApplicationUserId == userId && tp.TournamentId == resource.Id);
 
         if (participant is null)
             return;
