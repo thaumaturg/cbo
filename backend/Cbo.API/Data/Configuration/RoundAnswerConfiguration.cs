@@ -6,6 +6,8 @@ namespace Cbo.API.Data.Configuration;
 
 public class RoundAnswerConfiguration : IEntityTypeConfiguration<RoundAnswer>
 {
+    public const string RoundIdQuestionIdMatchParticipantIdIndexName = "ix_round_answers_round_id_question_id_match_participant_id";
+
     public void Configure(EntityTypeBuilder<RoundAnswer> entity)
     {
         entity.HasKey(ra => ra.Id);
@@ -22,9 +24,10 @@ public class RoundAnswerConfiguration : IEntityTypeConfiguration<RoundAnswer>
         entity.Property(ra => ra.MatchParticipantId)
             .IsRequired();
 
-        // A participant answers each question of a round at most once
+        // A participant answers each question of a round at most once; also stops two simultaneous updates of the same round
         entity.HasIndex(ra => new { ra.RoundId, ra.QuestionId, ra.MatchParticipantId })
-            .IsUnique();
+            .IsUnique()
+            .HasDatabaseName(RoundIdQuestionIdMatchParticipantIdIndexName);
 
         // Many-to-one: RoundAnswer -> Round
         entity.HasOne(ra => ra.Round)

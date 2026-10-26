@@ -1,5 +1,7 @@
+using Cbo.API.Cqrs;
 using Cbo.API.ErrorHandling;
 using Cbo.API.Models.DTO;
+using Cbo.API.Queries.Matches;
 using Cbo.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,9 +17,12 @@ public partial class TournamentsController
     [ProducesProblem(StatusCodes.Status401Unauthorized)]
     [ProducesProblem(StatusCodes.Status403Forbidden)]
     [ProducesProblem(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetAllMatches([FromRoute] Guid tournamentId)
+    public async Task<IActionResult> GetAllMatches(
+        [FromRoute] Guid tournamentId,
+        [FromServices] IQueryHandler<GetMatchesQuery, List<GetMatchDto>> getMatches,
+        CancellationToken cancellationToken)
     {
-        Result<List<GetMatchDto>> result = await _matchService.GetMatchesAsync(tournamentId);
+        Result<List<GetMatchDto>> result = await getMatches.HandleAsync(new GetMatchesQuery(tournamentId), cancellationToken);
         if (result.IsFailure)
             return this.Problem(result.Failure);
 
@@ -31,9 +36,13 @@ public partial class TournamentsController
     [ProducesProblem(StatusCodes.Status401Unauthorized)]
     [ProducesProblem(StatusCodes.Status403Forbidden)]
     [ProducesProblem(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetMatchById([FromRoute] Guid tournamentId, [FromRoute] Guid matchId)
+    public async Task<IActionResult> GetMatchById(
+        [FromRoute] Guid tournamentId,
+        [FromRoute] Guid matchId,
+        [FromServices] IQueryHandler<GetMatchQuery, GetMatchDetailDto> getMatch,
+        CancellationToken cancellationToken)
     {
-        Result<GetMatchDetailDto> result = await _matchService.GetMatchAsync(tournamentId, matchId);
+        Result<GetMatchDetailDto> result = await getMatch.HandleAsync(new GetMatchQuery(tournamentId, matchId), cancellationToken);
         if (result.IsFailure)
             return this.Problem(result.Failure);
 
@@ -47,9 +56,14 @@ public partial class TournamentsController
     [ProducesProblem(StatusCodes.Status401Unauthorized)]
     [ProducesProblem(StatusCodes.Status403Forbidden)]
     [ProducesProblem(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetAvailableTopicsForMatch([FromRoute] Guid tournamentId, [FromRoute] Guid matchId)
+    public async Task<IActionResult> GetAvailableTopicsForMatch(
+        [FromRoute] Guid tournamentId,
+        [FromRoute] Guid matchId,
+        [FromServices] IQueryHandler<GetAvailableTopicsQuery, List<GetAvailableTopicDto>> getAvailableTopics,
+        CancellationToken cancellationToken)
     {
-        Result<List<GetAvailableTopicDto>> result = await _matchService.GetAvailableTopicsAsync(tournamentId, matchId);
+        Result<List<GetAvailableTopicDto>> result = await getAvailableTopics.HandleAsync(
+            new GetAvailableTopicsQuery(tournamentId, matchId), cancellationToken);
         if (result.IsFailure)
             return this.Problem(result.Failure);
 

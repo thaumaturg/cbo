@@ -4,7 +4,6 @@ using Cbo.API.ErrorHandling;
 using Cbo.API.Models.Constants;
 using Cbo.API.Models.DTO;
 using Cbo.API.Queries.Tournaments;
-using Cbo.API.Services;
 using Cbo.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,13 +12,8 @@ namespace Cbo.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public partial class TournamentsController(
-    IMatchService matchService,
-    IRoundService roundService) : ControllerBase
+public partial class TournamentsController : ControllerBase
 {
-    private readonly IMatchService _matchService = matchService;
-    private readonly IRoundService _roundService = roundService;
-
     [HttpGet]
     [Authorize]
     [ProducesResponseType<List<GetTournamentDto>>(StatusCodes.Status200OK)]
