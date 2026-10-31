@@ -1,7 +1,7 @@
 namespace Cbo.Results;
 
 /// <summary>
-/// The semantic kind of an expected failure. See docs/adr/0001-hand-rolled-result-with-failure-kinds.md.
+/// The semantic kind of an expected failure. See docs/adr/0002-hand-rolled-result-with-failure-kinds.md.
 /// </summary>
 public enum FailureKind
 {
