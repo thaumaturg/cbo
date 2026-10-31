@@ -1,6 +1,6 @@
 # CQRS without a mediator, one transaction per command
 
-The backend splits use cases into commands and queries, each with its own handler. The split is logical only: one Postgres database, one `CboDbContext`, no events, no separate read store. Controllers get the handler they need by dependency injection (`ICommandHandler<TCommand, TResult>`, `IQueryHandler<TQuery, TResult>`). No mediator or dispatcher sits in between. Every command handler derives from one base class that opens a transaction, runs the handler's `ExecuteAsync`, calls `SaveChangesAsync` once and commits. A `Failure` or an exception rolls everything back. With a single context, a single client (our Vue app) and controllers that already know which use case they call, a dispatcher adds only indirection: a runtime type lookup instead of a compile-time check, and every handler built on every request.
+The backend splits use cases into commands and queries, each with its own handler. The split is logical only: one Postgres database, one `CboDbContext`, no events, no separate read store. Endpoints get the handler they need by dependency injection (`ICommandHandler<TCommand, TResult>`, `IQueryHandler<TQuery, TResult>`). No mediator or dispatcher sits in between. Every command handler derives from one base class that opens a transaction, runs the handler's `ExecuteAsync`, calls `SaveChangesAsync` once and commits. A `Failure` or an exception rolls everything back. With a single context, a single client (our Vue app) and endpoints that already know which use case they call, a dispatcher adds only indirection: a runtime type lookup instead of a compile-time check, and every handler built on every request.
 
 ## Considered options
 
@@ -14,6 +14,6 @@ The backend splits use cases into commands and queries, each with its own handle
 - Repositories go away. Handlers use `CboDbContext` directly; queries project straight to DTOs.
 - Nothing except the base class calls `SaveChangesAsync`. `ExecuteDelete` and `ExecuteUpdate` are atomic with the save, because both run inside the command's transaction.
 - A unique or foreign-key violation can only surface in the base class, so handlers translate expected violations through an overridable `MapSaveFailure`. Everything else is a 500.
-- Commands don't return DTOs. When an endpoint has to return the resource, the controller runs the matching query after the command.
+- Commands don't return DTOs. When an endpoint has to return the resource, it runs the matching query after the command.
 - A handler never calls another handler; shared logic lives in plain services.
 - Auth stays a service, because ASP.NET Core Identity's `UserManager` saves on its own.
