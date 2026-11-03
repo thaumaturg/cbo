@@ -1,6 +1,6 @@
 using System.Net.Mime;
+using Cbo.API.Contracts.Auth;
 using Cbo.API.ErrorHandling;
-using Cbo.API.Models.DTO;
 using Cbo.API.Services;
 using Cbo.Results;
 using Microsoft.AspNetCore.Mvc;
