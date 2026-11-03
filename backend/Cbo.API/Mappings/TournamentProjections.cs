@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
+using Cbo.API.Contracts.Tournaments;
 using Cbo.API.Models.Constants;
 using Cbo.API.Models.Domain;
-using Cbo.API.Models.DTO;
 
 namespace Cbo.API.Mappings;
 
