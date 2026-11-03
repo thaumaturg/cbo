@@ -2,7 +2,6 @@ using Cbo.API.Contracts.Auth;
 using Cbo.API.Data;
 using Cbo.API.Data.Configuration;
 using Cbo.API.Models.Domain;
-using Cbo.API.Repositories;
 using Cbo.Results;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +17,7 @@ public interface IAuthService
 
 public class AuthService(
     UserManager<ApplicationUser> userManager,
-    ITokenRepository tokenRepository,
+    IJwtTokenService jwtTokenService,
     ICurrentUserService currentUserService) : IAuthService
 {
     private static readonly HashSet<string> PasswordValidationErrorCodes =
@@ -32,7 +31,7 @@ public class AuthService(
     ];
 
     private readonly UserManager<ApplicationUser> _userManager = userManager;
-    private readonly ITokenRepository _tokenRepository = tokenRepository;
+    private readonly IJwtTokenService _jwtTokenService = jwtTokenService;
     private readonly ICurrentUserService _currentUserService = currentUserService;
 
     public async Task<Result> RegisterAsync(RegisterRequest registerRequest)
@@ -100,7 +99,7 @@ public class AuthService(
         if (user is null || !await _userManager.CheckPasswordAsync(user, loginRequest.Password))
             return Failure.Unauthorized("The email or password is incorrect.");
 
-        return new LoginResponse { JwtToken = _tokenRepository.CreateJWTToken(user) };
+        return new LoginResponse { JwtToken = _jwtTokenService.CreateToken(user) };
     }
 
     public async Task<Result> ChangePasswordAsync(ChangePasswordRequest changePasswordRequest)

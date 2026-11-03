@@ -4,18 +4,18 @@ using System.Text;
 using Cbo.API.Models.Domain;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Cbo.API.Repositories;
+namespace Cbo.API.Services;
 
-public interface ITokenRepository
+public interface IJwtTokenService
 {
-    string CreateJWTToken(ApplicationUser user);
+    string CreateToken(ApplicationUser user);
 }
 
-public class TokenRepository(IConfiguration configuration) : ITokenRepository
+public class JwtTokenService(IConfiguration configuration) : IJwtTokenService
 {
     private readonly IConfiguration _configuration = configuration;
 
-    public string CreateJWTToken(ApplicationUser user)
+    public string CreateToken(ApplicationUser user)
     {
         string email = user.Email ?? throw new InvalidOperationException($"User {user.Id} has no email.");
         string userName = user.UserName ?? throw new InvalidOperationException($"User {user.Id} has no username.");

@@ -8,7 +8,6 @@ using Cbo.API.Data.Interceptors;
 using Cbo.API.Endpoints;
 using Cbo.API.ErrorHandling;
 using Cbo.API.Models.Domain;
-using Cbo.API.Repositories;
 using Cbo.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -59,7 +58,7 @@ public class Program
                 .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>());
         });
 
-        builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+        builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
         builder.Services.AddAuthorization();
         builder.Services.AddScoped<IAuthorizationHandler, TopicAuthorizationHandler>();
