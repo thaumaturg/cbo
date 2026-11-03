@@ -16,3 +16,6 @@ indent_size = 2
 
 [*.{cmd,bat}]
 end_of_line = crlf
+
+[backend/Cbo.API/openapi/*.json]
+insert_final_newline = false
