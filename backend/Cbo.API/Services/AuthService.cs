@@ -1,7 +1,7 @@
+using Cbo.API.Contracts.Auth;
 using Cbo.API.Data;
 using Cbo.API.Data.Configuration;
 using Cbo.API.Models.Domain;
-using Cbo.API.Models.DTO;
 using Cbo.API.Repositories;
 using Cbo.Results;
 using Microsoft.AspNetCore.Identity;

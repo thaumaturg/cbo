@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Cbo.API.Models.DTO;
+namespace Cbo.API.Contracts.Auth;
 
 public record LoginRequest
 {

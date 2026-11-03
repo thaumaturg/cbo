@@ -1,4 +1,4 @@
-﻿namespace Cbo.API.Models.DTO;
+﻿namespace Cbo.API.Contracts.Auth;
 
 public record LoginResponse
 {
