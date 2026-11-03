@@ -78,6 +78,13 @@ public class Program
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
 
+        // Minimal APIs read these options, not the MVC ones above; both are configured while controllers remain
+        builder.Services.ConfigureHttpJsonOptions(options =>
+            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
+        // Malformed requests reach GlobalExceptionHandler as BadHttpRequestException in every environment
+        builder.Services.Configure<RouteHandlerOptions>(options => options.ThrowOnBadRequest = true);
+
         builder.Services.AddProblemDetails();
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -149,6 +156,8 @@ public class Program
         app.UseAuthorization();
 
         app.MapControllers();
+
+        RouteGroupBuilder api = app.MapGroup("/api").RequireAuthorization();
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())

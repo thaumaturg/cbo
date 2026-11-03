@@ -22,6 +22,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cbo.API\Cbo.API.csproj" />
     <ProjectReference Include="..\Cbo.Results\Cbo.Results.csproj" />
   </ItemGroup>
 

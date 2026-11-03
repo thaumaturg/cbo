@@ -11,7 +11,7 @@ The API is exposed through Minimal API endpoints, not MVC controllers. Every end
 
 ## Consequences
 
-- Without `[ApiController]`, malformed bodies don't produce model-state errors. `ThrowOnBadRequest` is on in every environment and `GlobalExceptionHandler` answers `BadHttpRequestException` with a 400 (or 415) problem response, with the exception message as `detail` only in Development.
+- Without `[ApiController]`, malformed bodies don't produce model-state errors. `ThrowOnBadRequest` is on in every environment and `GlobalExceptionHandler` answers `BadHttpRequestException` with a 400 problem response, with the exception message as `detail` only in Development.
 - OpenAPI response metadata is declared on every endpoint with `.Produces*`, and every endpoint has a unique `.WithName`, which is its `operationId` and the route name for `Location` headers.
 - Sign-in is required on the `/api` group, not through a fallback policy, because a fallback policy would also cover the SPA fallback endpoint. Register and Login opt out with `AllowAnonymous`.
 - Minimal APIs read `Microsoft.AspNetCore.Http.Json.JsonOptions` (`ConfigureHttpJsonOptions`), not the MVC JSON options.
