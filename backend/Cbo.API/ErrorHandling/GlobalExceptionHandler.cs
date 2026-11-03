@@ -6,7 +6,8 @@ namespace Cbo.API.ErrorHandling;
 
 /// <summary>
 /// Turns any unhandled exception into a logged 500 problem details response.
-/// Exception details are included only in Development. A request the client aborted gets a bodiless 499 instead.
+/// Exception details are included only in Development. A request the client aborted gets a bodiless 499 instead,
+/// and a request body or parameter Minimal APIs couldn't bind gets a 400 problem response.
 /// </summary>
 public sealed class GlobalExceptionHandler(
     IProblemDetailsService problemDetailsService,
@@ -35,11 +36,28 @@ public sealed class GlobalExceptionHandler(
             return true;
         }
 
+        // Minimal APIs throw this (ThrowOnBadRequest) for malformed JSON, a missing required property or an unknown
+        // enum value. The message names internal C# types, so it is shown only in Development.
+        if (exception is BadHttpRequestException badRequest)
+        {
+            _logger.LogInformation(badRequest, "Bad request. TraceId: {TraceId}", traceId);
+
+            var badRequestProblem = new ProblemDetails
+            {
+                Title = "The request is invalid.",
+            };
+
+            if (_environment.IsDevelopment())
+                badRequestProblem.Detail = badRequest.Message;
+
+            await WriteProblemAsync(httpContext, badRequest.StatusCode, badRequestProblem, exception);
+            return true;
+        }
+
         _logger.LogError(exception, "Unhandled exception. TraceId: {TraceId}", traceId);
 
         var problemDetails = new ProblemDetails
         {
-            Status = StatusCodes.Status500InternalServerError,
             Title = "An unexpected error occurred.",
         };
 
@@ -49,7 +67,15 @@ public sealed class GlobalExceptionHandler(
             problemDetails.Extensions["exception"] = exception.ToString();
         }
 
-        httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        await WriteProblemAsync(httpContext, StatusCodes.Status500InternalServerError, problemDetails, exception);
+        return true;
+    }
+
+    private async Task WriteProblemAsync(
+        HttpContext httpContext, int statusCode, ProblemDetails problemDetails, Exception exception)
+    {
+        problemDetails.Status = statusCode;
+        httpContext.Response.StatusCode = statusCode;
 
         // The exception is logged and the status set, so it counts as handled even if the client's
         // Accept header rules out a JSON body. Returning false would make the middleware rethrow it.
@@ -59,7 +85,5 @@ public sealed class GlobalExceptionHandler(
             ProblemDetails = problemDetails,
             Exception = exception,
         });
-
-        return true;
     }
 }
