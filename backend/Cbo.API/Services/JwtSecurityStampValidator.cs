@@ -11,7 +11,7 @@ public interface IJwtSecurityStampValidator
 
 /// <summary>
 /// Accepts a token only while its user still exists and still has the security stamp the token was issued with.
-/// Identity rotates the stamp on a password change, so that revokes all of the user's tokens.
+/// Changing the password or logging out everywhere rotates the stamp, which revokes all of the user's tokens.
 /// </summary>
 public class JwtSecurityStampValidator(UserManager<ApplicationUser> userManager) : IJwtSecurityStampValidator
 {
