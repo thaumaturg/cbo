@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Cbo.API.Authorization;
+using Cbo.API.Contracts.Matches;
 using Cbo.API.Cqrs;
 using Cbo.API.Data;
 using Cbo.API.Mappings;
