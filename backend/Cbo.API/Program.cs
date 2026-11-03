@@ -166,6 +166,11 @@ public class Program
         api.MapAuthEndpoints();
         api.MapTopicEndpoints();
         api.MapTopicAuthorEndpoints();
+        api.MapTournamentEndpoints();
+        api.MapTournamentParticipantEndpoints();
+        api.MapTournamentMatchEndpoints();
+        api.MapTournamentRoundEndpoints();
+        api.MapTournamentTopicEndpoints();
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
