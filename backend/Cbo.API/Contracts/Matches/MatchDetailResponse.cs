@@ -1,5 +1,5 @@
+using Cbo.API.Contracts.Rounds;
 using Cbo.API.Models.Constants;
-using Cbo.API.Models.DTO;
 
 namespace Cbo.API.Contracts.Matches;
 

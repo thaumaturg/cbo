@@ -1,11 +1,11 @@
 using System.Linq.Expressions;
 using Cbo.API.Authorization;
 using Cbo.API.Contracts.Matches;
+using Cbo.API.Contracts.Rounds;
 using Cbo.API.Cqrs;
 using Cbo.API.Data;
 using Cbo.API.Mappings;
 using Cbo.API.Models.Domain;
-using Cbo.API.Models.DTO;
 using Cbo.API.Queries.Matches;
 using Cbo.API.Services;
 using Cbo.Results;

@@ -1,9 +1,9 @@
-namespace Cbo.API.Models.DTO;
+namespace Cbo.API.Contracts.Rounds;
 
-public record CreateRoundRequest
+public record UpdateRoundRequest
 {
     public required int NumberInMatch { get; set; }
     public required Guid TopicId { get; set; }
     public bool IsOverrideMode { get; set; }
-    public List<CreateRoundAnswerRequest> Answers { get; set; } = [];
+    public List<UpdateRoundAnswerRequest> Answers { get; set; } = [];
 }

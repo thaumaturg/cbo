@@ -1,6 +1,6 @@
-﻿namespace Cbo.API.Models.DTO;
+﻿namespace Cbo.API.Contracts.Rounds;
 
-public record UpdateRoundAnswerRequest
+public record CreateRoundAnswerRequest
 {
     public bool? IsAnswerAccepted { get; set; }
     public int? OverrideCost { get; set; }
