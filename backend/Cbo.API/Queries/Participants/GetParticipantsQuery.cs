@@ -1,6 +1,6 @@
+using Cbo.API.Contracts.Participants;
 using Cbo.API.Cqrs;
 using Cbo.API.Models.Constants;
-using Cbo.API.Models.DTO;
 
 namespace Cbo.API.Queries.Participants;
 

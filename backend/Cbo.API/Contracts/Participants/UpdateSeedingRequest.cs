@@ -1,4 +1,4 @@
-namespace Cbo.API.Models.DTO;
+namespace Cbo.API.Contracts.Participants;
 
 public record UpdateSeedingRequest
 {
