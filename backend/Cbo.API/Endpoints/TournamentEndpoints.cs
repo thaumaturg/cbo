@@ -1,8 +1,8 @@
 using Cbo.API.Commands.Tournaments;
+using Cbo.API.Contracts.Tournaments;
 using Cbo.API.Cqrs;
 using Cbo.API.ErrorHandling;
 using Cbo.API.Models.Constants;
-using Cbo.API.Models.DTO;
 using Cbo.API.Queries.Tournaments;
 using Cbo.Results;
 using Microsoft.AspNetCore.Mvc;
