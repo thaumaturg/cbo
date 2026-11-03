@@ -26,6 +26,16 @@ public class Program
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+        bool isGeneratingOpenApiDocument = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
+        if (isGeneratingOpenApiDocument)
+        {
+            builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:CboDb"] = "Host=localhost",
+                ["Jwt:Key"] = "openapi-document-generation"
+            });
+        }
+
         string? connectionString = builder.Configuration.GetConnectionString("CboDb");
         if (string.IsNullOrWhiteSpace(connectionString))
         {
@@ -179,8 +189,9 @@ public class Program
             app.MapFallbackToFile("index.html");
         }
 
-        using (IServiceScope scope = app.Services.CreateScope())
+        if (!isGeneratingOpenApiDocument)
         {
+            using IServiceScope scope = app.Services.CreateScope();
             scope.ServiceProvider.GetRequiredService<CboDbContext>().Database.Migrate();
         }
 
