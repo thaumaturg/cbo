@@ -16,21 +16,21 @@ public static class TopicAuthorEndpoints
 
         authors.MapGet("", GetTopicAuthorsAsync)
             .WithName("GetTopicAuthors")
-            .Produces<List<GetTopicAuthorDto>>()
+            .Produces<List<TopicAuthorResponse>>()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         authors.MapGet("{id:guid}", GetTopicAuthorAsync)
             .WithName("GetTopicAuthor")
-            .Produces<GetTopicAuthorDto>()
+            .Produces<TopicAuthorResponse>()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         authors.MapPost("", CreateTopicAuthorAsync)
             .WithName("CreateTopicAuthor")
-            .Produces<GetTopicAuthorDto>(StatusCodes.Status201Created)
+            .Produces<TopicAuthorResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
@@ -51,36 +51,36 @@ public static class TopicAuthorEndpoints
 
     private static async Task<IResult> GetTopicAuthorsAsync(
         Guid topicId,
-        [FromServices] IQueryHandler<GetTopicAuthorsQuery, List<GetTopicAuthorDto>> getAuthors,
+        [FromServices] IQueryHandler<GetTopicAuthorsQuery, List<TopicAuthorResponse>> getAuthors,
         CancellationToken cancellationToken)
     {
-        Result<List<GetTopicAuthorDto>> result = await getAuthors.HandleAsync(new GetTopicAuthorsQuery(topicId), cancellationToken);
+        Result<List<TopicAuthorResponse>> result = await getAuthors.HandleAsync(new GetTopicAuthorsQuery(topicId), cancellationToken);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }
 
     private static async Task<IResult> GetTopicAuthorAsync(
         Guid topicId,
         Guid id,
-        [FromServices] IQueryHandler<GetTopicAuthorQuery, GetTopicAuthorDto> getAuthor,
+        [FromServices] IQueryHandler<GetTopicAuthorQuery, TopicAuthorResponse> getAuthor,
         CancellationToken cancellationToken)
     {
-        Result<GetTopicAuthorDto> result = await getAuthor.HandleAsync(new GetTopicAuthorQuery(topicId, id), cancellationToken);
+        Result<TopicAuthorResponse> result = await getAuthor.HandleAsync(new GetTopicAuthorQuery(topicId, id), cancellationToken);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }
 
     private static async Task<IResult> CreateTopicAuthorAsync(
         Guid topicId,
-        CreateTopicAuthorDto createAuthorDto,
+        CreateTopicAuthorRequest createAuthorRequest,
         [FromServices] ICommandHandler<CreateTopicAuthorCommand, Guid> createAuthor,
-        [FromServices] IQueryHandler<GetTopicAuthorQuery, GetTopicAuthorDto> getAuthor,
+        [FromServices] IQueryHandler<GetTopicAuthorQuery, TopicAuthorResponse> getAuthor,
         CancellationToken cancellationToken)
     {
         Result<Guid> created = await createAuthor.HandleAsync(
-            new CreateTopicAuthorCommand(topicId, createAuthorDto.Username), cancellationToken);
+            new CreateTopicAuthorCommand(topicId, createAuthorRequest.Username), cancellationToken);
         if (created.IsFailure)
             return created.Failure.ToProblem();
 
-        Result<GetTopicAuthorDto> author = await getAuthor.HandleAsync(
+        Result<TopicAuthorResponse> author = await getAuthor.HandleAsync(
             new GetTopicAuthorQuery(topicId, created.Value), cancellationToken);
         if (author.IsFailure)
             return author.Failure.ToProblem();

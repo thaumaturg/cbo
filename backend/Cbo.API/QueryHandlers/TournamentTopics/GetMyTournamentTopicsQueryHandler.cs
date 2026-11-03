@@ -14,7 +14,7 @@ namespace Cbo.API.QueryHandlers.TournamentTopics;
 public sealed class GetMyTournamentTopicsQueryHandler(
     CboDbContext dbContext,
     ITournamentAccessService tournamentAccessService,
-    ICurrentUserService currentUserService) : IQueryHandler<GetMyTournamentTopicsQuery, List<GetTournamentTopicDto>>
+    ICurrentUserService currentUserService) : IQueryHandler<GetMyTournamentTopicsQuery, List<TournamentTopicResponse>>
 {
     private const string ReadForbiddenMessage = "You don't have permission to view this tournament.";
 
@@ -22,7 +22,7 @@ public sealed class GetMyTournamentTopicsQueryHandler(
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
     private readonly ICurrentUserService _currentUserService = currentUserService;
 
-    public async Task<Result<List<GetTournamentTopicDto>>> HandleAsync(GetMyTournamentTopicsQuery query, CancellationToken cancellationToken)
+    public async Task<Result<List<TournamentTopicResponse>>> HandleAsync(GetMyTournamentTopicsQuery query, CancellationToken cancellationToken)
     {
         Result<Tournament> access = await _tournamentAccessService.LoadTournamentWithAccessAsync(
             query.TournamentId, TournamentOperations.Read, ReadForbiddenMessage, cancellationToken);
@@ -34,7 +34,7 @@ public sealed class GetMyTournamentTopicsQueryHandler(
         return await _dbContext.TournamentTopics
             .Where(tt => tt.TournamentId == query.TournamentId && tt.TournamentParticipant!.ApplicationUserId == currentUserId)
             .OrderBy(tt => tt.PriorityIndex)
-            .Select(TournamentTopicProjections.ToGetDto())
+            .Select(TournamentTopicProjections.ToResponse())
             .ToListAsync(cancellationToken);
     }
 }

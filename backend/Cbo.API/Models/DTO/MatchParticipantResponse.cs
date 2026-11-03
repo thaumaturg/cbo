@@ -1,6 +1,6 @@
 namespace Cbo.API.Models.DTO;
 
-public record GetMatchParticipantDto
+public record MatchParticipantResponse
 {
     public required Guid Id { get; set; }
     public required string Username { get; set; }

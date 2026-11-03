@@ -16,21 +16,21 @@ public static class TournamentTopicEndpoints
 
         topics.MapGet("", GetMyTournamentTopicsAsync)
             .WithName("GetMyTournamentTopics")
-            .Produces<List<GetTournamentTopicDto>>()
+            .Produces<List<TournamentTopicResponse>>()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         topics.MapGet("all", GetAllTournamentTopicsAsync)
             .WithName("GetAllTournamentTopics")
-            .Produces<List<GetTournamentTopicDto>>()
+            .Produces<List<TournamentTopicResponse>>()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         topics.MapPut("", SetMyTournamentTopicsAsync)
             .WithName("SetMyTournamentTopics")
-            .Produces<List<GetTournamentTopicDto>>()
+            .Produces<List<TournamentTopicResponse>>()
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
@@ -39,7 +39,7 @@ public static class TournamentTopicEndpoints
 
         topics.MapGet("{topicId:guid}", GetTournamentTopicAsync)
             .WithName("GetTournamentTopic")
-            .Produces<GetTopicDto>()
+            .Produces<TopicResponse>()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
@@ -49,40 +49,40 @@ public static class TournamentTopicEndpoints
 
     private static async Task<IResult> GetMyTournamentTopicsAsync(
         Guid tournamentId,
-        [FromServices] IQueryHandler<GetMyTournamentTopicsQuery, List<GetTournamentTopicDto>> getMyTopics,
+        [FromServices] IQueryHandler<GetMyTournamentTopicsQuery, List<TournamentTopicResponse>> getMyTopics,
         CancellationToken cancellationToken)
     {
-        Result<List<GetTournamentTopicDto>> result = await getMyTopics.HandleAsync(
+        Result<List<TournamentTopicResponse>> result = await getMyTopics.HandleAsync(
             new GetMyTournamentTopicsQuery(tournamentId), cancellationToken);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }
 
     private static async Task<IResult> GetAllTournamentTopicsAsync(
         Guid tournamentId,
-        [FromServices] IQueryHandler<GetAllTournamentTopicsQuery, List<GetTournamentTopicDto>> getAllTopics,
+        [FromServices] IQueryHandler<GetAllTournamentTopicsQuery, List<TournamentTopicResponse>> getAllTopics,
         CancellationToken cancellationToken)
     {
-        Result<List<GetTournamentTopicDto>> result = await getAllTopics.HandleAsync(
+        Result<List<TournamentTopicResponse>> result = await getAllTopics.HandleAsync(
             new GetAllTournamentTopicsQuery(tournamentId), cancellationToken);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }
 
     private static async Task<IResult> SetMyTournamentTopicsAsync(
         Guid tournamentId,
-        List<UpdateTournamentTopicDto> topicsDto,
+        List<ChosenTopicRequest> chosenTopics,
         [FromServices] ICommandHandler<SetMyTournamentTopicsCommand> setMyTopics,
-        [FromServices] IQueryHandler<GetMyTournamentTopicsQuery, List<GetTournamentTopicDto>> getMyTopics,
+        [FromServices] IQueryHandler<GetMyTournamentTopicsQuery, List<TournamentTopicResponse>> getMyTopics,
         CancellationToken cancellationToken)
     {
         var command = new SetMyTournamentTopicsCommand(
             tournamentId,
-            topicsDto.Select(dto => new ChosenTopic(dto.TopicId, dto.PriorityIndex)).ToList());
+            chosenTopics.Select(topic => new ChosenTopic(topic.TopicId, topic.PriorityIndex)).ToList());
 
         Result updated = await setMyTopics.HandleAsync(command, cancellationToken);
         if (updated.IsFailure)
             return updated.Failure.ToProblem();
 
-        Result<List<GetTournamentTopicDto>> topics = await getMyTopics.HandleAsync(
+        Result<List<TournamentTopicResponse>> topics = await getMyTopics.HandleAsync(
             new GetMyTournamentTopicsQuery(tournamentId), cancellationToken);
         if (topics.IsFailure)
             return topics.Failure.ToProblem();
@@ -93,10 +93,10 @@ public static class TournamentTopicEndpoints
     private static async Task<IResult> GetTournamentTopicAsync(
         Guid tournamentId,
         Guid topicId,
-        [FromServices] IQueryHandler<GetTournamentTopicQuery, GetTopicDto> getTournamentTopic,
+        [FromServices] IQueryHandler<GetTournamentTopicQuery, TopicResponse> getTournamentTopic,
         CancellationToken cancellationToken)
     {
-        Result<GetTopicDto> result = await getTournamentTopic.HandleAsync(
+        Result<TopicResponse> result = await getTournamentTopic.HandleAsync(
             new GetTournamentTopicQuery(tournamentId, topicId), cancellationToken);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }

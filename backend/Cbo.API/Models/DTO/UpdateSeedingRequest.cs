@@ -1,6 +1,6 @@
 namespace Cbo.API.Models.DTO;
 
-public record UpdateParticipantsSeedingDto
+public record UpdateSeedingRequest
 {
     /// <summary>
     /// Player participant ids in the desired seeding order. First id becomes seed 1.

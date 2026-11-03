@@ -2,7 +2,7 @@
 
 namespace Cbo.API.Models.DTO;
 
-public record GetMatchDto
+public record MatchResponse
 {
     public required Guid Id { get; set; }
     public required int NumberInTournament { get; set; }
@@ -10,6 +10,6 @@ public record GetMatchDto
     public required TournamentStage CreatedOnStage { get; set; }
     public required Constants.MatchType Type { get; set; }
     public required Guid TournamentId { get; set; }
-    public required List<GetMatchParticipantDto> MatchParticipants { get; set; }
+    public required List<MatchParticipantResponse> MatchParticipants { get; set; }
     public required int RoundsCount { get; set; }
 }

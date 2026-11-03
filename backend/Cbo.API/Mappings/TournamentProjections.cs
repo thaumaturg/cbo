@@ -11,8 +11,8 @@ namespace Cbo.API.Mappings;
 /// </summary>
 public static class TournamentProjections
 {
-    public static Expression<Func<Tournament, GetTournamentDto>> ToGetDto(Guid currentUserId) =>
-        t => new GetTournamentDto
+    public static Expression<Func<Tournament, TournamentResponse>> ToResponse(Guid currentUserId) =>
+        t => new TournamentResponse
         {
             Id = t.Id,
             Title = t.Title,

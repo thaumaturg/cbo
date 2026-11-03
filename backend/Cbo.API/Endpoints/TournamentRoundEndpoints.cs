@@ -16,14 +16,14 @@ public static class TournamentRoundEndpoints
 
         rounds.MapGet("{roundNumber:int}", GetMatchRoundAsync)
             .WithName("GetMatchRound")
-            .Produces<GetRoundDto>()
+            .Produces<RoundResponse>()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         rounds.MapPost("", CreateMatchRoundAsync)
             .WithName("CreateMatchRound")
-            .Produces<GetRoundDto>(StatusCodes.Status201Created)
+            .Produces<RoundResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
@@ -32,7 +32,7 @@ public static class TournamentRoundEndpoints
 
         rounds.MapPut("{roundNumber:int}", UpdateMatchRoundAsync)
             .WithName("UpdateMatchRound")
-            .Produces<GetRoundDto>()
+            .Produces<RoundResponse>()
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
@@ -53,35 +53,35 @@ public static class TournamentRoundEndpoints
         Guid tournamentId,
         Guid matchId,
         int roundNumber,
-        [FromServices] IQueryHandler<GetRoundQuery, GetRoundDto> getRound,
+        [FromServices] IQueryHandler<GetRoundQuery, RoundResponse> getRound,
         CancellationToken cancellationToken)
     {
-        Result<GetRoundDto> result = await getRound.HandleAsync(new GetRoundQuery(tournamentId, matchId, roundNumber), cancellationToken);
+        Result<RoundResponse> result = await getRound.HandleAsync(new GetRoundQuery(tournamentId, matchId, roundNumber), cancellationToken);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }
 
     private static async Task<IResult> CreateMatchRoundAsync(
         Guid tournamentId,
         Guid matchId,
-        CreateRoundWithAnswersDto createRoundDto,
+        CreateRoundRequest createRoundRequest,
         [FromServices] ICommandHandler<CreateRoundCommand> createRound,
-        [FromServices] IQueryHandler<GetRoundQuery, GetRoundDto> getRound,
+        [FromServices] IQueryHandler<GetRoundQuery, RoundResponse> getRound,
         CancellationToken cancellationToken)
     {
         var command = new CreateRoundCommand(
             tournamentId,
             matchId,
-            createRoundDto.NumberInMatch,
-            createRoundDto.TopicId,
-            createRoundDto.IsOverrideMode,
-            ToGivenAnswers(createRoundDto.Answers));
+            createRoundRequest.NumberInMatch,
+            createRoundRequest.TopicId,
+            createRoundRequest.IsOverrideMode,
+            ToGivenAnswers(createRoundRequest.Answers));
 
         Result created = await createRound.HandleAsync(command, cancellationToken);
         if (created.IsFailure)
             return created.Failure.ToProblem();
 
-        Result<GetRoundDto> round = await getRound.HandleAsync(
-            new GetRoundQuery(tournamentId, matchId, createRoundDto.NumberInMatch), cancellationToken);
+        Result<RoundResponse> round = await getRound.HandleAsync(
+            new GetRoundQuery(tournamentId, matchId, createRoundRequest.NumberInMatch), cancellationToken);
         if (round.IsFailure)
             return round.Failure.ToProblem();
 
@@ -93,25 +93,25 @@ public static class TournamentRoundEndpoints
         Guid tournamentId,
         Guid matchId,
         int roundNumber,
-        CreateRoundWithAnswersDto updateRoundDto,
+        CreateRoundRequest updateRoundRequest,
         [FromServices] ICommandHandler<UpdateRoundCommand> updateRound,
-        [FromServices] IQueryHandler<GetRoundQuery, GetRoundDto> getRound,
+        [FromServices] IQueryHandler<GetRoundQuery, RoundResponse> getRound,
         CancellationToken cancellationToken)
     {
         var command = new UpdateRoundCommand(
             tournamentId,
             matchId,
             roundNumber,
-            updateRoundDto.NumberInMatch,
-            updateRoundDto.TopicId,
-            updateRoundDto.IsOverrideMode,
-            ToGivenAnswers(updateRoundDto.Answers));
+            updateRoundRequest.NumberInMatch,
+            updateRoundRequest.TopicId,
+            updateRoundRequest.IsOverrideMode,
+            ToGivenAnswers(updateRoundRequest.Answers));
 
         Result updated = await updateRound.HandleAsync(command, cancellationToken);
         if (updated.IsFailure)
             return updated.Failure.ToProblem();
 
-        Result<GetRoundDto> round = await getRound.HandleAsync(new GetRoundQuery(tournamentId, matchId, roundNumber), cancellationToken);
+        Result<RoundResponse> round = await getRound.HandleAsync(new GetRoundQuery(tournamentId, matchId, roundNumber), cancellationToken);
         if (round.IsFailure)
             return round.Failure.ToProblem();
 
@@ -132,7 +132,7 @@ public static class TournamentRoundEndpoints
         return TypedResults.NoContent();
     }
 
-    private static List<GivenAnswer> ToGivenAnswers(List<CreateRoundAnswerDto> answers) =>
+    private static List<GivenAnswer> ToGivenAnswers(List<CreateRoundAnswerRequest> answers) =>
         answers
             .Select(a => new GivenAnswer(a.QuestionId, a.MatchParticipantId, a.IsAnswerAccepted, a.OverrideCost))
             .ToList();

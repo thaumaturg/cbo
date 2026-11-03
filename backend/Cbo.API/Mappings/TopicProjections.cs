@@ -8,14 +8,14 @@ namespace Cbo.API.Mappings;
 public static class TopicProjections
 {
     /// <summary>
-    /// Questions come ordered by number, authors by id. <see cref="GetTopicDto.IsAuthor"/> is the current user's flag.
+    /// Questions come ordered by number, authors by id. <see cref="TopicResponse.IsAuthor"/> is the current user's flag.
     /// </summary>
-    public static Expression<Func<Topic, GetTopicDto>> ToGetDto(Guid currentUserId)
+    public static Expression<Func<Topic, TopicResponse>> ToResponse(Guid currentUserId)
     {
-        Expression<Func<TopicAuthor, GetTopicAuthorDto>> toAuthorDto = TopicAuthorProjections.ToGetDto();
-        Expression<Func<Question, GetQuestionDto>> toQuestionDto = QuestionProjections.ToGetDto();
+        Expression<Func<TopicAuthor, TopicAuthorResponse>> toAuthorResponse = TopicAuthorProjections.ToResponse();
+        Expression<Func<Question, QuestionResponse>> toQuestionResponse = QuestionProjections.ToResponse();
 
-        return t => new GetTopicDto
+        return t => new TopicResponse
         {
             Id = t.Id,
             Title = t.Title,
@@ -28,12 +28,12 @@ public static class TopicProjections
             Questions = t.Questions
                 .AsQueryable()
                 .OrderBy(q => q.QuestionNumber)
-                .Select(toQuestionDto)
+                .Select(toQuestionResponse)
                 .ToList(),
             Authors = t.TopicAuthors
                 .AsQueryable()
                 .OrderBy(ta => ta.Id)
-                .Select(toAuthorDto)
+                .Select(toAuthorResponse)
                 .ToList(),
         };
     }

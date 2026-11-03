@@ -3,4 +3,4 @@ using Cbo.API.Models.DTO;
 
 namespace Cbo.API.Queries.Topics;
 
-public sealed record GetTopicAuthorQuery(Guid TopicId, Guid AuthorId) : IQuery<GetTopicAuthorDto>;
+public sealed record GetTopicAuthorQuery(Guid TopicId, Guid AuthorId) : IQuery<TopicAuthorResponse>;

@@ -13,7 +13,7 @@ namespace Cbo.API.QueryHandlers.Rounds;
 
 public sealed class GetRoundQueryHandler(
     CboDbContext dbContext,
-    ITournamentAccessService tournamentAccessService) : IQueryHandler<GetRoundQuery, GetRoundDto>
+    ITournamentAccessService tournamentAccessService) : IQueryHandler<GetRoundQuery, RoundResponse>
 {
     private const string ReadForbiddenMessage = "You don't have permission to view this tournament.";
     private const string MatchNotFoundMessage = "Match not found in this tournament.";
@@ -21,7 +21,7 @@ public sealed class GetRoundQueryHandler(
     private readonly CboDbContext _dbContext = dbContext;
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
 
-    public async Task<Result<GetRoundDto>> HandleAsync(GetRoundQuery query, CancellationToken cancellationToken)
+    public async Task<Result<RoundResponse>> HandleAsync(GetRoundQuery query, CancellationToken cancellationToken)
     {
         Result<Tournament> access = await _tournamentAccessService.LoadTournamentWithAccessAsync(
             query.TournamentId, TournamentOperations.Read, ReadForbiddenMessage, cancellationToken);
@@ -33,9 +33,9 @@ public sealed class GetRoundQueryHandler(
         if (!matchExists)
             return Failure.NotFound(MatchNotFoundMessage);
 
-        GetRoundDto? round = await _dbContext.Rounds
+        RoundResponse? round = await _dbContext.Rounds
             .Where(r => r.MatchId == query.MatchId && r.NumberInMatch == query.RoundNumber)
-            .Select(RoundProjections.ToGetDto())
+            .Select(RoundProjections.ToResponse())
             .FirstOrDefaultAsync(cancellationToken);
         if (round is null)
             return Failure.NotFound($"Round {query.RoundNumber} not found for this match.");

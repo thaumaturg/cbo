@@ -3,4 +3,4 @@ using Cbo.API.Models.DTO;
 
 namespace Cbo.API.Queries.Participants;
 
-public sealed record GetParticipantQuery(Guid TournamentId, Guid ParticipantId) : IQuery<GetTournamentParticipantDto>;
+public sealed record GetParticipantQuery(Guid TournamentId, Guid ParticipantId) : IQuery<ParticipantResponse>;

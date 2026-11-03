@@ -7,8 +7,8 @@ namespace Cbo.API.Mappings;
 /// <inheritdoc cref="TournamentProjections"/>
 public static class ParticipantProjections
 {
-    public static Expression<Func<TournamentParticipant, GetTournamentParticipantDto>> ToGetDto() =>
-        tp => new GetTournamentParticipantDto
+    public static Expression<Func<TournamentParticipant, ParticipantResponse>> ToResponse() =>
+        tp => new ParticipantResponse
         {
             Id = tp.Id,
             Username = tp.ApplicationUser!.UserName ?? string.Empty,

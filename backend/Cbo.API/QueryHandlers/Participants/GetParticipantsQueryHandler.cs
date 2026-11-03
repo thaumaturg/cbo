@@ -13,14 +13,14 @@ namespace Cbo.API.QueryHandlers.Participants;
 
 public sealed class GetParticipantsQueryHandler(
     CboDbContext dbContext,
-    ITournamentAccessService tournamentAccessService) : IQueryHandler<GetParticipantsQuery, List<GetTournamentParticipantDto>>
+    ITournamentAccessService tournamentAccessService) : IQueryHandler<GetParticipantsQuery, List<ParticipantResponse>>
 {
     private const string ReadForbiddenMessage = "You don't have permission to view this tournament.";
 
     private readonly CboDbContext _dbContext = dbContext;
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
 
-    public async Task<Result<List<GetTournamentParticipantDto>>> HandleAsync(GetParticipantsQuery query, CancellationToken cancellationToken)
+    public async Task<Result<List<ParticipantResponse>>> HandleAsync(GetParticipantsQuery query, CancellationToken cancellationToken)
     {
         Result<Tournament> access = await _tournamentAccessService.LoadTournamentWithAccessAsync(
             query.TournamentId, TournamentOperations.Read, ReadForbiddenMessage, cancellationToken);
@@ -37,7 +37,7 @@ public sealed class GetParticipantsQueryHandler(
         return await participants
             .OrderBy(tp => tp.Seed)
             .ThenBy(tp => tp.Id)
-            .Select(ParticipantProjections.ToGetDto())
+            .Select(ParticipantProjections.ToResponse())
             .ToListAsync(cancellationToken);
     }
 }

@@ -14,7 +14,7 @@ namespace Cbo.API.QueryHandlers.TournamentTopics;
 public sealed class GetTournamentTopicQueryHandler(
     CboDbContext dbContext,
     ITournamentAccessService tournamentAccessService,
-    ICurrentUserService currentUserService) : IQueryHandler<GetTournamentTopicQuery, GetTopicDto>
+    ICurrentUserService currentUserService) : IQueryHandler<GetTournamentTopicQuery, TopicResponse>
 {
     private const string ViewAllTopicsForbiddenMessage = "You don't have permission to view all topics of this tournament.";
     private const string NotFoundMessage = "Topic is not part of this tournament.";
@@ -23,7 +23,7 @@ public sealed class GetTournamentTopicQueryHandler(
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
     private readonly ICurrentUserService _currentUserService = currentUserService;
 
-    public async Task<Result<GetTopicDto>> HandleAsync(GetTournamentTopicQuery query, CancellationToken cancellationToken)
+    public async Task<Result<TopicResponse>> HandleAsync(GetTournamentTopicQuery query, CancellationToken cancellationToken)
     {
         Result<Tournament> access = await _tournamentAccessService.LoadTournamentWithAccessAsync(
             query.TournamentId, TournamentOperations.ViewAllTopics, ViewAllTopicsForbiddenMessage, cancellationToken);
@@ -32,9 +32,9 @@ public sealed class GetTournamentTopicQueryHandler(
 
         Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
 
-        GetTopicDto? topic = await _dbContext.Topics
+        TopicResponse? topic = await _dbContext.Topics
             .Where(t => t.Id == query.TopicId && t.TournamentTopics.Any(tt => tt.TournamentId == query.TournamentId))
-            .Select(TopicProjections.ToGetDto(currentUserId))
+            .Select(TopicProjections.ToResponse(currentUserId))
             .FirstOrDefaultAsync(cancellationToken);
         if (topic is null)
             return Failure.NotFound(NotFoundMessage);

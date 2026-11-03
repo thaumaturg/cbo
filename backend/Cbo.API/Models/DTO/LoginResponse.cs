@@ -1,6 +1,6 @@
 ﻿namespace Cbo.API.Models.DTO;
 
-public record LoginResponseDto
+public record LoginResponse
 {
     public required string JwtToken { get; set; }
 }

@@ -15,21 +15,21 @@ public static class TournamentMatchEndpoints
 
         matches.MapGet("", GetTournamentMatchesAsync)
             .WithName("GetTournamentMatches")
-            .Produces<List<GetMatchDto>>()
+            .Produces<List<MatchResponse>>()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         matches.MapGet("{matchId:guid}", GetTournamentMatchAsync)
             .WithName("GetTournamentMatch")
-            .Produces<GetMatchDetailDto>()
+            .Produces<MatchDetailResponse>()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         matches.MapGet("{matchId:guid}/available-topics", GetMatchAvailableTopicsAsync)
             .WithName("GetMatchAvailableTopics")
-            .Produces<List<GetAvailableTopicDto>>()
+            .Produces<List<AvailableTopicResponse>>()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
@@ -39,30 +39,30 @@ public static class TournamentMatchEndpoints
 
     private static async Task<IResult> GetTournamentMatchesAsync(
         Guid tournamentId,
-        [FromServices] IQueryHandler<GetMatchesQuery, List<GetMatchDto>> getMatches,
+        [FromServices] IQueryHandler<GetMatchesQuery, List<MatchResponse>> getMatches,
         CancellationToken cancellationToken)
     {
-        Result<List<GetMatchDto>> result = await getMatches.HandleAsync(new GetMatchesQuery(tournamentId), cancellationToken);
+        Result<List<MatchResponse>> result = await getMatches.HandleAsync(new GetMatchesQuery(tournamentId), cancellationToken);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }
 
     private static async Task<IResult> GetTournamentMatchAsync(
         Guid tournamentId,
         Guid matchId,
-        [FromServices] IQueryHandler<GetMatchQuery, GetMatchDetailDto> getMatch,
+        [FromServices] IQueryHandler<GetMatchQuery, MatchDetailResponse> getMatch,
         CancellationToken cancellationToken)
     {
-        Result<GetMatchDetailDto> result = await getMatch.HandleAsync(new GetMatchQuery(tournamentId, matchId), cancellationToken);
+        Result<MatchDetailResponse> result = await getMatch.HandleAsync(new GetMatchQuery(tournamentId, matchId), cancellationToken);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }
 
     private static async Task<IResult> GetMatchAvailableTopicsAsync(
         Guid tournamentId,
         Guid matchId,
-        [FromServices] IQueryHandler<GetAvailableTopicsQuery, List<GetAvailableTopicDto>> getAvailableTopics,
+        [FromServices] IQueryHandler<GetAvailableTopicsQuery, List<AvailableTopicResponse>> getAvailableTopics,
         CancellationToken cancellationToken)
     {
-        Result<List<GetAvailableTopicDto>> result = await getAvailableTopics.HandleAsync(
+        Result<List<AvailableTopicResponse>> result = await getAvailableTopics.HandleAsync(
             new GetAvailableTopicsQuery(tournamentId, matchId), cancellationToken);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }

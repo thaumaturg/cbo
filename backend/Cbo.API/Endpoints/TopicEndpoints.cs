@@ -16,25 +16,25 @@ public static class TopicEndpoints
 
         topics.MapGet("", GetTopicsAsync)
             .WithName("GetTopics")
-            .Produces<List<GetTopicDto>>()
+            .Produces<List<TopicResponse>>()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         topics.MapGet("{id:guid}", GetTopicAsync)
             .WithName("GetTopic")
-            .Produces<GetTopicDto>()
+            .Produces<TopicResponse>()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         topics.MapPost("", CreateTopicAsync)
             .WithName("CreateTopic")
-            .Produces<GetTopicDto>(StatusCodes.Status201Created)
+            .Produces<TopicResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         topics.MapPut("{id:guid}", UpdateTopicAsync)
             .WithName("UpdateTopic")
-            .Produces<GetTopicDto>()
+            .Produces<TopicResponse>()
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
@@ -53,33 +53,33 @@ public static class TopicEndpoints
     }
 
     private static async Task<IResult> GetTopicsAsync(
-        [FromServices] IQueryHandler<GetTopicsQuery, List<GetTopicDto>> getTopics,
+        [FromServices] IQueryHandler<GetTopicsQuery, List<TopicResponse>> getTopics,
         CancellationToken cancellationToken)
     {
-        Result<List<GetTopicDto>> result = await getTopics.HandleAsync(new GetTopicsQuery(), cancellationToken);
+        Result<List<TopicResponse>> result = await getTopics.HandleAsync(new GetTopicsQuery(), cancellationToken);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }
 
     private static async Task<IResult> GetTopicAsync(
         Guid id,
-        [FromServices] IQueryHandler<GetTopicQuery, GetTopicDto> getTopic,
+        [FromServices] IQueryHandler<GetTopicQuery, TopicResponse> getTopic,
         CancellationToken cancellationToken)
     {
-        Result<GetTopicDto> result = await getTopic.HandleAsync(new GetTopicQuery(id), cancellationToken);
+        Result<TopicResponse> result = await getTopic.HandleAsync(new GetTopicQuery(id), cancellationToken);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }
 
     private static async Task<IResult> CreateTopicAsync(
-        CreateTopicDto createTopicDto,
+        CreateTopicRequest createTopicRequest,
         [FromServices] ICommandHandler<CreateTopicCommand, Guid> createTopic,
-        [FromServices] IQueryHandler<GetTopicQuery, GetTopicDto> getTopic,
+        [FromServices] IQueryHandler<GetTopicQuery, TopicResponse> getTopic,
         CancellationToken cancellationToken)
     {
         var command = new CreateTopicCommand(
-            createTopicDto.Title,
-            createTopicDto.Description,
-            createTopicDto.IsAuthor,
-            createTopicDto.Questions
+            createTopicRequest.Title,
+            createTopicRequest.Description,
+            createTopicRequest.IsAuthor,
+            createTopicRequest.Questions
                 .Select(q => new NewQuestion(q.QuestionNumber, q.CostPositive, q.CostNegative, q.Text, q.Answer, q.Comment))
                 .ToList());
 
@@ -87,7 +87,7 @@ public static class TopicEndpoints
         if (created.IsFailure)
             return created.Failure.ToProblem();
 
-        Result<GetTopicDto> topic = await getTopic.HandleAsync(new GetTopicQuery(created.Value), cancellationToken);
+        Result<TopicResponse> topic = await getTopic.HandleAsync(new GetTopicQuery(created.Value), cancellationToken);
         if (topic.IsFailure)
             return topic.Failure.ToProblem();
 
@@ -96,17 +96,17 @@ public static class TopicEndpoints
 
     private static async Task<IResult> UpdateTopicAsync(
         Guid id,
-        UpdateTopicDto updateTopicDto,
+        UpdateTopicRequest updateTopicRequest,
         [FromServices] ICommandHandler<UpdateTopicCommand> updateTopic,
-        [FromServices] IQueryHandler<GetTopicQuery, GetTopicDto> getTopic,
+        [FromServices] IQueryHandler<GetTopicQuery, TopicResponse> getTopic,
         CancellationToken cancellationToken)
     {
         var command = new UpdateTopicCommand(
             id,
-            updateTopicDto.Title,
-            updateTopicDto.Description,
-            updateTopicDto.IsAuthor,
-            updateTopicDto.Questions
+            updateTopicRequest.Title,
+            updateTopicRequest.Description,
+            updateTopicRequest.IsAuthor,
+            updateTopicRequest.Questions
                 .Select(q => new EditedQuestion(q.Id, q.QuestionNumber, q.CostPositive, q.CostNegative, q.Text, q.Answer, q.Comment))
                 .ToList());
 
@@ -114,7 +114,7 @@ public static class TopicEndpoints
         if (updated.IsFailure)
             return updated.Failure.ToProblem();
 
-        Result<GetTopicDto> topic = await getTopic.HandleAsync(new GetTopicQuery(id), cancellationToken);
+        Result<TopicResponse> topic = await getTopic.HandleAsync(new GetTopicQuery(id), cancellationToken);
         if (topic.IsFailure)
             return topic.Failure.ToProblem();
 
