@@ -6,10 +6,11 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "backend: build",
-      "program": "${workspaceFolder}/backend/Cbo.API/bin/Debug/net9.0/Cbo.API.dll",
+      "program": "${workspaceFolder}/backend/Cbo.API/bin/Debug/net10.0/Cbo.API.dll",
       "args": [],
       "cwd": "${workspaceFolder}/backend/Cbo.API",
       "stopAtEntry": false,
+      "launchSettingsProfile": "https",
       "serverReadyAction": {
         "action": "openExternally",
         "pattern": "\\bNow listening on:\\s+https?://\\S+",
@@ -17,51 +18,31 @@
       },
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    {
+      "name": "Full Stack: Debug",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Full Stack: Prepare Debug",
+      "program": "${workspaceFolder}/backend/Cbo.API/bin/Debug/net10.0/Cbo.API.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/backend/Cbo.API",
+      "stopAtEntry": false,
+      "launchSettingsProfile": "https",
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+https?://\\S+",
+        "uriFormat": "https://localhost:7053"
       },
-      "sourceFileMap": {
-        "/Views": "${workspaceFolder}/Views"
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
     {
       "name": "Backend: Attach",
       "type": "coreclr",
       "request": "attach"
-    },
-    {
-      "name": "Frontend: Launch Chrome",
-      "type": "chrome",
-      "request": "launch",
-      "url": "https://localhost:5173",
-      "webRoot": "${workspaceFolder}/frontend/src",
-      "sourceMapPathOverrides": {
-        "webpack:///src/*": "${webRoot}/*"
-      },
-      "runtimeArgs": ["--incognito"],
-      "preLaunchTask": "frontend: dev"
-    },
-    {
-      "name": "Full Stack: Launch Chrome (Watch)",
-      "type": "chrome",
-      "request": "launch",
-      "url": "https://localhost:7053",
-      "webRoot": "${workspaceFolder}/frontend/src",
-      "sourceMapPathOverrides": {
-        "webpack:///src/*": "${webRoot}/*"
-      },
-      "runtimeArgs": ["--incognito"],
-      "preLaunchTask": "Full Stack: Start Servers (Watch)"
-    },
-    {
-      "name": "Full Stack: Launch Chrome (Run)",
-      "type": "chrome",
-      "request": "launch",
-      "url": "https://localhost:7053",
-      "webRoot": "${workspaceFolder}/frontend/src",
-      "sourceMapPathOverrides": {
-        "webpack:///src/*": "${webRoot}/*"
-      },
-      "runtimeArgs": ["--incognito"],
-      "preLaunchTask": "Full Stack: Start Servers (Run)"
     }
   ]
 }

@@ -2,10 +2,10 @@
   "recommendations": [
     "ms-dotnettools.csharp",
     "ms-dotnettools.csdevkit",
-    "ms-dotnettools.vscode-dotnet-runtime",
     "Vue.volar",
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
     "EditorConfig.EditorConfig"
   ]
 }

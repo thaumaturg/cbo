@@ -7,7 +7,7 @@
       "type": "process",
       "args": [
         "build",
-        "${workspaceFolder}/backend/backend.sln",
+        "${workspaceFolder}/backend/backend.slnx",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary;ForceNoAlign"
       ],
@@ -186,6 +186,12 @@
       "label": "Full Stack: Start Servers (Run)",
       "dependsOn": ["backend: run", "frontend: dev"],
       "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Full Stack: Prepare Debug",
+      "dependsOn": ["backend: build", "frontend: dev"],
+      "dependsOrder": "parallel",
       "problemMatcher": []
     }
   ],
