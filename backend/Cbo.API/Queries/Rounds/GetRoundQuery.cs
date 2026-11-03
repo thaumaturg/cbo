@@ -1,5 +1,5 @@
+using Cbo.API.Contracts.Rounds;
 using Cbo.API.Cqrs;
-using Cbo.API.Models.DTO;
 
 namespace Cbo.API.Queries.Rounds;
 

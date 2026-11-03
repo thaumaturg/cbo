@@ -1,4 +1,6 @@
-namespace Cbo.API.Models.DTO;
+using Cbo.API.Models.DTO;
+
+namespace Cbo.API.Contracts.Rounds;
 
 public record RoundResponse
 {

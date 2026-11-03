@@ -1,7 +1,8 @@
-﻿namespace Cbo.API.Models.DTO;
+﻿namespace Cbo.API.Contracts.Rounds;
 
-public record CreateRoundAnswerRequest
+public record RoundAnswerResponse
 {
+    public required Guid Id { get; set; }
     public bool? IsAnswerAccepted { get; set; }
     public int? OverrideCost { get; set; }
     public required Guid QuestionId { get; set; }
