@@ -74,7 +74,9 @@ public static class TournamentRoundEndpoints
             createRoundRequest.NumberInMatch,
             createRoundRequest.TopicId,
             createRoundRequest.IsOverrideMode,
-            ToGivenAnswers(createRoundRequest.Answers));
+            createRoundRequest.Answers
+                .Select(a => new GivenAnswer(a.QuestionId, a.MatchParticipantId, a.IsAnswerAccepted, a.OverrideCost))
+                .ToList());
 
         Result created = await createRound.HandleAsync(command, cancellationToken);
         if (created.IsFailure)
@@ -93,7 +95,7 @@ public static class TournamentRoundEndpoints
         Guid tournamentId,
         Guid matchId,
         int roundNumber,
-        CreateRoundRequest updateRoundRequest,
+        UpdateRoundRequest updateRoundRequest,
         [FromServices] ICommandHandler<UpdateRoundCommand> updateRound,
         [FromServices] IQueryHandler<GetRoundQuery, RoundResponse> getRound,
         CancellationToken cancellationToken)
@@ -105,7 +107,9 @@ public static class TournamentRoundEndpoints
             updateRoundRequest.NumberInMatch,
             updateRoundRequest.TopicId,
             updateRoundRequest.IsOverrideMode,
-            ToGivenAnswers(updateRoundRequest.Answers));
+            updateRoundRequest.Answers
+                .Select(a => new GivenAnswer(a.QuestionId, a.MatchParticipantId, a.IsAnswerAccepted, a.OverrideCost))
+                .ToList());
 
         Result updated = await updateRound.HandleAsync(command, cancellationToken);
         if (updated.IsFailure)
@@ -131,9 +135,4 @@ public static class TournamentRoundEndpoints
 
         return TypedResults.NoContent();
     }
-
-    private static List<GivenAnswer> ToGivenAnswers(List<CreateRoundAnswerRequest> answers) =>
-        answers
-            .Select(a => new GivenAnswer(a.QuestionId, a.MatchParticipantId, a.IsAnswerAccepted, a.OverrideCost))
-            .ToList();
 }
