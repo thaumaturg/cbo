@@ -40,7 +40,8 @@ public abstract class CommandHandler<TCommand>(CboDbContext dbContext) : IComman
             return failure;
         }
 
-        await transaction.CommitAsync(cancellationToken);
+        // Not cancellable: once SaveChangesAsync has succeeded, EF treats the changes as saved
+        await transaction.CommitAsync(CancellationToken.None);
         return result;
     }
 
@@ -88,7 +89,8 @@ public abstract class CommandHandler<TCommand, TResult>(CboDbContext dbContext) 
             return failure;
         }
 
-        await transaction.CommitAsync(cancellationToken);
+        // Not cancellable: once SaveChangesAsync has succeeded, EF treats the changes as saved
+        await transaction.CommitAsync(CancellationToken.None);
         return result;
     }
 
