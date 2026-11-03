@@ -1,4 +1,5 @@
 using Cbo.API.Commands.TournamentTopics;
+using Cbo.API.Contracts.Topics;
 using Cbo.API.Cqrs;
 using Cbo.API.ErrorHandling;
 using Cbo.API.Models.DTO;
