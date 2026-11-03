@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 
@@ -41,9 +42,15 @@ public class Program
         builder.Services.AddSingleton<AuditSaveChangesInterceptor>();
 
         builder.Services.AddDbContext<CboDbContext>((serviceProvider, options) =>
+        {
             options.UseNpgsql(connectionString)
                 .UseSnakeCaseNamingConvention()
-                .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
+                .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>());
+
+            // The model has changes without a migration yet. Remove this together with the next migration.
+            if (builder.Environment.IsDevelopment())
+                options.ConfigureWarnings(w => w.Log((RelationalEventId.PendingModelChangesWarning, LogLevel.Warning)));
+        });
 
         builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 
