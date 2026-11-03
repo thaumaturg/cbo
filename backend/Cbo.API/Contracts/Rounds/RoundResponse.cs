@@ -1,4 +1,4 @@
-using Cbo.API.Models.DTO;
+using Cbo.API.Contracts.Topics;
 
 namespace Cbo.API.Contracts.Rounds;
 

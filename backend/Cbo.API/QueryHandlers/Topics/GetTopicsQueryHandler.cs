@@ -1,7 +1,7 @@
+using Cbo.API.Contracts.Topics;
 using Cbo.API.Cqrs;
 using Cbo.API.Data;
 using Cbo.API.Mappings;
-using Cbo.API.Models.DTO;
 using Cbo.API.Queries.Topics;
 using Cbo.API.Services;
 using Cbo.Results;
