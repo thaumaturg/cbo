@@ -164,6 +164,8 @@ public class Program
 
         RouteGroupBuilder api = app.MapGroup("/api").RequireAuthorization();
         api.MapAuthEndpoints();
+        api.MapTopicEndpoints();
+        api.MapTopicAuthorEndpoints();
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
