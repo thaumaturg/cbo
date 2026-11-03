@@ -4,6 +4,7 @@ using Cbo.API.Authorization;
 using Cbo.API.Cqrs;
 using Cbo.API.Data;
 using Cbo.API.Data.Interceptors;
+using Cbo.API.Endpoints;
 using Cbo.API.ErrorHandling;
 using Cbo.API.Models.Domain;
 using Cbo.API.Repositories;
@@ -162,6 +163,7 @@ public class Program
         app.MapControllers();
 
         RouteGroupBuilder api = app.MapGroup("/api").RequireAuthorization();
+        api.MapAuthEndpoints();
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
