@@ -13,12 +13,15 @@ public interface IJwtTokenService
 
 public class JwtTokenService(IConfiguration configuration) : IJwtTokenService
 {
+    public const string SecurityStampClaimType = "stamp";
+
     private readonly IConfiguration _configuration = configuration;
 
     public string CreateToken(ApplicationUser user)
     {
         string email = user.Email ?? throw new InvalidOperationException($"User {user.Id} has no email.");
         string userName = user.UserName ?? throw new InvalidOperationException($"User {user.Id} has no username.");
+        string securityStamp = user.SecurityStamp ?? throw new InvalidOperationException($"User {user.Id} has no security stamp.");
 
         string jwtKey = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("Configuration value 'Jwt:Key' is missing.");
 
@@ -35,7 +38,10 @@ public class JwtTokenService(IConfiguration configuration) : IJwtTokenService
             new(JwtRegisteredClaimNames.Email, email),
             new(JwtRegisteredClaimNames.Name, user.FullName ?? string.Empty),
             new("preferred_username", userName),
-            new("email_verified", user.EmailConfirmed.ToString().ToLower())
+            new("email_verified", user.EmailConfirmed.ToString().ToLower()),
+
+            // Checked on every request, so rotating the stamp revokes the user's tokens
+            new(SecurityStampClaimType, securityStamp)
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));

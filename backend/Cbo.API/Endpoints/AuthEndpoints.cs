@@ -29,8 +29,13 @@ public static class AuthEndpoints
 
         auth.MapPost("ChangePassword", ChangePasswordAsync)
             .WithName("ChangePassword")
-            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ChangePasswordResponse>()
             .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+        auth.MapPost("LogoutEverywhere", LogoutEverywhereAsync)
+            .WithName("LogoutEverywhere")
+            .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         return api;
@@ -59,10 +64,13 @@ public static class AuthEndpoints
         ChangePasswordRequest changePasswordRequest,
         [FromServices] IAuthService authService)
     {
-        Result result = await authService.ChangePasswordAsync(changePasswordRequest);
-        if (result.IsFailure)
-            return result.Failure.ToProblem();
+        Result<ChangePasswordResponse> result = await authService.ChangePasswordAsync(changePasswordRequest);
+        return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
+    }
 
+    private static async Task<IResult> LogoutEverywhereAsync([FromServices] IAuthService authService)
+    {
+        await authService.LogoutEverywhereAsync();
         return TypedResults.NoContent();
     }
 }

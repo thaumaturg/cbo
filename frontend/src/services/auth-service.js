@@ -48,7 +48,7 @@ export const authService = {
       });
 
       const token = response.data?.jwtToken;
-      if (!token || !this.decodeToken(token)) {
+      if (!this.storeToken(token)) {
         return {
           success: false,
           error: "Received an invalid token from the server. Please try again.",
@@ -56,7 +56,6 @@ export const authService = {
         };
       }
 
-      localStorage.setItem(TOKEN_KEY, token);
       return { success: true, data: response.data };
     } catch (error) {
       return apiFailure(error, "Login failed. Please check your credentials.");
@@ -64,7 +63,8 @@ export const authService = {
   },
 
   /**
-   * Change the current user's password
+   * Change the current user's password and store the fresh JWT. The change
+   * revokes every token of the user, including the one used for this request.
    * @param {Object} passwordData - Password change data
    * @param {string} passwordData.currentPassword - Current password
    * @param {string} passwordData.newPassword - New password
@@ -72,18 +72,53 @@ export const authService = {
    */
   async changePassword(passwordData) {
     try {
-      await api.post("/Auth/ChangePassword", {
+      const response = await api.post("/Auth/ChangePassword", {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
       });
+
+      if (!this.storeToken(response.data?.jwtToken)) {
+        return {
+          success: false,
+          error: "Your password was changed, but the session could not be renewed. Please log in again.",
+          errors: {},
+        };
+      }
+
       return { success: true };
     } catch (error) {
       return apiFailure(error, "Password change failed. Please try again.");
     }
   },
 
+  /**
+   * Revoke every token of the current user on all devices. The caller still
+   * has to end the local session.
+   * @returns {Promise} - Logout everywhere response
+   */
+  async logoutEverywhere() {
+    try {
+      await api.post("/Auth/LogoutEverywhere");
+      return { success: true };
+    } catch (error) {
+      return apiFailure(error, "Logging out of all devices failed. Please try again.");
+    }
+  },
+
   logout() {
     localStorage.removeItem(TOKEN_KEY);
+  },
+
+  /**
+   * Store a JWT received from the server if it can be decoded.
+   * @param {string} token - JWT token
+   * @returns {boolean} - Whether the token was stored
+   */
+  storeToken(token) {
+    if (!token || !this.decodeToken(token)) return false;
+
+    localStorage.setItem(TOKEN_KEY, token);
+    return true;
   },
 
   /**

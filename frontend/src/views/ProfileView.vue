@@ -9,11 +9,32 @@ import InputText from "primevue/inputtext";
 import Message from "primevue/message";
 import PasswordField from "@/components/PasswordField.vue";
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 
 const authStore = useAuthStore();
 const notify = useNotify();
+const router = useRouter();
 
 const isChangingPassword = ref(false);
+const isLoggingOutEverywhere = ref(false);
+
+const onLogoutEverywhere = async () => {
+  isLoggingOutEverywhere.value = true;
+
+  try {
+    const result = await authService.logoutEverywhere();
+
+    if (result.success) {
+      authStore.logout();
+      notify.success("Logged Out Everywhere", "You have been logged out on all devices.");
+      await router.push({ name: "home" });
+    } else {
+      notify.error("Logout Failed", result.error);
+    }
+  } finally {
+    isLoggingOutEverywhere.value = false;
+  }
+};
 
 const onChangePasswordSubmit = async (values, { resetForm, setErrors }) => {
   isChangingPassword.value = true;
@@ -41,7 +62,6 @@ const onChangePasswordSubmit = async (values, { resetForm, setErrors }) => {
 </script>
 
 <template>
-
   <main class="container mx-auto px-4 py-8 max-w-2xl">
     <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8">Profile</h1>
 
@@ -148,6 +168,23 @@ const onChangePasswordSubmit = async (values, { resetForm, setErrors }) => {
             <Button type="submit" label="Change Password" :disabled="isChangingPassword" />
           </div>
         </VeeForm>
+      </template>
+    </Card>
+
+    <!-- Sessions -->
+    <Card class="mt-8">
+      <template #title>Sessions</template>
+      <template #content>
+        <div class="flex items-center justify-between gap-4">
+          <p>Log out on every device where you are logged in, including this one.</p>
+          <Button
+            label="Log Out Everywhere"
+            severity="danger"
+            outlined
+            :disabled="isLoggingOutEverywhere"
+            @click="onLogoutEverywhere"
+          />
+        </div>
       </template>
     </Card>
   </main>

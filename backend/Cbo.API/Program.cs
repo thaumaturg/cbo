@@ -59,6 +59,7 @@ public class Program
         });
 
         builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+        builder.Services.AddScoped<IJwtSecurityStampValidator, JwtSecurityStampValidator>();
 
         builder.Services.AddAuthorization();
         builder.Services.AddScoped<IAuthorizationHandler, TopicAuthorizationHandler>();
@@ -114,6 +115,7 @@ public class Program
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
+            {
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -124,7 +126,18 @@ public class Program
                     ValidAudiences = new[] { builder.Configuration["Jwt:Audience"] },
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(jwtKey))
-                });
+                };
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = async context =>
+                    {
+                        IJwtSecurityStampValidator validator =
+                            context.HttpContext.RequestServices.GetRequiredService<IJwtSecurityStampValidator>();
+                        if (context.Principal is null || !await validator.IsValidAsync(context.Principal))
+                            context.Fail("The token has been revoked.");
+                    }
+                };
+            });
 
         WebApplication app = builder.Build();
 

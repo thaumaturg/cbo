@@ -12,7 +12,8 @@ public interface IAuthService
 {
     Task<Result> RegisterAsync(RegisterRequest registerRequest);
     Task<Result<LoginResponse>> LoginAsync(LoginRequest loginRequest);
-    Task<Result> ChangePasswordAsync(ChangePasswordRequest changePasswordRequest);
+    Task<Result<ChangePasswordResponse>> ChangePasswordAsync(ChangePasswordRequest changePasswordRequest);
+    Task LogoutEverywhereAsync();
 }
 
 public class AuthService(
@@ -102,25 +103,21 @@ public class AuthService(
         return new LoginResponse { JwtToken = _jwtTokenService.CreateToken(user) };
     }
 
-    public async Task<Result> ChangePasswordAsync(ChangePasswordRequest changePasswordRequest)
+    public async Task<Result<ChangePasswordResponse>> ChangePasswordAsync(ChangePasswordRequest changePasswordRequest)
     {
-        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
-
-        // A valid token for a user that has been deleted since it was issued
-        ApplicationUser? user = await _userManager.FindByIdAsync(currentUserId.ToString());
-        if (user is null)
-            return Failure.Unauthorized("Your account no longer exists. Please log in again.");
+        ApplicationUser user = await GetCurrentUserAsync();
 
         if (changePasswordRequest.NewPassword == changePasswordRequest.CurrentPassword)
             return InvalidPasswordChange([new FieldError("newPassword", "New password must be different from the current password.")]);
 
+        // Also rotates the security stamp, which revokes every token of the user, including the current one
         IdentityResult identityResult = await _userManager.ChangePasswordAsync(
             user,
             changePasswordRequest.CurrentPassword,
             changePasswordRequest.NewPassword);
 
         if (identityResult.Succeeded)
-            return Result.Success();
+            return new ChangePasswordResponse { JwtToken = _jwtTokenService.CreateToken(user) };
 
         // A wrong current password is Invalid, not Unauthorized: a 401 here would end the user's session
         List<FieldError> fieldErrors = identityResult.Errors
@@ -133,6 +130,23 @@ public class AuthService(
             .ToList();
 
         return InvalidPasswordChange(fieldErrors);
+    }
+
+    public async Task LogoutEverywhereAsync()
+    {
+        ApplicationUser user = await GetCurrentUserAsync();
+
+        IdentityResult identityResult = await _userManager.UpdateSecurityStampAsync(user);
+        if (!identityResult.Succeeded)
+            throw new InvalidOperationException($"Could not rotate the security stamp of user {user.Id}: {identityResult}");
+    }
+
+    // The JWT bearer handler has already rejected tokens of deleted users
+    private async Task<ApplicationUser> GetCurrentUserAsync()
+    {
+        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
+        return await _userManager.FindByIdAsync(currentUserId.ToString())
+            ?? throw new InvalidOperationException($"Authenticated user {currentUserId} does not exist.");
     }
 
     private static Failure AlreadyRegistered(IEnumerable<FieldError> duplicates) =>
