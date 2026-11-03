@@ -11,11 +11,11 @@ public static class RoundProjections
     /// Questions come ordered by number, answers by id. The topic's priority and owner are those of the tournament
     /// topic that brought it into the match's tournament.
     /// </summary>
-    public static Expression<Func<Round, GetRoundDto>> ToGetDto()
+    public static Expression<Func<Round, RoundResponse>> ToResponse()
     {
-        Expression<Func<Question, GetQuestionDto>> toQuestionDto = QuestionProjections.ToGetDto();
+        Expression<Func<Question, QuestionResponse>> toQuestionResponse = QuestionProjections.ToResponse();
 
-        return r => new GetRoundDto
+        return r => new RoundResponse
         {
             Id = r.Id,
             NumberInMatch = r.NumberInMatch,
@@ -34,11 +34,11 @@ public static class RoundProjections
             Questions = r.Topic.Questions
                 .AsQueryable()
                 .OrderBy(q => q.QuestionNumber)
-                .Select(toQuestionDto)
+                .Select(toQuestionResponse)
                 .ToList(),
             RoundAnswers = r.RoundAnswers
                 .OrderBy(ra => ra.Id)
-                .Select(ra => new GetRoundAnswerDto
+                .Select(ra => new RoundAnswerResponse
                 {
                     Id = ra.Id,
                     IsAnswerAccepted = ra.IsAnswerAccepted,

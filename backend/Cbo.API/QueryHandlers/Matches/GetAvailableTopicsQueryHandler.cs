@@ -12,7 +12,7 @@ namespace Cbo.API.QueryHandlers.Matches;
 
 public sealed class GetAvailableTopicsQueryHandler(
     CboDbContext dbContext,
-    ITournamentAccessService tournamentAccessService) : IQueryHandler<GetAvailableTopicsQuery, List<GetAvailableTopicDto>>
+    ITournamentAccessService tournamentAccessService) : IQueryHandler<GetAvailableTopicsQuery, List<AvailableTopicResponse>>
 {
     private const string ViewAllTopicsForbiddenMessage = "You don't have permission to view all topics of this tournament.";
     private const string NotFoundMessage = "Match not found in this tournament.";
@@ -20,7 +20,7 @@ public sealed class GetAvailableTopicsQueryHandler(
     private readonly CboDbContext _dbContext = dbContext;
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
 
-    public async Task<Result<List<GetAvailableTopicDto>>> HandleAsync(GetAvailableTopicsQuery query, CancellationToken cancellationToken)
+    public async Task<Result<List<AvailableTopicResponse>>> HandleAsync(GetAvailableTopicsQuery query, CancellationToken cancellationToken)
     {
         Result<Tournament> access = await _tournamentAccessService.LoadTournamentWithAccessAsync(
             query.TournamentId, TournamentOperations.ViewAllTopics, ViewAllTopicsForbiddenMessage, cancellationToken);
@@ -42,7 +42,7 @@ public sealed class GetAvailableTopicsQueryHandler(
             .Where(tt => !tt.Topic!.TopicAuthors.Any(ta => ta.IsAuthor && matchPlayerUserIds.Contains(ta.ApplicationUserId)))
             .OrderBy(tt => tt.PriorityIndex)
             .ThenBy(tt => tt.Id)
-            .Select(tt => new GetAvailableTopicDto
+            .Select(tt => new AvailableTopicResponse
             {
                 PriorityIndex = tt.PriorityIndex,
                 TopicId = tt.TopicId,

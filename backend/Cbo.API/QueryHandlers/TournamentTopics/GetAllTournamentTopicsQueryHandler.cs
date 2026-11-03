@@ -13,14 +13,14 @@ namespace Cbo.API.QueryHandlers.TournamentTopics;
 
 public sealed class GetAllTournamentTopicsQueryHandler(
     CboDbContext dbContext,
-    ITournamentAccessService tournamentAccessService) : IQueryHandler<GetAllTournamentTopicsQuery, List<GetTournamentTopicDto>>
+    ITournamentAccessService tournamentAccessService) : IQueryHandler<GetAllTournamentTopicsQuery, List<TournamentTopicResponse>>
 {
     private const string ViewAllTopicsForbiddenMessage = "You don't have permission to view all topics of this tournament.";
 
     private readonly CboDbContext _dbContext = dbContext;
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
 
-    public async Task<Result<List<GetTournamentTopicDto>>> HandleAsync(GetAllTournamentTopicsQuery query, CancellationToken cancellationToken)
+    public async Task<Result<List<TournamentTopicResponse>>> HandleAsync(GetAllTournamentTopicsQuery query, CancellationToken cancellationToken)
     {
         Result<Tournament> access = await _tournamentAccessService.LoadTournamentWithAccessAsync(
             query.TournamentId, TournamentOperations.ViewAllTopics, ViewAllTopicsForbiddenMessage, cancellationToken);
@@ -31,7 +31,7 @@ public sealed class GetAllTournamentTopicsQueryHandler(
             .Where(tt => tt.TournamentId == query.TournamentId)
             .OrderBy(tt => tt.TournamentParticipantId)
             .ThenBy(tt => tt.PriorityIndex)
-            .Select(TournamentTopicProjections.ToGetDto())
+            .Select(TournamentTopicProjections.ToResponse())
             .ToListAsync(cancellationToken);
     }
 }

@@ -1,6 +1,6 @@
 namespace Cbo.API.Models.DTO;
 
-public record GetTopicAuthorDto
+public record TopicAuthorResponse
 {
     public required Guid Id { get; set; }
     public required string Username { get; set; }

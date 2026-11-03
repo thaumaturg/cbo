@@ -4,7 +4,7 @@ using Cbo.Results;
 namespace Cbo.API.Services;
 
 /// <summary>
-/// Question fields shared by create and update DTOs, in the shape the validator needs.
+/// Question fields shared by create and update requests, in the shape the validator needs.
 /// </summary>
 public record QuestionValidationModel(
     int QuestionNumber,

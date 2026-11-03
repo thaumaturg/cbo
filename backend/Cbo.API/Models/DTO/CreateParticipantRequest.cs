@@ -2,7 +2,7 @@
 
 namespace Cbo.API.Models.DTO;
 
-public record CreateTournamentParticipantDto
+public record CreateParticipantRequest
 {
     public required string Username { get; set; }
     public required TournamentParticipantRole Role { get; set; }

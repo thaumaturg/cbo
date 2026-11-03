@@ -1,6 +1,6 @@
 namespace Cbo.API.Models.DTO;
 
-public record GetAvailableTopicDto
+public record AvailableTopicResponse
 {
     public required int PriorityIndex { get; set; }
     public required Guid TopicId { get; set; }

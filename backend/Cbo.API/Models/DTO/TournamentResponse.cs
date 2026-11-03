@@ -2,7 +2,7 @@ using Cbo.API.Models.Constants;
 
 namespace Cbo.API.Models.DTO;
 
-public record GetTournamentDto
+public record TournamentResponse
 {
     public required Guid Id { get; set; }
     public required string Title { get; set; }

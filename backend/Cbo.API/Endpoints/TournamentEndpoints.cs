@@ -17,25 +17,25 @@ public static class TournamentEndpoints
 
         tournaments.MapGet("", GetTournamentsAsync)
             .WithName("GetTournaments")
-            .Produces<List<GetTournamentDto>>()
+            .Produces<List<TournamentResponse>>()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         tournaments.MapGet("{id:guid}", GetTournamentAsync)
             .WithName("GetTournament")
-            .Produces<GetTournamentDto>()
+            .Produces<TournamentResponse>()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         tournaments.MapPost("", CreateTournamentAsync)
             .WithName("CreateTournament")
-            .Produces<GetTournamentDto>(StatusCodes.Status201Created)
+            .Produces<TournamentResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         tournaments.MapPut("{id:guid}", UpdateTournamentAsync)
             .WithName("UpdateTournament")
-            .Produces<GetTournamentDto>()
+            .Produces<TournamentResponse>()
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
@@ -51,7 +51,7 @@ public static class TournamentEndpoints
 
         tournaments.MapPatch("{id:guid}", StartTournamentAsync)
             .WithName("StartTournament")
-            .Produces<GetTournamentDto>()
+            .Produces<TournamentResponse>()
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
@@ -62,40 +62,40 @@ public static class TournamentEndpoints
     }
 
     private static async Task<IResult> GetTournamentsAsync(
-        [FromServices] IQueryHandler<GetTournamentsQuery, List<GetTournamentDto>> getTournaments,
+        [FromServices] IQueryHandler<GetTournamentsQuery, List<TournamentResponse>> getTournaments,
         CancellationToken cancellationToken)
     {
-        Result<List<GetTournamentDto>> result = await getTournaments.HandleAsync(new GetTournamentsQuery(), cancellationToken);
+        Result<List<TournamentResponse>> result = await getTournaments.HandleAsync(new GetTournamentsQuery(), cancellationToken);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }
 
     private static async Task<IResult> GetTournamentAsync(
         Guid id,
-        [FromServices] IQueryHandler<GetTournamentQuery, GetTournamentDto> getTournament,
+        [FromServices] IQueryHandler<GetTournamentQuery, TournamentResponse> getTournament,
         CancellationToken cancellationToken)
     {
-        Result<GetTournamentDto> result = await getTournament.HandleAsync(new GetTournamentQuery(id), cancellationToken);
+        Result<TournamentResponse> result = await getTournament.HandleAsync(new GetTournamentQuery(id), cancellationToken);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }
 
     private static async Task<IResult> CreateTournamentAsync(
-        CreateTournamentDto createTournamentDto,
+        CreateTournamentRequest createTournamentRequest,
         [FromServices] ICommandHandler<CreateTournamentCommand, Guid> createTournament,
-        [FromServices] IQueryHandler<GetTournamentQuery, GetTournamentDto> getTournament,
+        [FromServices] IQueryHandler<GetTournamentQuery, TournamentResponse> getTournament,
         CancellationToken cancellationToken)
     {
         var command = new CreateTournamentCommand(
-            createTournamentDto.Title,
-            createTournamentDto.Description,
-            createTournamentDto.PlayersPerTournament,
-            createTournamentDto.TopicsPerParticipantMax,
-            createTournamentDto.TopicsPerParticipantMin);
+            createTournamentRequest.Title,
+            createTournamentRequest.Description,
+            createTournamentRequest.PlayersPerTournament,
+            createTournamentRequest.TopicsPerParticipantMax,
+            createTournamentRequest.TopicsPerParticipantMin);
 
         Result<Guid> created = await createTournament.HandleAsync(command, cancellationToken);
         if (created.IsFailure)
             return created.Failure.ToProblem();
 
-        Result<GetTournamentDto> tournament = await getTournament.HandleAsync(new GetTournamentQuery(created.Value), cancellationToken);
+        Result<TournamentResponse> tournament = await getTournament.HandleAsync(new GetTournamentQuery(created.Value), cancellationToken);
         if (tournament.IsFailure)
             return tournament.Failure.ToProblem();
 
@@ -104,24 +104,24 @@ public static class TournamentEndpoints
 
     private static async Task<IResult> UpdateTournamentAsync(
         Guid id,
-        UpdateTournamentDto updateTournamentDto,
+        UpdateTournamentRequest updateTournamentRequest,
         [FromServices] ICommandHandler<UpdateTournamentCommand> updateTournament,
-        [FromServices] IQueryHandler<GetTournamentQuery, GetTournamentDto> getTournament,
+        [FromServices] IQueryHandler<GetTournamentQuery, TournamentResponse> getTournament,
         CancellationToken cancellationToken)
     {
         var command = new UpdateTournamentCommand(
             id,
-            updateTournamentDto.Title,
-            updateTournamentDto.Description,
-            updateTournamentDto.PlayersPerTournament,
-            updateTournamentDto.TopicsPerParticipantMax,
-            updateTournamentDto.TopicsPerParticipantMin);
+            updateTournamentRequest.Title,
+            updateTournamentRequest.Description,
+            updateTournamentRequest.PlayersPerTournament,
+            updateTournamentRequest.TopicsPerParticipantMax,
+            updateTournamentRequest.TopicsPerParticipantMin);
 
         Result updated = await updateTournament.HandleAsync(command, cancellationToken);
         if (updated.IsFailure)
             return updated.Failure.ToProblem();
 
-        Result<GetTournamentDto> tournament = await getTournament.HandleAsync(new GetTournamentQuery(id), cancellationToken);
+        Result<TournamentResponse> tournament = await getTournament.HandleAsync(new GetTournamentQuery(id), cancellationToken);
         if (tournament.IsFailure)
             return tournament.Failure.ToProblem();
 
@@ -142,13 +142,13 @@ public static class TournamentEndpoints
 
     private static async Task<IResult> StartTournamentAsync(
         Guid id,
-        UpdateTournamentStageDto updateTournamentStageDto,
+        StartTournamentRequest startTournamentRequest,
         [FromServices] ICommandHandler<StartTournamentCommand> startTournament,
-        [FromServices] IQueryHandler<GetTournamentQuery, GetTournamentDto> getTournament,
+        [FromServices] IQueryHandler<GetTournamentQuery, TournamentResponse> getTournament,
         CancellationToken cancellationToken)
     {
         // Keeps the PATCH { stage } shape: starting is the only supported stage change
-        if (updateTournamentStageDto.Stage != TournamentStage.Qualifications)
+        if (startTournamentRequest.Stage != TournamentStage.Qualifications)
             return Failure.Invalid(
                 "Some of the stage data is invalid.",
                 new FieldError("stage", "Only advancing to the Qualifications stage is currently supported.")).ToProblem();
@@ -157,7 +157,7 @@ public static class TournamentEndpoints
         if (started.IsFailure)
             return started.Failure.ToProblem();
 
-        Result<GetTournamentDto> tournament = await getTournament.HandleAsync(new GetTournamentQuery(id), cancellationToken);
+        Result<TournamentResponse> tournament = await getTournament.HandleAsync(new GetTournamentQuery(id), cancellationToken);
         if (tournament.IsFailure)
             return tournament.Failure.ToProblem();
 

@@ -1,6 +1,6 @@
 namespace Cbo.API.Models.DTO;
 
-public record GetTournamentTopicDto
+public record TournamentTopicResponse
 {
     public required Guid Id { get; set; }
     public required int PriorityIndex { get; set; }

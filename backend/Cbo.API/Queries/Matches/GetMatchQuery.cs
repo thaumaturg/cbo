@@ -3,4 +3,4 @@ using Cbo.API.Models.DTO;
 
 namespace Cbo.API.Queries.Matches;
 
-public sealed record GetMatchQuery(Guid TournamentId, Guid MatchId) : IQuery<GetMatchDetailDto>;
+public sealed record GetMatchQuery(Guid TournamentId, Guid MatchId) : IQuery<MatchDetailResponse>;

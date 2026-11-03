@@ -1,9 +1,9 @@
 ﻿namespace Cbo.API.Models.DTO;
 
-public record UpdateTopicDto
+public record CreateTopicRequest
 {
     public required string Title { get; set; }
     public string? Description { get; set; }
     public required bool IsAuthor { get; set; }
-    public required ICollection<UpdateQuestionDto> Questions { get; set; }
+    public required ICollection<CreateQuestionRequest> Questions { get; set; }
 }

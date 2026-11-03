@@ -11,9 +11,9 @@ namespace Cbo.API.Services;
 
 public interface IAuthService
 {
-    Task<Result> RegisterAsync(RegisterUserDto registerUserDto);
-    Task<Result<LoginResponseDto>> LoginAsync(LoginUserDto loginUserDto);
-    Task<Result> ChangePasswordAsync(ChangePasswordDto changePasswordDto);
+    Task<Result> RegisterAsync(RegisterRequest registerRequest);
+    Task<Result<LoginResponse>> LoginAsync(LoginRequest loginRequest);
+    Task<Result> ChangePasswordAsync(ChangePasswordRequest changePasswordRequest);
 }
 
 public class AuthService(
@@ -35,28 +35,28 @@ public class AuthService(
     private readonly ITokenRepository _tokenRepository = tokenRepository;
     private readonly ICurrentUserService _currentUserService = currentUserService;
 
-    public async Task<Result> RegisterAsync(RegisterUserDto registerUserDto)
+    public async Task<Result> RegisterAsync(RegisterRequest registerRequest)
     {
         var applicationUser = new ApplicationUser
         {
-            UserName = registerUserDto.Username,
-            Email = registerUserDto.Email,
-            FullName = registerUserDto.FullName
+            UserName = registerRequest.Username,
+            Email = registerRequest.Email,
+            FullName = registerRequest.FullName
         };
 
         IdentityResult identityResult;
         try
         {
-            identityResult = await _userManager.CreateAsync(applicationUser, registerUserDto.Password);
+            identityResult = await _userManager.CreateAsync(applicationUser, registerRequest.Password);
         }
         // Lost a race with a simultaneous registration of the same username or email
         catch (DbUpdateException exception) when (PostgresConstraint.IsUniqueViolation(exception, ApplicationUserConfiguration.UserNameIndexName))
         {
-            return AlreadyRegistered([new FieldError("username", _userManager.ErrorDescriber.DuplicateUserName(registerUserDto.Username).Description)]);
+            return AlreadyRegistered([new FieldError("username", _userManager.ErrorDescriber.DuplicateUserName(registerRequest.Username).Description)]);
         }
         catch (DbUpdateException exception) when (PostgresConstraint.IsUniqueViolation(exception, ApplicationUserConfiguration.EmailIndexName))
         {
-            return AlreadyRegistered([new FieldError("email", _userManager.ErrorDescriber.DuplicateEmail(registerUserDto.Email).Description)]);
+            return AlreadyRegistered([new FieldError("email", _userManager.ErrorDescriber.DuplicateEmail(registerRequest.Email).Description)]);
         }
 
         if (identityResult.Succeeded)
@@ -94,16 +94,16 @@ public class AuthService(
         return AlreadyRegistered(duplicates);
     }
 
-    public async Task<Result<LoginResponseDto>> LoginAsync(LoginUserDto loginUserDto)
+    public async Task<Result<LoginResponse>> LoginAsync(LoginRequest loginRequest)
     {
-        ApplicationUser? user = await _userManager.FindByEmailAsync(loginUserDto.Email);
-        if (user is null || !await _userManager.CheckPasswordAsync(user, loginUserDto.Password))
+        ApplicationUser? user = await _userManager.FindByEmailAsync(loginRequest.Email);
+        if (user is null || !await _userManager.CheckPasswordAsync(user, loginRequest.Password))
             return Failure.Unauthorized("The email or password is incorrect.");
 
-        return new LoginResponseDto { JwtToken = _tokenRepository.CreateJWTToken(user) };
+        return new LoginResponse { JwtToken = _tokenRepository.CreateJWTToken(user) };
     }
 
-    public async Task<Result> ChangePasswordAsync(ChangePasswordDto changePasswordDto)
+    public async Task<Result> ChangePasswordAsync(ChangePasswordRequest changePasswordRequest)
     {
         Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
 
@@ -112,13 +112,13 @@ public class AuthService(
         if (user is null)
             return Failure.Unauthorized("Your account no longer exists. Please log in again.");
 
-        if (changePasswordDto.NewPassword == changePasswordDto.CurrentPassword)
+        if (changePasswordRequest.NewPassword == changePasswordRequest.CurrentPassword)
             return InvalidPasswordChange([new FieldError("newPassword", "New password must be different from the current password.")]);
 
         IdentityResult identityResult = await _userManager.ChangePasswordAsync(
             user,
-            changePasswordDto.CurrentPassword,
-            changePasswordDto.NewPassword);
+            changePasswordRequest.CurrentPassword,
+            changePasswordRequest.NewPassword);
 
         if (identityResult.Succeeded)
             return Result.Success();

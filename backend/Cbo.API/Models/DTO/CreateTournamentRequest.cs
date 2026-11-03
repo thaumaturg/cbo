@@ -1,6 +1,6 @@
-﻿namespace Cbo.API.Models.DTO;
+namespace Cbo.API.Models.DTO;
 
-public record UpdateTournamentDto
+public record CreateTournamentRequest
 {
     public required string Title { get; set; }
     public string? Description { get; set; }

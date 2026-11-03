@@ -23,7 +23,7 @@ public static class AuthEndpoints
         auth.MapPost("Login", LoginAsync)
             .WithName("Login")
             .AllowAnonymous()
-            .Produces<LoginResponseDto>()
+            .Produces<LoginResponse>()
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
@@ -37,10 +37,10 @@ public static class AuthEndpoints
     }
 
     private static async Task<IResult> RegisterAsync(
-        RegisterUserDto registerUserDto,
+        RegisterRequest registerRequest,
         [FromServices] IAuthService authService)
     {
-        Result result = await authService.RegisterAsync(registerUserDto);
+        Result result = await authService.RegisterAsync(registerRequest);
         if (result.IsFailure)
             return result.Failure.ToProblem();
 
@@ -48,18 +48,18 @@ public static class AuthEndpoints
     }
 
     private static async Task<IResult> LoginAsync(
-        LoginUserDto loginUserDto,
+        LoginRequest loginRequest,
         [FromServices] IAuthService authService)
     {
-        Result<LoginResponseDto> result = await authService.LoginAsync(loginUserDto);
+        Result<LoginResponse> result = await authService.LoginAsync(loginRequest);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }
 
     private static async Task<IResult> ChangePasswordAsync(
-        ChangePasswordDto changePasswordDto,
+        ChangePasswordRequest changePasswordRequest,
         [FromServices] IAuthService authService)
     {
-        Result result = await authService.ChangePasswordAsync(changePasswordDto);
+        Result result = await authService.ChangePasswordAsync(changePasswordRequest);
         if (result.IsFailure)
             return result.Failure.ToProblem();
 

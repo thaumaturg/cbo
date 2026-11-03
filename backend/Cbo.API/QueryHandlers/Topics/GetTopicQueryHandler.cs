@@ -14,7 +14,7 @@ namespace Cbo.API.QueryHandlers.Topics;
 public sealed class GetTopicQueryHandler(
     CboDbContext dbContext,
     ITopicAccessService topicAccessService,
-    ICurrentUserService currentUserService) : IQueryHandler<GetTopicQuery, GetTopicDto>
+    ICurrentUserService currentUserService) : IQueryHandler<GetTopicQuery, TopicResponse>
 {
     private const string ReadForbiddenMessage = "You don't have permission to view this topic.";
 
@@ -22,7 +22,7 @@ public sealed class GetTopicQueryHandler(
     private readonly ITopicAccessService _topicAccessService = topicAccessService;
     private readonly ICurrentUserService _currentUserService = currentUserService;
 
-    public async Task<Result<GetTopicDto>> HandleAsync(GetTopicQuery query, CancellationToken cancellationToken)
+    public async Task<Result<TopicResponse>> HandleAsync(GetTopicQuery query, CancellationToken cancellationToken)
     {
         Result<Topic> access = await _topicAccessService.LoadTopicWithAccessAsync(
             query.TopicId, TopicOperations.Read, ReadForbiddenMessage, cancellationToken);
@@ -33,7 +33,7 @@ public sealed class GetTopicQueryHandler(
 
         return await _dbContext.Topics
             .Where(t => t.Id == query.TopicId)
-            .Select(TopicProjections.ToGetDto(currentUserId))
+            .Select(TopicProjections.ToResponse(currentUserId))
             .SingleAsync(cancellationToken);
     }
 }
