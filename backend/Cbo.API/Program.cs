@@ -80,7 +80,11 @@ public class Program
 
         // Minimal APIs read these options, not the MVC ones above; both are configured while controllers remain
         builder.Services.ConfigureHttpJsonOptions(options =>
-            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+        {
+            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            // An explicit null for a non-nullable property is a bad request, as the implicit [Required] made it for controllers
+            options.SerializerOptions.RespectNullableAnnotations = true;
+        });
 
         // Malformed requests reach GlobalExceptionHandler as BadHttpRequestException in every environment
         builder.Services.Configure<RouteHandlerOptions>(options => options.ThrowOnBadRequest = true);
