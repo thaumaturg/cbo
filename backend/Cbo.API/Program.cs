@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
@@ -47,14 +46,11 @@ public class Program
             options.UseNpgsql(connectionString)
                 .UseSnakeCaseNamingConvention()
                 .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>());
-
-            // The model has changes without a migration yet. Remove this together with the next migration.
-            if (builder.Environment.IsDevelopment())
-                options.ConfigureWarnings(w => w.Log((RelationalEventId.PendingModelChangesWarning, LogLevel.Warning)));
         });
 
         builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 
+        builder.Services.AddAuthorization();
         builder.Services.AddScoped<IAuthorizationHandler, TopicAuthorizationHandler>();
         builder.Services.AddScoped<IAuthorizationHandler, TournamentAuthorizationHandler>();
 
@@ -69,21 +65,11 @@ public class Program
 
         builder.Services.AddCqrsHandlers(typeof(Program).Assembly);
 
-        builder.Services.AddControllers(options =>
-            {
-                // Model-validation error keys use the JSON property names (camelCase) instead of the C# names
-                options.ModelMetadataDetailsProviders.Add(new SystemTextJsonValidationMetadataProvider());
-            })
-            .AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-            });
-
-        // Minimal APIs read these options, not the MVC ones above; both are configured while controllers remain
         builder.Services.ConfigureHttpJsonOptions(options =>
         {
             options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
-            // An explicit null for a non-nullable property is a bad request, as the implicit [Required] made it for controllers
+            // An explicit null for a non-nullable property is a bad request
+            // A null in a non-nullable response property fails with a 500
             options.SerializerOptions.RespectNullableAnnotations = true;
         });
 
@@ -159,8 +145,6 @@ public class Program
         app.UseAuthentication();
 
         app.UseAuthorization();
-
-        app.MapControllers();
 
         RouteGroupBuilder api = app.MapGroup("/api").RequireAuthorization();
         api.MapAuthEndpoints();
