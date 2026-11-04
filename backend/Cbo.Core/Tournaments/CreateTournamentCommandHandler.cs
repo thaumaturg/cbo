@@ -1,4 +1,4 @@
-using Cbo.Core.Auth;
+using Cbo.Core.Accounts;
 using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
 using Cbo.Core.Models.Constants;

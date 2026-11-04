@@ -5,7 +5,7 @@ using Cbo.Results;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Cbo.Core.Auth;
+namespace Cbo.Core.Accounts;
 
 public interface IAuthService
 {

@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using Cbo.Core.Auth;
+using Cbo.Core.Accounts;
 
-namespace Cbo.Api.Auth;
+namespace Cbo.Api.Authentication;
 
 public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICurrentUserService
 {

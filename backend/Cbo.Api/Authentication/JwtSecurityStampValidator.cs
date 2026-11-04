@@ -2,7 +2,7 @@ using System.Security.Claims;
 using Cbo.Core.Models.Domain;
 using Microsoft.AspNetCore.Identity;
 
-namespace Cbo.Api.Auth;
+namespace Cbo.Api.Authentication;
 
 public interface IJwtSecurityStampValidator
 {

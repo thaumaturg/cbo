@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Cbo.Api.Auth;
+using Cbo.Api.Authentication;
 using Cbo.Core.Models.Domain;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.JsonWebTokens;
 
-namespace Cbo.Tests.Auth;
+namespace Cbo.Tests.Authentication;
 
 public class JwtTokenServiceTests
 {

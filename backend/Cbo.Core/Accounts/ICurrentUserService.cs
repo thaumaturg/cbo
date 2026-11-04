@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace Cbo.Core.Auth;
+namespace Cbo.Core.Accounts;
 
 public interface ICurrentUserService
 {

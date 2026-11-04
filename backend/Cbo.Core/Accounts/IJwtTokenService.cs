@@ -1,6 +1,6 @@
 using Cbo.Core.Models.Domain;
 
-namespace Cbo.Core.Auth;
+namespace Cbo.Core.Accounts;
 
 public interface IJwtTokenService
 {

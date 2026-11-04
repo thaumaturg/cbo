@@ -1,6 +1,6 @@
 using System.Net.Mime;
 using Cbo.Api.ErrorHandling;
-using Cbo.Core.Auth;
+using Cbo.Core.Accounts;
 using Cbo.Results;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,11 +1,11 @@
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
-using Cbo.Api.Auth;
+using Cbo.Api.Authentication;
 using Cbo.Api.Endpoints;
 using Cbo.Api.ErrorHandling;
 using Cbo.Core;
-using Cbo.Core.Auth;
+using Cbo.Core.Accounts;
 using Cbo.Core.Data;
 using Cbo.Core.Models.Domain;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

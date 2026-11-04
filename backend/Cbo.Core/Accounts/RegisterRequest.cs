@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Cbo.Core.Auth;
+namespace Cbo.Core.Accounts;
 
 public record RegisterRequest
 {

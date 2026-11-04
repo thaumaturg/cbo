@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using Cbo.Api.Auth;
+using Cbo.Api.Authentication;
 using Cbo.Core.Models.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
-namespace Cbo.Tests.Auth;
+namespace Cbo.Tests.Authentication;
 
 public class JwtSecurityStampValidatorTests
 {
