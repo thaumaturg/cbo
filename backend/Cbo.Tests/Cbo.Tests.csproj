@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Cbo.Api\Cbo.Api.csproj" />
+    <ProjectReference Include="..\Cbo.Core\Cbo.Core.csproj" />
     <ProjectReference Include="..\Cbo.Results\Cbo.Results.csproj" />
   </ItemGroup>
 

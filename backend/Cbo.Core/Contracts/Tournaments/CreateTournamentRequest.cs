@@ -1,0 +1,10 @@
+namespace Cbo.Core.Contracts.Tournaments;
+
+public record CreateTournamentRequest
+{
+    public required string Title { get; set; }
+    public string? Description { get; set; }
+    public int? PlayersPerTournament { get; set; }
+    public int? TopicsPerParticipantMax { get; set; }
+    public int? TopicsPerParticipantMin { get; set; }
+}

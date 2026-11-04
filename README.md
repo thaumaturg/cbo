@@ -160,9 +160,9 @@ dotnet tool install --global dotnet-ef
 ```
 
 ```bash
-cd backend/Cbo.Api
-dotnet ef migrations add YourMigrationName
-dotnet ef database update
+cd backend
+dotnet ef migrations add YourMigrationName --project Cbo.Core --startup-project Cbo.Api
+dotnet ef database update --project Cbo.Core --startup-project Cbo.Api
 ```
 
 ## Build and Run

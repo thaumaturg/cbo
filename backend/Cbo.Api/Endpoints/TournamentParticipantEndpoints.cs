@@ -1,9 +1,9 @@
-using Cbo.Api.Commands.Participants;
-using Cbo.Api.Contracts.Participants;
-using Cbo.Api.Cqrs;
 using Cbo.Api.ErrorHandling;
-using Cbo.Api.Models.Constants;
-using Cbo.Api.Queries.Participants;
+using Cbo.Core.Commands.Participants;
+using Cbo.Core.Contracts.Participants;
+using Cbo.Core.Cqrs;
+using Cbo.Core.Models.Constants;
+using Cbo.Core.Queries.Participants;
 using Cbo.Results;
 using Microsoft.AspNetCore.Mvc;
 

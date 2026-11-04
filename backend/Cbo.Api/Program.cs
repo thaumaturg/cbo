@@ -1,20 +1,17 @@
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
-using Cbo.Api.Authorization;
-using Cbo.Api.Cqrs;
-using Cbo.Api.Data;
-using Cbo.Api.Data.Interceptors;
+using Cbo.Api.Auth;
 using Cbo.Api.Endpoints;
 using Cbo.Api.ErrorHandling;
-using Cbo.Api.Models.Domain;
-using Cbo.Api.Services;
+using Cbo.Core;
+using Cbo.Core.Data;
+using Cbo.Core.Models.Domain;
+using Cbo.Core.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 
@@ -48,33 +45,15 @@ public class Program
             throw new InvalidOperationException("Configuration value 'Jwt:Key' is missing or empty.");
         }
 
-        builder.Services.AddSingleton(TimeProvider.System);
-        builder.Services.AddSingleton<AuditSaveChangesInterceptor>();
-
-        builder.Services.AddDbContext<CboDbContext>((serviceProvider, options) =>
-        {
-            options.UseNpgsql(connectionString)
-                .UseSnakeCaseNamingConvention()
-                .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>());
-        });
+        builder.Services.AddCore(connectionString);
 
         builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
         builder.Services.AddScoped<IJwtSecurityStampValidator, JwtSecurityStampValidator>();
 
         builder.Services.AddAuthorization();
-        builder.Services.AddScoped<IAuthorizationHandler, TopicAuthorizationHandler>();
-        builder.Services.AddScoped<IAuthorizationHandler, TournamentAuthorizationHandler>();
 
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-        builder.Services.AddScoped<IAuthService, AuthService>();
-        builder.Services.AddScoped<ITournamentAccessService, TournamentAccessService>();
-        builder.Services.AddScoped<ITopicAccessService, TopicAccessService>();
-        builder.Services.AddScoped<IMatchGenerationService, MatchGenerationService>();
-        builder.Services.AddScoped<IMatchScoringService, MatchScoringService>();
-        builder.Services.AddScoped<ITopicValidationService, TopicValidationService>();
-
-        builder.Services.AddCqrsHandlers(typeof(Program).Assembly);
 
         builder.Services.ConfigureHttpJsonOptions(options =>
         {

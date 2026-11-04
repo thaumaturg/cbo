@@ -1,7 +1,7 @@
-using Cbo.Api.Contracts.Matches;
-using Cbo.Api.Cqrs;
 using Cbo.Api.ErrorHandling;
-using Cbo.Api.Queries.Matches;
+using Cbo.Core.Contracts.Matches;
+using Cbo.Core.Cqrs;
+using Cbo.Core.Queries.Matches;
 using Cbo.Results;
 using Microsoft.AspNetCore.Mvc;
 

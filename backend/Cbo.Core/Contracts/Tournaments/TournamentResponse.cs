@@ -1,0 +1,18 @@
+using Cbo.Core.Models.Constants;
+
+namespace Cbo.Core.Contracts.Tournaments;
+
+public record TournamentResponse
+{
+    public required Guid Id { get; set; }
+    public required string Title { get; set; }
+    public string? Description { get; set; }
+    public required string CurrentStage { get; set; }
+    public required DateTime CreatedAt { get; set; }
+    public DateTime? StartedAt { get; set; }
+    public DateTime? EndedAt { get; set; }
+    public required int PlayersPerTournament { get; set; }
+    public required int TopicsPerParticipantMax { get; set; }
+    public required int TopicsPerParticipantMin { get; set; }
+    public TournamentParticipantRole? CurrentUserRole { get; set; }
+}

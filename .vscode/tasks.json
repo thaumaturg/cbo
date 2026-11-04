@@ -83,6 +83,8 @@
         "add",
         "${input:migrationName}",
         "--project",
+        "${workspaceFolder}/backend/Cbo.Core/Cbo.Core.csproj",
+        "--startup-project",
         "${workspaceFolder}/backend/Cbo.Api/Cbo.Api.csproj"
       ],
       "problemMatcher": "$msCompile"
@@ -96,6 +98,8 @@
         "database",
         "update",
         "--project",
+        "${workspaceFolder}/backend/Cbo.Core/Cbo.Core.csproj",
+        "--startup-project",
         "${workspaceFolder}/backend/Cbo.Api/Cbo.Api.csproj"
       ],
       "problemMatcher": "$msCompile"
@@ -110,6 +114,8 @@
         "drop",
         "--force",
         "--project",
+        "${workspaceFolder}/backend/Cbo.Core/Cbo.Core.csproj",
+        "--startup-project",
         "${workspaceFolder}/backend/Cbo.Api/Cbo.Api.csproj"
       ],
       "problemMatcher": "$msCompile"

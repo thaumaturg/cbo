@@ -1,8 +1,8 @@
-using Cbo.Api.Commands.Topics;
-using Cbo.Api.Contracts.Topics;
-using Cbo.Api.Cqrs;
 using Cbo.Api.ErrorHandling;
-using Cbo.Api.Queries.Topics;
+using Cbo.Core.Commands.Topics;
+using Cbo.Core.Contracts.Topics;
+using Cbo.Core.Cqrs;
+using Cbo.Core.Queries.Topics;
 using Cbo.Results;
 using Microsoft.AspNetCore.Mvc;
 

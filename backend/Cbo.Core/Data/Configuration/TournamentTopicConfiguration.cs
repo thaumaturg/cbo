@@ -1,0 +1,53 @@
+using Cbo.Core.Models.Domain;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Cbo.Core.Data.Configuration;
+
+public class TournamentTopicConfiguration : IEntityTypeConfiguration<TournamentTopic>
+{
+    public void Configure(EntityTypeBuilder<TournamentTopic> entity)
+    {
+        entity.HasKey(tt => tt.Id);
+
+        entity.Property(tt => tt.PriorityIndex)
+            .IsRequired();
+
+        entity.Property(tt => tt.IsApproved)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        entity.Property(tt => tt.TournamentId)
+            .IsRequired();
+
+        entity.Property(tt => tt.TopicId)
+            .IsRequired();
+
+        entity.Property(tt => tt.TournamentParticipantId)
+            .IsRequired();
+
+        // Many-to-one: TournamentTopic -> Tournament
+        entity.HasOne(tt => tt.Tournament)
+            .WithMany(t => t.TournamentTopics)
+            .HasForeignKey(tt => tt.TournamentId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Many-to-one: TournamentTopic -> Topic
+        entity.HasOne(tt => tt.Topic)
+            .WithMany(t => t.TournamentTopics)
+            .HasForeignKey(tt => tt.TopicId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Many-to-one: TournamentTopic -> TournamentParticipant
+        entity.HasOne(tt => tt.TournamentParticipant)
+            .WithMany(tp => tp.TournamentTopics)
+            .HasForeignKey(tt => tt.TournamentParticipantId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // A topic is in a tournament at most once.
+        // Only a topic's owner can choose it, and a user is a participant at most once
+        // Match details rely on it to find a round's tournament topic by topic id.
+        entity.HasIndex(tt => new { tt.TournamentId, tt.TopicId })
+            .IsUnique();
+    }
+}
