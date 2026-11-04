@@ -16,4 +16,4 @@ The backend splits use cases into commands and queries, each with its own handle
 - A unique or foreign-key violation can only surface in the base class, so handlers translate expected violations through an overridable `MapSaveFailure`. Everything else is a 500.
 - Commands don't return DTOs. When an endpoint has to return the resource, it runs the matching query after the command.
 - A handler never calls another handler; shared logic lives in plain services.
-- Auth stays a service, because ASP.NET Core Identity's `UserManager` saves on its own.
+- Account management stays a service (`AccountService`), because ASP.NET Core Identity's `UserManager` saves on its own.

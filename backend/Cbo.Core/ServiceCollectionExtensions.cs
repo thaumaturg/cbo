@@ -31,7 +31,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthorizationHandler, TopicAuthorizationHandler>();
         services.AddScoped<IAuthorizationHandler, TournamentAuthorizationHandler>();
 
-        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<ITournamentAccessService, TournamentAccessService>();
         services.AddScoped<ITopicAccessService, TopicAccessService>();
         services.AddScoped<IMatchGenerationService, MatchGenerationService>();

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Cbo.Core.Accounts;
 
-public interface IAuthService
+public interface IAccountService
 {
     Task<Result> RegisterAsync(RegisterRequest registerRequest);
     Task<Result<LoginResponse>> LoginAsync(LoginRequest loginRequest);
@@ -15,10 +15,10 @@ public interface IAuthService
     Task LogoutEverywhereAsync();
 }
 
-public class AuthService(
+public class AccountService(
     UserManager<ApplicationUser> userManager,
     IJwtTokenService jwtTokenService,
-    ICurrentUserService currentUserService) : IAuthService
+    ICurrentUserService currentUserService) : IAccountService
 {
     private static readonly HashSet<string> PasswordValidationErrorCodes =
     [

@@ -42,9 +42,9 @@ public static class AuthEndpoints
 
     private static async Task<IResult> RegisterAsync(
         RegisterRequest registerRequest,
-        [FromServices] IAuthService authService)
+        [FromServices] IAccountService accountService)
     {
-        Result result = await authService.RegisterAsync(registerRequest);
+        Result result = await accountService.RegisterAsync(registerRequest);
         if (result.IsFailure)
             return result.Failure.ToProblem();
 
@@ -53,23 +53,23 @@ public static class AuthEndpoints
 
     private static async Task<IResult> LoginAsync(
         LoginRequest loginRequest,
-        [FromServices] IAuthService authService)
+        [FromServices] IAccountService accountService)
     {
-        Result<LoginResponse> result = await authService.LoginAsync(loginRequest);
+        Result<LoginResponse> result = await accountService.LoginAsync(loginRequest);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }
 
     private static async Task<IResult> ChangePasswordAsync(
         ChangePasswordRequest changePasswordRequest,
-        [FromServices] IAuthService authService)
+        [FromServices] IAccountService accountService)
     {
-        Result<ChangePasswordResponse> result = await authService.ChangePasswordAsync(changePasswordRequest);
+        Result<ChangePasswordResponse> result = await accountService.ChangePasswordAsync(changePasswordRequest);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }
 
-    private static async Task<IResult> LogoutEverywhereAsync([FromServices] IAuthService authService)
+    private static async Task<IResult> LogoutEverywhereAsync([FromServices] IAccountService accountService)
     {
-        await authService.LogoutEverywhereAsync();
+        await accountService.LogoutEverywhereAsync();
         return TypedResults.NoContent();
     }
 }
