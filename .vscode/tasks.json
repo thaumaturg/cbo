@@ -22,7 +22,7 @@
         "watch",
         "run",
         "--project",
-        "${workspaceFolder}/backend/Cbo.API/Cbo.API.csproj",
+        "${workspaceFolder}/backend/Cbo.Api/Cbo.Api.csproj",
         "--launch-profile",
         "https"
       ],
@@ -51,7 +51,7 @@
       "args": [
         "run",
         "--project",
-        "${workspaceFolder}/backend/Cbo.API/Cbo.API.csproj",
+        "${workspaceFolder}/backend/Cbo.Api/Cbo.Api.csproj",
         "--launch-profile",
         "https"
       ],
@@ -83,7 +83,7 @@
         "add",
         "${input:migrationName}",
         "--project",
-        "${workspaceFolder}/backend/Cbo.API/Cbo.API.csproj"
+        "${workspaceFolder}/backend/Cbo.Api/Cbo.Api.csproj"
       ],
       "problemMatcher": "$msCompile"
     },
@@ -96,7 +96,7 @@
         "database",
         "update",
         "--project",
-        "${workspaceFolder}/backend/Cbo.API/Cbo.API.csproj"
+        "${workspaceFolder}/backend/Cbo.Api/Cbo.Api.csproj"
       ],
       "problemMatcher": "$msCompile"
     },
@@ -110,7 +110,7 @@
         "drop",
         "--force",
         "--project",
-        "${workspaceFolder}/backend/Cbo.API/Cbo.API.csproj"
+        "${workspaceFolder}/backend/Cbo.Api/Cbo.Api.csproj"
       ],
       "problemMatcher": "$msCompile"
     },

@@ -1,0 +1,63 @@
+using System.Linq.Expressions;
+using Cbo.Api.Authorization;
+using Cbo.Api.Contracts.Matches;
+using Cbo.Api.Contracts.Rounds;
+using Cbo.Api.Cqrs;
+using Cbo.Api.Data;
+using Cbo.Api.Mappings;
+using Cbo.Api.Models.Domain;
+using Cbo.Api.Queries.Matches;
+using Cbo.Api.Services;
+using Cbo.Results;
+using Microsoft.EntityFrameworkCore;
+
+namespace Cbo.Api.QueryHandlers.Matches;
+
+public sealed class GetMatchQueryHandler(
+    CboDbContext dbContext,
+    ITournamentAccessService tournamentAccessService) : IQueryHandler<GetMatchQuery, MatchDetailResponse>
+{
+    private const string ReadForbiddenMessage = "You don't have permission to view this tournament.";
+    private const string NotFoundMessage = "Match not found in this tournament.";
+
+    private readonly CboDbContext _dbContext = dbContext;
+    private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
+
+    public async Task<Result<MatchDetailResponse>> HandleAsync(GetMatchQuery query, CancellationToken cancellationToken)
+    {
+        Result<Tournament> access = await _tournamentAccessService.LoadTournamentWithAccessAsync(
+            query.TournamentId, TournamentOperations.Read, ReadForbiddenMessage, cancellationToken);
+        if (access.IsFailure)
+            return access.Failure;
+
+        Expression<Func<MatchParticipant, MatchParticipantResponse>> toParticipantResponse = MatchParticipantProjections.ToResponse();
+        Expression<Func<Round, RoundResponse>> toRoundResponse = RoundProjections.ToResponse();
+
+        MatchDetailResponse? match = await _dbContext.Matches
+            .Where(m => m.Id == query.MatchId && m.TournamentId == query.TournamentId)
+            .Select(m => new MatchDetailResponse
+            {
+                Id = m.Id,
+                NumberInTournament = m.NumberInTournament,
+                NumberInStage = m.NumberInStage,
+                CreatedOnStage = m.CreatedOnStage,
+                Type = m.Type,
+                TournamentId = m.TournamentId,
+                MatchParticipants = m.MatchParticipants
+                    .AsQueryable()
+                    .OrderBy(mp => mp.Id)
+                    .Select(toParticipantResponse)
+                    .ToList(),
+                Rounds = m.Rounds
+                    .AsQueryable()
+                    .OrderBy(r => r.NumberInMatch)
+                    .Select(toRoundResponse)
+                    .ToList(),
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+        if (match is null)
+            return Failure.NotFound(NotFoundMessage);
+
+        return match;
+    }
+}

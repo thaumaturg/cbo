@@ -6,9 +6,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "backend: build",
-      "program": "${workspaceFolder}/backend/Cbo.API/bin/Debug/net10.0/Cbo.API.dll",
+      "program": "${workspaceFolder}/backend/Cbo.Api/bin/Debug/net10.0/Cbo.Api.dll",
       "args": [],
-      "cwd": "${workspaceFolder}/backend/Cbo.API",
+      "cwd": "${workspaceFolder}/backend/Cbo.Api",
       "stopAtEntry": false,
       "launchSettingsProfile": "https",
       "serverReadyAction": {
@@ -25,9 +25,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "Full Stack: Prepare Debug",
-      "program": "${workspaceFolder}/backend/Cbo.API/bin/Debug/net10.0/Cbo.API.dll",
+      "program": "${workspaceFolder}/backend/Cbo.Api/bin/Debug/net10.0/Cbo.Api.dll",
       "args": [],
-      "cwd": "${workspaceFolder}/backend/Cbo.API",
+      "cwd": "${workspaceFolder}/backend/Cbo.Api",
       "stopAtEntry": false,
       "launchSettingsProfile": "https",
       "serverReadyAction": {

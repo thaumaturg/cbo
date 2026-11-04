@@ -58,7 +58,7 @@ then `wsl --shutdown` again.
    VITE_PRIMEUI_LICENSE_KEY=your-key-here
    ```
 
-4. Create `backend/Cbo.API/appsettings.Development.json` (gitignored)
+4. Create `backend/Cbo.Api/appsettings.Development.json` (gitignored)
 
 - connection string password should match `POSTGRES_PASSWORD`
 - JWT settings (see the tracked `appsettings.json` for all expected keys)
@@ -124,7 +124,7 @@ mkcert -install
 ```bash
 cd frontend
 mkcert -cert-file localhost.crt -key-file localhost.key localhost 127.0.0.1 ::1
-cd ../backend/Cbo.API
+cd ../backend/Cbo.Api
 mkcert -cert-file localhost.pem -key-file localhost-key.pem localhost 127.0.0.1 ::1
 ```
 
@@ -160,7 +160,7 @@ dotnet tool install --global dotnet-ef
 ```
 
 ```bash
-cd backend/Cbo.API
+cd backend/Cbo.Api
 dotnet ef migrations add YourMigrationName
 dotnet ef database update
 ```
@@ -172,7 +172,7 @@ dotnet ef database update
 From the root directory:
 
 ```bash
-cd backend/Cbo.API
+cd backend/Cbo.Api
 dotnet build
 dotnet run --launch-profile https
 ```

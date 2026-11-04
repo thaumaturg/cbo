@@ -1,0 +1,22 @@
+using Cbo.Api.Models.Constants;
+
+namespace Cbo.Api.Models.Domain;
+
+public class TournamentParticipant : IAuditable
+{
+    public Guid Id { get; set; }
+    public required TournamentParticipantRole Role { get; set; }
+    public int? Seed { get; set; }
+    public int? ScoreSum { get; set; }
+    public decimal? PointsSum { get; set; }
+    public Guid TournamentId { get; set; }
+    public required Guid ApplicationUserId { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+
+    // Navigation properties
+    public Tournament? Tournament { get; set; }
+    public ApplicationUser? ApplicationUser { get; set; }
+    public ICollection<MatchParticipant> MatchParticipants { get; set; } = [];
+    public ICollection<TournamentTopic> TournamentTopics { get; set; } = [];
+}

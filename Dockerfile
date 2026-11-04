@@ -22,12 +22,12 @@ WORKDIR /src
 
 # Copy only the files that affect NuGet restore so the restore layer is cached
 COPY backend/Directory.Packages.props ./
-COPY backend/Cbo.API/Cbo.API.csproj Cbo.API/
-RUN dotnet restore Cbo.API/Cbo.API.csproj
+COPY backend/Cbo.Api/Cbo.Api.csproj Cbo.Api/
+RUN dotnet restore Cbo.Api/Cbo.Api.csproj
 
 COPY backend/ ./
 # UseAppHost=false: no native launcher needed, the entrypoint uses `dotnet`
-RUN dotnet publish Cbo.API/Cbo.API.csproj -c Release -o /app/publish --no-restore /p:UseAppHost=false
+RUN dotnet publish Cbo.Api/Cbo.Api.csproj -c Release -o /app/publish --no-restore /p:UseAppHost=false
 
 # =============================================================================
 # Stage 3: Runtime image (only the published output, no SDK or sources)
@@ -44,4 +44,4 @@ COPY --from=frontend-build /src/dist ./wwwroot
 # Run as the non-root 'app' user built into the aspnet base image
 USER $APP_UID
 
-ENTRYPOINT ["dotnet", "Cbo.API.dll"]
+ENTRYPOINT ["dotnet", "Cbo.Api.dll"]

@@ -1,0 +1,9 @@
+namespace Cbo.Api.Contracts.Rounds;
+
+public record UpdateRoundRequest
+{
+    public required int NumberInMatch { get; set; }
+    public required Guid TopicId { get; set; }
+    public bool IsOverrideMode { get; set; }
+    public List<UpdateRoundAnswerRequest> Answers { get; set; } = [];
+}

@@ -1,5 +1,5 @@
 using System;
-using Cbo.API.ErrorHandling;
+using Cbo.Api.ErrorHandling;
 using Cbo.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
