@@ -1,7 +1,0 @@
-using Cbo.Core.Contracts.TournamentTopics;
-using Cbo.Core.Cqrs;
-
-namespace Cbo.Core.Queries.TournamentTopics;
-
-/// <summary>Every participant's topics in the tournament, grouped by participant and ordered by priority.</summary>
-public sealed record GetAllTournamentTopicsQuery(Guid TournamentId) : IQuery<List<TournamentTopicResponse>>;

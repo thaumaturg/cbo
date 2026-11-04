@@ -1,9 +1,0 @@
-namespace Cbo.Core.Contracts.Matches;
-
-public record MatchParticipantResponse
-{
-    public required Guid Id { get; set; }
-    public required string Username { get; set; }
-    public int? ScoreSum { get; set; }
-    public decimal? PointsSum { get; set; }
-}

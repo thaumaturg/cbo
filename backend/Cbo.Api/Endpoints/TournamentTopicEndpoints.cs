@@ -1,9 +1,7 @@
 using Cbo.Api.ErrorHandling;
-using Cbo.Core.Commands.TournamentTopics;
-using Cbo.Core.Contracts.Topics;
-using Cbo.Core.Contracts.TournamentTopics;
 using Cbo.Core.Cqrs;
-using Cbo.Core.Queries.TournamentTopics;
+using Cbo.Core.Topics;
+using Cbo.Core.TournamentTopics;
 using Cbo.Results;
 using Microsoft.AspNetCore.Mvc;
 

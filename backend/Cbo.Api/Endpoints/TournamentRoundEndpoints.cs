@@ -1,8 +1,6 @@
 using Cbo.Api.ErrorHandling;
-using Cbo.Core.Commands.Rounds;
-using Cbo.Core.Contracts.Rounds;
 using Cbo.Core.Cqrs;
-using Cbo.Core.Queries.Rounds;
+using Cbo.Core.Rounds;
 using Cbo.Results;
 using Microsoft.AspNetCore.Mvc;
 

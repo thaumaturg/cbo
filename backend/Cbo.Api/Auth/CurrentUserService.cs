@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Cbo.Core.Services;
+using Cbo.Core.Auth;
 
 namespace Cbo.Api.Auth;
 

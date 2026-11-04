@@ -1,0 +1,40 @@
+using Cbo.Core.Authorization;
+using Cbo.Core.Cqrs;
+using Cbo.Core.Data;
+using Cbo.Core.Models.Domain;
+using Cbo.Core.Tournaments;
+using Cbo.Results;
+using Microsoft.EntityFrameworkCore;
+
+namespace Cbo.Core.Participants;
+
+public sealed class GetParticipantsQueryHandler(
+    CboDbContext dbContext,
+    ITournamentAccessService tournamentAccessService) : IQueryHandler<GetParticipantsQuery, List<ParticipantResponse>>
+{
+    private const string ReadForbiddenMessage = "You don't have permission to view this tournament.";
+
+    private readonly CboDbContext _dbContext = dbContext;
+    private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
+
+    public async Task<Result<List<ParticipantResponse>>> HandleAsync(GetParticipantsQuery query, CancellationToken cancellationToken)
+    {
+        Result<Tournament> access = await _tournamentAccessService.LoadTournamentWithAccessAsync(
+            query.TournamentId, TournamentOperations.Read, ReadForbiddenMessage, cancellationToken);
+        if (access.IsFailure)
+            return access.Failure;
+
+        IQueryable<TournamentParticipant> participants = _dbContext.TournamentParticipants
+            .Where(tp => tp.TournamentId == query.TournamentId);
+
+        if (query.Role.HasValue)
+            participants = participants.Where(tp => tp.Role == query.Role.Value);
+
+        // Postgres sorts null seeds (non-players) last
+        return await participants
+            .OrderBy(tp => tp.Seed)
+            .ThenBy(tp => tp.Id)
+            .Select(ParticipantProjections.ToResponse())
+            .ToListAsync(cancellationToken);
+    }
+}

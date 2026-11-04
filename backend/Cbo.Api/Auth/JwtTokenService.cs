@@ -1,8 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Cbo.Core.Auth;
 using Cbo.Core.Models.Domain;
-using Cbo.Core.Services;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Cbo.Api.Auth;

@@ -1,8 +1,11 @@
+using Cbo.Core.Auth;
 using Cbo.Core.Authorization;
 using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
 using Cbo.Core.Data.Interceptors;
-using Cbo.Core.Services;
+using Cbo.Core.Matches;
+using Cbo.Core.Topics;
+using Cbo.Core.Tournaments;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
