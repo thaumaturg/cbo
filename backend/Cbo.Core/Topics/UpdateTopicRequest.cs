@@ -1,4 +1,4 @@
-﻿namespace Cbo.Core.Topics;
+namespace Cbo.Core.Topics;
 
 public record UpdateTopicRequest
 {

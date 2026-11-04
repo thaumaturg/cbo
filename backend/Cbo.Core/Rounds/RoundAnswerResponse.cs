@@ -1,4 +1,4 @@
-﻿namespace Cbo.Core.Rounds;
+namespace Cbo.Core.Rounds;
 
 public record RoundAnswerResponse
 {

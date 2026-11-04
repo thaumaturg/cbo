@@ -1,4 +1,4 @@
-﻿namespace Cbo.Core.Auth;
+namespace Cbo.Core.Auth;
 
 public record LoginResponse
 {

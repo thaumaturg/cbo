@@ -1,4 +1,4 @@
-﻿global using global::Microsoft.AspNetCore.Builder;
+global using global::Microsoft.AspNetCore.Builder;
 global using global::Microsoft.AspNetCore.Hosting;
 global using global::Microsoft.AspNetCore.Http;
 global using global::Microsoft.AspNetCore.Routing;

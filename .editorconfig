@@ -19,3 +19,7 @@ end_of_line = crlf
 
 [backend/Cbo.Api/openapi/*.json]
 insert_final_newline = false
+
+# EF Core writes migrations with a byte-order mark
+[backend/Cbo.Core/Migrations/*.cs]
+charset = utf-8-bom

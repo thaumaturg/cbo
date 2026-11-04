@@ -1,4 +1,4 @@
-﻿namespace Cbo.Core.Tournaments;
+namespace Cbo.Core.Tournaments;
 
 public record UpdateTournamentRequest
 {

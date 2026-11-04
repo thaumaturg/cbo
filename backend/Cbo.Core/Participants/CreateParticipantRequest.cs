@@ -1,4 +1,4 @@
-﻿using Cbo.Core.Models.Constants;
+using Cbo.Core.Models.Constants;
 
 namespace Cbo.Core.Participants;
 
