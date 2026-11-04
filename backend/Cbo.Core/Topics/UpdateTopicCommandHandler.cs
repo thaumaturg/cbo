@@ -38,7 +38,7 @@ public sealed class UpdateTopicCommandHandler(
 
         List<FieldError> fieldErrors = _topicValidationService.ValidateQuestions(
             command.Questions
-                .Select(q => new QuestionValidationModel(q.QuestionNumber, q.CostPositive, q.CostNegative, q.Text, q.Answer))
+                .Select(q => new QuestionValidationModel(q.QuestionNumber, q.Cost, q.Text, q.Answer))
                 .ToList());
         fieldErrors.AddRange(ValidateQuestionIds(existingQuestions, command.Questions));
         if (fieldErrors.Count > 0)
@@ -99,8 +99,7 @@ public sealed class UpdateTopicCommandHandler(
             {
                 Question existingQuestion = existingQuestions.First(q => q.Id == questionId);
                 existingQuestion.QuestionNumber = question.QuestionNumber;
-                existingQuestion.CostPositive = question.CostPositive;
-                existingQuestion.CostNegative = question.CostNegative;
+                existingQuestion.Cost = question.Cost;
                 existingQuestion.Text = question.Text;
                 existingQuestion.Answer = question.Answer;
                 existingQuestion.Comment = question.Comment;
@@ -110,8 +109,7 @@ public sealed class UpdateTopicCommandHandler(
                 DbContext.Questions.Add(new Question
                 {
                     QuestionNumber = question.QuestionNumber,
-                    CostPositive = question.CostPositive,
-                    CostNegative = question.CostNegative,
+                    Cost = question.Cost,
                     Text = question.Text,
                     Answer = question.Answer,
                     Comment = question.Comment,

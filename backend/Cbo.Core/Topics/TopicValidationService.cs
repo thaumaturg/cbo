@@ -8,8 +8,7 @@ namespace Cbo.Core.Topics;
 /// </summary>
 public record QuestionValidationModel(
     int QuestionNumber,
-    int CostPositive,
-    int CostNegative,
+    int Cost,
     string? Text,
     string? Answer);
 
@@ -82,16 +81,10 @@ public class TopicValidationService : ITopicValidationService
         if (string.IsNullOrWhiteSpace(question.Answer))
             errors.Add(new FieldError($"questions[{index}].answer", "Answer is required."));
 
-        if (question.CostPositive is < DefaultSettings.QuestionsCostMin or > DefaultSettings.QuestionsCostMax)
+        if (question.Cost is < DefaultSettings.QuestionsCostMin or > DefaultSettings.QuestionsCostMax)
         {
-            errors.Add(new FieldError($"questions[{index}].costPositive",
-                $"CostPositive must be between {DefaultSettings.QuestionsCostMin} and {DefaultSettings.QuestionsCostMax}."));
-        }
-
-        if (question.CostNegative is < DefaultSettings.QuestionsCostMin or > DefaultSettings.QuestionsCostMax)
-        {
-            errors.Add(new FieldError($"questions[{index}].costNegative",
-                $"CostNegative must be between {DefaultSettings.QuestionsCostMin} and {DefaultSettings.QuestionsCostMax}."));
+            errors.Add(new FieldError($"questions[{index}].cost",
+                $"Cost must be between {DefaultSettings.QuestionsCostMin} and {DefaultSettings.QuestionsCostMax}."));
         }
     }
 }

@@ -47,8 +47,7 @@ const defaultCost = (questionNumber) => Math.min(questionNumber * 10, TOPIC_LIMI
 const createEmptyQuestion = (questionNumber) => ({
   id: null,
   questionNumber,
-  costPositive: defaultCost(questionNumber),
-  costNegative: defaultCost(questionNumber),
+  cost: defaultCost(questionNumber),
   text: "",
   answer: "",
   comment: "",
@@ -104,11 +103,8 @@ const validateQuestion = (question) => {
     errors.answer = "Answer is required";
   }
 
-  const costPosError = validateCostField(question.costPositive, "Cost +");
-  if (costPosError) errors.costPositive = costPosError;
-
-  const costNegError = validateCostField(question.costNegative, "Cost -");
-  if (costNegError) errors.costNegative = costNegError;
+  const costError = validateCostField(question.cost, "Cost");
+  if (costError) errors.cost = costError;
 
   return errors;
 };
@@ -133,7 +129,7 @@ const getFieldError = (index, field) => {
   return questionErrors.value[index]?.[field] || null;
 };
 
-const SERVER_QUESTION_FIELD = /^questions\[(\d+)\]\.(costPositive|costNegative|text|answer)$/;
+const SERVER_QUESTION_FIELD = /^questions\[(\d+)\]\.(cost|text|answer)$/;
 
 // Server errors for the table's cells, in the shape validateAllQuestions produces
 const toQuestionErrors = (errors = {}) => {
@@ -169,8 +165,7 @@ const fetchTopicData = async () => {
         questions.value = topic.questions.map((q) => ({
           id: q.id,
           questionNumber: q.questionNumber,
-          costPositive: q.costPositive,
-          costNegative: q.costNegative,
+          cost: q.cost,
           text: q.text,
           answer: q.answer,
           comment: q.comment || "",
@@ -198,13 +193,13 @@ const handlePaste = (event) => {
 
   const rows = parseClipboardTable(event.clipboardData);
 
-  // Expected format: costPositive, costNegative, question, answer, comment (5 columns)
+  // Expected format: cost, question, answer, comment (4 columns)
   // Or: question, answer, comment (3 columns minimum)
   if (rows.length === 0) return;
 
   const firstRowCols = rows[0].length;
 
-  if (firstRowCols !== 5 && firstRowCols !== 3) return;
+  if (firstRowCols !== 4 && firstRowCols !== 3) return;
 
   const maxQuestions = TOPIC_LIMITS.questionsPerTopicMax;
   if (rows.length > maxQuestions) {
@@ -217,16 +212,15 @@ const handlePaste = (event) => {
     const existingId = questions.value[index]?.id || null;
     const questionNumber = index + 1;
 
-    if (firstRowCols === 5) {
-      // Full format: costPositive, costNegative, question, answer, comment
+    if (firstRowCols === 4) {
+      // Full format: cost, question, answer, comment
       return {
         id: existingId,
         questionNumber,
-        costPositive: parseInt(row[0]) || defaultCost(questionNumber),
-        costNegative: parseInt(row[1]) || defaultCost(questionNumber),
-        text: row[2]?.trim() || "",
-        answer: row[3]?.trim() || "",
-        comment: row[4]?.trim() || "",
+        cost: parseInt(row[0]) || defaultCost(questionNumber),
+        text: row[1]?.trim() || "",
+        answer: row[2]?.trim() || "",
+        comment: row[3]?.trim() || "",
       };
     }
 
@@ -234,8 +228,7 @@ const handlePaste = (event) => {
     return {
       id: existingId,
       questionNumber,
-      costPositive: defaultCost(questionNumber),
-      costNegative: defaultCost(questionNumber),
+      cost: defaultCost(questionNumber),
       text: row[0]?.trim() || "",
       answer: row[1]?.trim() || "",
       comment: row[2]?.trim() || "",
@@ -271,8 +264,7 @@ const onSubmit = async (values, { setErrors }) => {
     const questionsToSend = questions.value.map((q) => ({
       ...(q.id && { id: q.id }),
       questionNumber: q.questionNumber,
-      costPositive: q.costPositive,
-      costNegative: q.costNegative,
+      cost: q.cost,
       text: q.text.trim(),
       answer: q.answer.trim(),
       comment: q.comment?.trim() || null,
@@ -373,9 +365,9 @@ const onSubmit = async (values, { setErrors }) => {
 
         <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <p class="text-sm text-blue-700 dark:text-blue-300">
-            <strong>Paste Format:</strong> Select cells in Google Sheets containing your questions (5 columns:
-            CostPositive, CostNegative, Question, Answer, Comment) and paste here. Alternatively, use 3 columns:
-            Question, Answer, Comment - costs will be auto-generated. Pasting replaces the whole table (up to
+            <strong>Paste Format:</strong> Select cells in Google Sheets containing your questions (4 columns: Cost,
+            Question, Answer, Comment) and paste here. Alternatively, use 3 columns: Question, Answer, Comment - costs
+            will be auto-generated. Pasting replaces the whole table (up to
             {{ TOPIC_LIMITS.questionsPerTopicMax }} rows).
           </p>
         </div>
@@ -394,33 +386,17 @@ const onSubmit = async (values, { setErrors }) => {
             </template>
           </Column>
 
-          <Column field="costPositive" header="Cost + *" style="width: 120px">
+          <Column field="cost" header="Cost *" style="width: 120px">
             <template #body="{ data, index }">
               <div class="flex flex-col gap-1">
                 <InputNumber
-                  v-model="data.costPositive"
+                  v-model="data.cost"
                   class="w-full"
-                  :inputClass="['w-full text-center', hasFieldError(index, 'costPositive') ? 'p-invalid' : '']"
-                  :invalid="hasFieldError(index, 'costPositive')"
+                  :inputClass="['w-full text-center', hasFieldError(index, 'cost') ? 'p-invalid' : '']"
+                  :invalid="hasFieldError(index, 'cost')"
                 />
-                <small v-if="hasFieldError(index, 'costPositive')" class="text-red-500 text-xs">
-                  {{ getFieldError(index, "costPositive") }}
-                </small>
-              </div>
-            </template>
-          </Column>
-
-          <Column field="costNegative" header="Cost - *" style="width: 120px">
-            <template #body="{ data, index }">
-              <div class="flex flex-col gap-1">
-                <InputNumber
-                  v-model="data.costNegative"
-                  class="w-full"
-                  :inputClass="['w-full text-center', hasFieldError(index, 'costNegative') ? 'p-invalid' : '']"
-                  :invalid="hasFieldError(index, 'costNegative')"
-                />
-                <small v-if="hasFieldError(index, 'costNegative')" class="text-red-500 text-xs">
-                  {{ getFieldError(index, "costNegative") }}
+                <small v-if="hasFieldError(index, 'cost')" class="text-red-500 text-xs">
+                  {{ getFieldError(index, "cost") }}
                 </small>
               </div>
             </template>

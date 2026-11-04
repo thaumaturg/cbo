@@ -21,7 +21,7 @@ public sealed class CreateTopicCommandHandler(
     {
         List<FieldError> fieldErrors = _topicValidationService.ValidateQuestions(
             command.Questions
-                .Select(q => new QuestionValidationModel(q.QuestionNumber, q.CostPositive, q.CostNegative, q.Text, q.Answer))
+                .Select(q => new QuestionValidationModel(q.QuestionNumber, q.Cost, q.Text, q.Answer))
                 .ToList());
         if (fieldErrors.Count > 0)
             return TopicFailures.Invalid(fieldErrors);
@@ -41,8 +41,7 @@ public sealed class CreateTopicCommandHandler(
             topic.Questions.Add(new Question
             {
                 QuestionNumber = question.QuestionNumber,
-                CostPositive = question.CostPositive,
-                CostNegative = question.CostNegative,
+                Cost = question.Cost,
                 Text = question.Text,
                 Answer = question.Answer,
                 Comment = question.Comment,

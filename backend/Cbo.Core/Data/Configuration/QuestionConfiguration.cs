@@ -13,10 +13,7 @@ public class QuestionConfiguration : IEntityTypeConfiguration<Question>
         entity.Property(q => q.QuestionNumber)
             .IsRequired();
 
-        entity.Property(q => q.CostPositive)
-            .IsRequired();
-
-        entity.Property(q => q.CostNegative)
+        entity.Property(q => q.Cost)
             .IsRequired();
 
         entity.Property(q => q.Text)

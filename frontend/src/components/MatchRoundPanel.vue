@@ -408,15 +408,9 @@ const handleDelete = () => {
     <!-- Questions Table (shown when topic is selected and details are loaded) -->
     <div v-if="roundState.selectedTopicId && !isLoadingTopicDetails && localQuestions.length > 0">
       <DataTable :value="localQuestions" dataKey="id" responsiveLayout="scroll" stripedRows size="small">
-        <Column field="costPositive" header="Cost +" style="width: 80px" class="text-center">
+        <Column field="cost" header="Cost" style="width: 80px" class="text-center">
           <template #body="{ data }">
-            <span class="text-green-600 dark:text-green-400 font-medium">+{{ data.costPositive }}</span>
-          </template>
-        </Column>
-
-        <Column field="costNegative" header="Cost -" style="width: 80px" class="text-center">
-          <template #body="{ data }">
-            <span class="text-red-600 dark:text-red-400 font-medium">-{{ data.costNegative }}</span>
+            <span class="font-medium text-gray-700 dark:text-gray-300">{{ data.cost }}</span>
           </template>
         </Column>
 

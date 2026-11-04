@@ -60,9 +60,9 @@ public class MatchScoringService(CboDbContext dbContext) : IMatchScoringService
                         ?? throw new InvalidOperationException($"The question of answer {answer.Id} isn't loaded.");
 
                     if (answer.IsAnswerAccepted.Value)
-                        score += question.CostPositive;
+                        score += question.Cost;
                     else
-                        score -= question.CostNegative;
+                        score -= question.Cost;
                 }
             }
             participant.ScoreSum = score;

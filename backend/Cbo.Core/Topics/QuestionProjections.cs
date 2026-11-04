@@ -12,8 +12,7 @@ public static class QuestionProjections
         {
             Id = q.Id,
             QuestionNumber = q.QuestionNumber,
-            CostPositive = q.CostPositive,
-            CostNegative = q.CostNegative,
+            Cost = q.Cost,
             Text = q.Text,
             Answer = q.Answer,
             Comment = q.Comment,

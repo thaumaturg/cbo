@@ -7,8 +7,7 @@ namespace Cbo.Core.Topics;
 public sealed record EditedQuestion(
     Guid? Id,
     int QuestionNumber,
-    int CostPositive,
-    int CostNegative,
+    int Cost,
     string Text,
     string Answer,
     string? Comment);

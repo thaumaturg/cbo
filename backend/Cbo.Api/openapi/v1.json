@@ -2796,8 +2796,7 @@
       "CreateQuestionRequest": {
         "required": [
           "questionNumber",
-          "costPositive",
-          "costNegative",
+          "cost",
           "text",
           "answer"
         ],
@@ -2811,15 +2810,7 @@
             ],
             "format": "int32"
           },
-          "costPositive": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "costNegative": {
+          "cost": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "integer",
@@ -3325,8 +3316,7 @@
         "required": [
           "id",
           "questionNumber",
-          "costPositive",
-          "costNegative",
+          "cost",
           "text",
           "answer",
           "topicId"
@@ -3345,15 +3335,7 @@
             ],
             "format": "int32"
           },
-          "costPositive": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "costNegative": {
+          "cost": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "integer",
@@ -3754,8 +3736,7 @@
       "UpdateQuestionRequest": {
         "required": [
           "questionNumber",
-          "costPositive",
-          "costNegative",
+          "cost",
           "text",
           "answer"
         ],
@@ -3776,15 +3757,7 @@
             ],
             "format": "int32"
           },
-          "costPositive": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "costNegative": {
+          "cost": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "integer",
