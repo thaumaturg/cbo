@@ -2,7 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Cbo.Core.Accounts;
-using Cbo.Core.Models.Domain;
+using Cbo.Core.Domain;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Cbo.Api.Authentication;

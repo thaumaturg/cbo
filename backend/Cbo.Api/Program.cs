@@ -7,7 +7,7 @@ using Cbo.Api.ErrorHandling;
 using Cbo.Core;
 using Cbo.Core.Accounts;
 using Cbo.Core.Data;
-using Cbo.Core.Models.Domain;
+using Cbo.Core.Domain;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;

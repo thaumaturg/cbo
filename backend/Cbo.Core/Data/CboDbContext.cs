@@ -1,4 +1,4 @@
-using Cbo.Core.Models.Domain;
+using Cbo.Core.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;

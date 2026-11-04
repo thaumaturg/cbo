@@ -1,7 +1,6 @@
 using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
-using Cbo.Core.Models.Constants;
-using Cbo.Core.Models.Domain;
+using Cbo.Core.Domain;
 using Cbo.Results;
 
 namespace Cbo.Core.Tournaments;

@@ -1,5 +1,4 @@
-using Cbo.Core.Models.Constants;
-using Cbo.Core.Models.Domain;
+using Cbo.Core.Domain;
 
 namespace Cbo.Core.Matches;
 
@@ -46,7 +45,7 @@ public class MatchGenerationService : IMatchGenerationService
                 NumberInTournament = matchNumber,
                 NumberInStage = matchNumber,
                 CreatedOnStage = TournamentStage.Qualifications,
-                Type = Models.Constants.MatchType.Qualification,
+                Type = MatchType.Qualification,
                 TournamentId = tournament.Id
             };
 

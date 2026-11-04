@@ -1,4 +1,4 @@
-using Cbo.Core.Models.Constants;
+using Cbo.Core.Domain;
 using Cbo.Results;
 
 namespace Cbo.Core.Topics;

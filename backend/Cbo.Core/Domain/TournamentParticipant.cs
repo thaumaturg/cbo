@@ -1,6 +1,4 @@
-using Cbo.Core.Models.Constants;
-
-namespace Cbo.Core.Models.Domain;
+namespace Cbo.Core.Domain;
 
 public class TournamentParticipant : IAuditable
 {

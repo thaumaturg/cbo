@@ -22,7 +22,7 @@ namespace Cbo.Core.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.ApplicationUser", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.ApplicationUser", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -116,7 +116,7 @@ namespace Cbo.Core.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.Match", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.Match", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -163,7 +163,7 @@ namespace Cbo.Core.Migrations
                     b.ToTable("matches", (string)null);
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.MatchParticipant", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.MatchParticipant", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -215,7 +215,7 @@ namespace Cbo.Core.Migrations
                     b.ToTable("match_participants", (string)null);
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.Question", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.Question", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -270,7 +270,7 @@ namespace Cbo.Core.Migrations
                     b.ToTable("questions", (string)null);
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.Round", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.Round", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -314,7 +314,7 @@ namespace Cbo.Core.Migrations
                     b.ToTable("rounds", (string)null);
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.RoundAnswer", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.RoundAnswer", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -365,7 +365,7 @@ namespace Cbo.Core.Migrations
                     b.ToTable("round_answers", (string)null);
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.Topic", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.Topic", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -396,7 +396,7 @@ namespace Cbo.Core.Migrations
                     b.ToTable("topics", (string)null);
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.TopicAuthor", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.TopicAuthor", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -440,7 +440,7 @@ namespace Cbo.Core.Migrations
                     b.ToTable("topic_authors", (string)null);
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.Tournament", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.Tournament", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -506,7 +506,7 @@ namespace Cbo.Core.Migrations
                     b.ToTable("tournaments", (string)null);
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.TournamentParticipant", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.TournamentParticipant", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -561,7 +561,7 @@ namespace Cbo.Core.Migrations
                     b.ToTable("tournament_participants", (string)null);
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.TournamentTopic", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.TournamentTopic", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -777,9 +777,9 @@ namespace Cbo.Core.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.Match", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.Match", b =>
                 {
-                    b.HasOne("Cbo.Core.Models.Domain.Tournament", "Tournament")
+                    b.HasOne("Cbo.Core.Domain.Tournament", "Tournament")
                         .WithMany("Matches")
                         .HasForeignKey("TournamentId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -789,22 +789,22 @@ namespace Cbo.Core.Migrations
                     b.Navigation("Tournament");
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.MatchParticipant", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.MatchParticipant", b =>
                 {
-                    b.HasOne("Cbo.Core.Models.Domain.Match", "Match")
+                    b.HasOne("Cbo.Core.Domain.Match", "Match")
                         .WithMany("MatchParticipants")
                         .HasForeignKey("MatchId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_match_participants_matches_match_id");
 
-                    b.HasOne("Cbo.Core.Models.Domain.MatchParticipant", "PromotedFrom")
+                    b.HasOne("Cbo.Core.Domain.MatchParticipant", "PromotedFrom")
                         .WithOne("PromotedTo")
-                        .HasForeignKey("Cbo.Core.Models.Domain.MatchParticipant", "PromotedFromId")
+                        .HasForeignKey("Cbo.Core.Domain.MatchParticipant", "PromotedFromId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_match_participants_match_participants_promoted_from_id");
 
-                    b.HasOne("Cbo.Core.Models.Domain.TournamentParticipant", "TournamentParticipant")
+                    b.HasOne("Cbo.Core.Domain.TournamentParticipant", "TournamentParticipant")
                         .WithMany("MatchParticipants")
                         .HasForeignKey("TournamentParticipantId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -818,9 +818,9 @@ namespace Cbo.Core.Migrations
                     b.Navigation("TournamentParticipant");
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.Question", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.Question", b =>
                 {
-                    b.HasOne("Cbo.Core.Models.Domain.Topic", "Topic")
+                    b.HasOne("Cbo.Core.Domain.Topic", "Topic")
                         .WithMany("Questions")
                         .HasForeignKey("TopicId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -830,16 +830,16 @@ namespace Cbo.Core.Migrations
                     b.Navigation("Topic");
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.Round", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.Round", b =>
                 {
-                    b.HasOne("Cbo.Core.Models.Domain.Match", "Match")
+                    b.HasOne("Cbo.Core.Domain.Match", "Match")
                         .WithMany("Rounds")
                         .HasForeignKey("MatchId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_rounds_matches_match_id");
 
-                    b.HasOne("Cbo.Core.Models.Domain.Topic", "Topic")
+                    b.HasOne("Cbo.Core.Domain.Topic", "Topic")
                         .WithMany("Rounds")
                         .HasForeignKey("TopicId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -851,23 +851,23 @@ namespace Cbo.Core.Migrations
                     b.Navigation("Topic");
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.RoundAnswer", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.RoundAnswer", b =>
                 {
-                    b.HasOne("Cbo.Core.Models.Domain.MatchParticipant", "MatchParticipant")
+                    b.HasOne("Cbo.Core.Domain.MatchParticipant", "MatchParticipant")
                         .WithMany("RoundAnswers")
                         .HasForeignKey("MatchParticipantId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_round_answers_match_participants_match_participant_id");
 
-                    b.HasOne("Cbo.Core.Models.Domain.Question", "Question")
+                    b.HasOne("Cbo.Core.Domain.Question", "Question")
                         .WithMany("RoundAnswers")
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_round_answers_questions_question_id");
 
-                    b.HasOne("Cbo.Core.Models.Domain.Round", "Round")
+                    b.HasOne("Cbo.Core.Domain.Round", "Round")
                         .WithMany("RoundAnswers")
                         .HasForeignKey("RoundId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -881,16 +881,16 @@ namespace Cbo.Core.Migrations
                     b.Navigation("Round");
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.TopicAuthor", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.TopicAuthor", b =>
                 {
-                    b.HasOne("Cbo.Core.Models.Domain.ApplicationUser", "ApplicationUser")
+                    b.HasOne("Cbo.Core.Domain.ApplicationUser", "ApplicationUser")
                         .WithMany("TopicAuthors")
                         .HasForeignKey("ApplicationUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_topic_authors_application_user_application_user_id");
 
-                    b.HasOne("Cbo.Core.Models.Domain.Topic", "Topic")
+                    b.HasOne("Cbo.Core.Domain.Topic", "Topic")
                         .WithMany("TopicAuthors")
                         .HasForeignKey("TopicId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -902,16 +902,16 @@ namespace Cbo.Core.Migrations
                     b.Navigation("Topic");
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.TournamentParticipant", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.TournamentParticipant", b =>
                 {
-                    b.HasOne("Cbo.Core.Models.Domain.ApplicationUser", "ApplicationUser")
+                    b.HasOne("Cbo.Core.Domain.ApplicationUser", "ApplicationUser")
                         .WithMany("TournamentParticipants")
                         .HasForeignKey("ApplicationUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_tournament_participants_application_user_application_user_id");
 
-                    b.HasOne("Cbo.Core.Models.Domain.Tournament", "Tournament")
+                    b.HasOne("Cbo.Core.Domain.Tournament", "Tournament")
                         .WithMany("TournamentParticipants")
                         .HasForeignKey("TournamentId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -923,23 +923,23 @@ namespace Cbo.Core.Migrations
                     b.Navigation("Tournament");
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.TournamentTopic", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.TournamentTopic", b =>
                 {
-                    b.HasOne("Cbo.Core.Models.Domain.Topic", "Topic")
+                    b.HasOne("Cbo.Core.Domain.Topic", "Topic")
                         .WithMany("TournamentTopics")
                         .HasForeignKey("TopicId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_tournament_topics_topics_topic_id");
 
-                    b.HasOne("Cbo.Core.Models.Domain.Tournament", "Tournament")
+                    b.HasOne("Cbo.Core.Domain.Tournament", "Tournament")
                         .WithMany("TournamentTopics")
                         .HasForeignKey("TournamentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_tournament_topics_tournaments_tournament_id");
 
-                    b.HasOne("Cbo.Core.Models.Domain.TournamentParticipant", "TournamentParticipant")
+                    b.HasOne("Cbo.Core.Domain.TournamentParticipant", "TournamentParticipant")
                         .WithMany("TournamentTopics")
                         .HasForeignKey("TournamentParticipantId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -965,7 +965,7 @@ namespace Cbo.Core.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
                 {
-                    b.HasOne("Cbo.Core.Models.Domain.ApplicationUser", null)
+                    b.HasOne("Cbo.Core.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -975,7 +975,7 @@ namespace Cbo.Core.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
                 {
-                    b.HasOne("Cbo.Core.Models.Domain.ApplicationUser", null)
+                    b.HasOne("Cbo.Core.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -992,7 +992,7 @@ namespace Cbo.Core.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_asp_net_user_roles_asp_net_roles_role_id");
 
-                    b.HasOne("Cbo.Core.Models.Domain.ApplicationUser", null)
+                    b.HasOne("Cbo.Core.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1002,7 +1002,7 @@ namespace Cbo.Core.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
-                    b.HasOne("Cbo.Core.Models.Domain.ApplicationUser", null)
+                    b.HasOne("Cbo.Core.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1010,38 +1010,38 @@ namespace Cbo.Core.Migrations
                         .HasConstraintName("fk_asp_net_user_tokens_asp_net_users_user_id");
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.ApplicationUser", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.ApplicationUser", b =>
                 {
                     b.Navigation("TopicAuthors");
 
                     b.Navigation("TournamentParticipants");
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.Match", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.Match", b =>
                 {
                     b.Navigation("MatchParticipants");
 
                     b.Navigation("Rounds");
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.MatchParticipant", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.MatchParticipant", b =>
                 {
                     b.Navigation("PromotedTo");
 
                     b.Navigation("RoundAnswers");
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.Question", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.Question", b =>
                 {
                     b.Navigation("RoundAnswers");
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.Round", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.Round", b =>
                 {
                     b.Navigation("RoundAnswers");
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.Topic", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.Topic", b =>
                 {
                     b.Navigation("Questions");
 
@@ -1052,7 +1052,7 @@ namespace Cbo.Core.Migrations
                     b.Navigation("TournamentTopics");
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.Tournament", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.Tournament", b =>
                 {
                     b.Navigation("Matches");
 
@@ -1061,7 +1061,7 @@ namespace Cbo.Core.Migrations
                     b.Navigation("TournamentTopics");
                 });
 
-            modelBuilder.Entity("Cbo.Core.Models.Domain.TournamentParticipant", b =>
+            modelBuilder.Entity("Cbo.Core.Domain.TournamentParticipant", b =>
                 {
                     b.Navigation("MatchParticipants");
 

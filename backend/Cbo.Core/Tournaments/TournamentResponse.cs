@@ -1,4 +1,4 @@
-using Cbo.Core.Models.Constants;
+using Cbo.Core.Domain;
 
 namespace Cbo.Core.Tournaments;
 

@@ -1,7 +1,7 @@
 using Cbo.Core.Accounts;
 using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
-using Cbo.Core.Models.Domain;
+using Cbo.Core.Domain;
 using Cbo.Core.Topics;
 using Cbo.Core.Tournaments;
 using Cbo.Results;

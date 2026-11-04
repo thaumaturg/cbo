@@ -1,4 +1,4 @@
-using Cbo.Core.Models.Domain;
+using Cbo.Core.Domain;
 
 namespace Cbo.Core.Accounts;
 

@@ -1,6 +1,6 @@
 using Cbo.Api.ErrorHandling;
 using Cbo.Core.Cqrs;
-using Cbo.Core.Models.Constants;
+using Cbo.Core.Domain;
 using Cbo.Core.Tournaments;
 using Cbo.Results;
 using Microsoft.AspNetCore.Mvc;

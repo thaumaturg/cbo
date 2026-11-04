@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
-using Cbo.Core.Models.Constants;
-using Cbo.Core.Models.Domain;
+using Cbo.Core.Domain;
 
 namespace Cbo.Core.Tournaments;
 

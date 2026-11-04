@@ -1,5 +1,4 @@
-using Cbo.Core.Models.Constants;
-using Cbo.Core.Models.Domain;
+using Cbo.Core.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

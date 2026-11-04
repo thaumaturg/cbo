@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Cbo.Core.Data;
-using Cbo.Core.Models.Domain;
+using Cbo.Core.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.EntityFrameworkCore;

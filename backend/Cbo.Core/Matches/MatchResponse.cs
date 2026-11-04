@@ -1,4 +1,4 @@
-using Cbo.Core.Models.Constants;
+using Cbo.Core.Domain;
 
 namespace Cbo.Core.Matches;
 
@@ -8,7 +8,7 @@ public record MatchResponse
     public required int NumberInTournament { get; set; }
     public required int NumberInStage { get; set; }
     public required TournamentStage CreatedOnStage { get; set; }
-    public required Models.Constants.MatchType Type { get; set; }
+    public required MatchType Type { get; set; }
     public required Guid TournamentId { get; set; }
     public required List<MatchParticipantResponse> MatchParticipants { get; set; }
     public required int RoundsCount { get; set; }

@@ -1,4 +1,4 @@
-namespace Cbo.Core.Models.Domain;
+namespace Cbo.Core.Domain;
 
 public class Topic : IAuditable
 {

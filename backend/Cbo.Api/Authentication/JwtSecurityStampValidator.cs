@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Cbo.Core.Models.Domain;
+using Cbo.Core.Domain;
 using Microsoft.AspNetCore.Identity;
 
 namespace Cbo.Api.Authentication;

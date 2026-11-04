@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace Cbo.Core.Models.Domain;
+namespace Cbo.Core.Domain;
 
 public class ApplicationUser : IdentityUser<Guid>, IAuditable
 {

@@ -1,9 +1,8 @@
 using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
 using Cbo.Core.Data.Configuration;
+using Cbo.Core.Domain;
 using Cbo.Core.Matches;
-using Cbo.Core.Models.Constants;
-using Cbo.Core.Models.Domain;
 using Cbo.Results;
 using Microsoft.EntityFrameworkCore;
 

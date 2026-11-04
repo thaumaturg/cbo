@@ -1,7 +1,6 @@
 using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
-using Cbo.Core.Models.Constants;
-using Cbo.Core.Models.Domain;
+using Cbo.Core.Domain;
 using Cbo.Core.Tournaments;
 using Cbo.Results;
 using Microsoft.EntityFrameworkCore;

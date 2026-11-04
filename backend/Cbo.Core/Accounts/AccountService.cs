@@ -1,6 +1,6 @@
 using Cbo.Core.Data;
 using Cbo.Core.Data.Configuration;
-using Cbo.Core.Models.Domain;
+using Cbo.Core.Domain;
 using Cbo.Results;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

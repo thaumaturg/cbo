@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using Cbo.Core.Models.Domain;
+using Cbo.Core.Domain;
 using Cbo.Core.Tournaments;
 
 namespace Cbo.Core.TournamentTopics;

@@ -1,6 +1,6 @@
 using Cbo.Core.Accounts;
 using Cbo.Core.Data;
-using Cbo.Core.Models.Domain;
+using Cbo.Core.Domain;
 using Cbo.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cbo.Api.Authentication;
-using Cbo.Core.Models.Domain;
+using Cbo.Core.Domain;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.JsonWebTokens;
 
