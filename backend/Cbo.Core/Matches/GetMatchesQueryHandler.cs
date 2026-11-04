@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using Cbo.Core.Authorization;
 using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
 using Cbo.Core.Models.Domain;

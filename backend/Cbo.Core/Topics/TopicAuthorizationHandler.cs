@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
-namespace Cbo.Core.Authorization;
+namespace Cbo.Core.Topics;
 
 public class TopicAuthorizationHandler(
     CboDbContext dbContext) : AuthorizationHandler<OperationAuthorizationRequirement, Topic>

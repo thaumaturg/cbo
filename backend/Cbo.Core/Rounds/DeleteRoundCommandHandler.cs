@@ -1,4 +1,3 @@
-using Cbo.Core.Authorization;
 using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
 using Cbo.Core.Matches;

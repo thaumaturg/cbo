@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
-namespace Cbo.Core.Authorization;
+namespace Cbo.Core.Tournaments;
 
 public class TournamentAuthorizationHandler(
     CboDbContext dbContext) : AuthorizationHandler<OperationAuthorizationRequirement, Tournament>

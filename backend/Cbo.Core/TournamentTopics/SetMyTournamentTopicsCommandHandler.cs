@@ -1,10 +1,10 @@
 using System.Security.Claims;
 using Cbo.Core.Auth;
-using Cbo.Core.Authorization;
 using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
 using Cbo.Core.Models.Constants;
 using Cbo.Core.Models.Domain;
+using Cbo.Core.Topics;
 using Cbo.Core.Tournaments;
 using Cbo.Results;
 using Microsoft.AspNetCore.Authorization;
