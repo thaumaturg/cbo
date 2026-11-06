@@ -9,7 +9,7 @@ namespace Cbo.Core.Accounts;
 
 public interface IAccountService
 {
-    Task<Result> RegisterAsync(RegisterRequest registerRequest);
+    Task<Result<RegisterResponse>> RegisterAsync(RegisterRequest registerRequest);
     Task<Result<LoginResponse>> LoginAsync(LoginRequest loginRequest);
     Task<Result<ChangePasswordResponse>> ChangePasswordAsync(ChangePasswordRequest changePasswordRequest);
     Task LogoutEverywhereAsync();
@@ -34,7 +34,7 @@ public class AccountService(
     private readonly IJwtTokenService _jwtTokenService = jwtTokenService;
     private readonly ICurrentUserService _currentUserService = currentUserService;
 
-    public async Task<Result> RegisterAsync(RegisterRequest registerRequest)
+    public async Task<Result<RegisterResponse>> RegisterAsync(RegisterRequest registerRequest)
     {
         var applicationUser = new ApplicationUser
         {
@@ -59,7 +59,7 @@ public class AccountService(
         }
 
         if (identityResult.Succeeded)
-            return Result.Success();
+            return new RegisterResponse { JwtToken = _jwtTokenService.CreateToken(applicationUser) };
 
         List<FieldError> invalid = [];
         List<FieldError> duplicates = [];

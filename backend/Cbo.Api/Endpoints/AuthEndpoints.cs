@@ -1,4 +1,3 @@
-using System.Net.Mime;
 using Cbo.Api.ErrorHandling;
 using Cbo.Core.Accounts;
 using Cbo.Results;
@@ -15,7 +14,7 @@ public static class AuthEndpoints
         auth.MapPost("Register", RegisterAsync)
             .WithName("Register")
             .AllowAnonymous()
-            .Produces<string>(StatusCodes.Status200OK, MediaTypeNames.Text.Plain)
+            .Produces<RegisterResponse>()
             .ProducesValidationProblem()
             .ProducesValidationProblem(StatusCodes.Status409Conflict);
 
@@ -44,11 +43,8 @@ public static class AuthEndpoints
         RegisterRequest registerRequest,
         [FromServices] IAccountService accountService)
     {
-        Result result = await accountService.RegisterAsync(registerRequest);
-        if (result.IsFailure)
-            return result.Failure.ToProblem();
-
-        return TypedResults.Text("Account created. You can now log in.");
+        Result<RegisterResponse> result = await accountService.RegisterAsync(registerRequest);
+        return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }
 
     private static async Task<IResult> LoginAsync(
