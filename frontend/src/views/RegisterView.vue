@@ -3,6 +3,7 @@ import PasswordField from "@/components/PasswordField.vue";
 import { eager } from "@/includes/validation.js";
 import { useAuthStore } from "@/stores/auth.js";
 import { toFormFailure } from "@/utils/error.js";
+import { useNotify } from "@/utils/notify.js";
 import { keepRedirect, safeRedirect } from "@/utils/redirect.js";
 import Button from "primevue/button";
 import Card from "primevue/card";
@@ -16,6 +17,7 @@ const FIELDS = ["email", "username", "fullName", "password"];
 const authStore = useAuthStore();
 const route = useRoute();
 const router = useRouter();
+const notify = useNotify();
 
 const banner = ref("");
 
@@ -30,6 +32,7 @@ const onSubmit = async (values, { setErrors }) => {
   });
 
   if (result.success) {
+    notify.success("Account created", `Welcome, ${authStore.userName}.`);
     await router.replace(safeRedirect(route.query.redirect));
     return;
   }
