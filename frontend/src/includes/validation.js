@@ -34,21 +34,23 @@ export default {
     });
 
     configure({
-      generateMessage: ctx => {
+      generateMessage: (ctx) => {
+        const label = ctx.label ?? ctx.field;
+        const param = ctx.rule?.params?.[0];
         const messages = {
-          required: "Required",
-          email: "Must be a valid email",
-          min: `Must be at least ${ctx.rule?.params?.[0]} characters`,
-          max: `Must be at most ${ctx.rule?.params?.[0]} characters`,
-          min_value: `Must be at least ${ctx.rule?.params?.[0]}`,
-          max_value: `Must be at most ${ctx.rule?.params?.[0]}`,
-          username_chars: "Latin letters, numbers, and underscores",
-          confirmed: "Passwords do not match",
-          different: "Must be different from the current password",
-          lte_field: "Must not exceed the maximum value",
-          latin_cyrillic_latvian: "Only English, Russian, and Latvian letters are allowed",
+          required: `${label} is required.`,
+          email: "Enter a valid email address.",
+          min: `${label} must be at least ${param} characters long.`,
+          max: `${label} must be at most ${param} characters long.`,
+          min_value: `${label} must be at least ${param}.`,
+          max_value: `${label} must be at most ${param}.`,
+          username_chars: "Username can only contain Latin letters, numbers and underscores.",
+          latin_cyrillic_latvian: `${label} can only contain Latin, Cyrillic and Latvian letters and spaces.`,
+          confirmed: "Passwords don't match.",
+          different: "New password must be different from the current password.",
+          lte_field: `${label} can't be greater than the maximum (${param}).`,
         };
-        return messages[ctx.rule.name] ? messages[ctx.rule.name] : "Field is invalid";
+        return messages[ctx.rule?.name] ?? `${label} is invalid.`;
       },
       validateOnBlur: true,
       validateOnChange: false,
