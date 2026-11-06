@@ -81,7 +81,7 @@ const fetchData = async () => {
   } catch (error) {
     console.error("Error fetching data:", error);
     loadError.value = "Failed to load data. Please try again.";
-    notify.error("Load Failed", "Could not load match data");
+    notify.error("Load Failed", "Could not load the match. Please try again.");
   } finally {
     isLoading.value = false;
   }
@@ -199,7 +199,7 @@ const submitRound = async (roundIndex) => {
   const roundState = roundStates.value[roundIndex];
 
   if (!roundState.selectedTopicId) {
-    notify.warn("Topic Required", "Select a topic before saving");
+    notify.warn("Topic Required", "Select a topic before saving.");
     return;
   }
 
@@ -261,14 +261,14 @@ const submitRound = async (roundIndex) => {
     }
 
     if (result.success) {
-      notify.success("Round Saved", `Round ${roundState.numberInMatch} saved successfully`);
+      notify.success("Round saved", `Round ${roundState.numberInMatch} was saved.`);
       await refreshMatchData();
     } else {
       notify.error("Save Failed", result.message);
     }
   } catch (error) {
     console.error("Error submitting round:", error);
-    notify.error("Save Failed", "Could not save round data");
+    notify.error("Save Failed", "Could not save the round. Please try again.");
   } finally {
     isProcessing.value = false;
   }
@@ -293,14 +293,14 @@ const deleteRound = async (roundIndex) => {
       roundState.numberInMatch,
     );
     if (result.success) {
-      notify.success("Round Deleted", `Round ${roundState.numberInMatch} removed`);
+      notify.success("Round deleted", `Round ${roundState.numberInMatch} was deleted.`);
       await refreshMatchData();
     } else {
       notify.error("Delete Failed", result.message);
     }
   } catch (error) {
     console.error("Error deleting round:", error);
-    notify.error("Delete Failed", "Could not remove round");
+    notify.error("Delete Failed", "Could not delete the round. Please try again.");
   } finally {
     isProcessing.value = false;
   }
