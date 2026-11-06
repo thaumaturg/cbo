@@ -6,7 +6,8 @@ import Button from "primevue/button";
 import Message from "primevue/message";
 import { useConfirm } from "primevue/useconfirm";
 import { topicAuthorsService } from "@/services/topic-authors-service.js";
-import { toFormErrors } from "@/utils/error.js";
+import { toFormFailure } from "@/utils/error.js";
+import { focusFirstInvalid } from "@/utils/focus.js";
 
 const props = defineProps({
   visible: {
@@ -31,6 +32,7 @@ const isLoadingAuthors = ref(false);
 const isAddingAuthor = ref(false);
 const addError = ref(null);
 const addFieldErrors = ref({});
+const addForm = ref(null);
 
 const roleOrder = {
   Owner: 0,
@@ -83,7 +85,8 @@ const fetchAuthors = async () => {
 const handleAddAuthor = async () => {
   if (!props.topic) return;
   if (!newUsername.value.trim()) {
-    addError.value = "Username is required.";
+    addError.value = null;
+    addFieldErrors.value = { username: "Username is required." };
     return;
   }
 
@@ -100,8 +103,9 @@ const handleAddAuthor = async () => {
       authors.value.push(result.data);
       resetForm();
     } else {
-      addError.value = result.error;
-      addFieldErrors.value = toFormErrors(result.errors, ["username"]);
+      const failure = toFormFailure(result, ["username"]);
+      addError.value = failure.banner || null;
+      addFieldErrors.value = failure.fieldErrors;
     }
   } catch (error) {
     addError.value = "An unexpected error occurred. Please try again.";
@@ -109,6 +113,9 @@ const handleAddAuthor = async () => {
   } finally {
     isAddingAuthor.value = false;
   }
+
+  // The input is disabled while adding, so focus it only once it is enabled again
+  await focusFirstInvalid(addForm.value);
 };
 
 const handleDeleteAuthor = (author) => {
@@ -183,7 +190,7 @@ watch(newUsername, () => {
     :style="{ width: '40rem' }"
   >
     <!-- Add Author Section -->
-    <div class="mb-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+    <div ref="addForm" class="mb-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
       <h3 class="text-lg font-semibold mb-4">Add Author</h3>
 
       <!-- Error Message -->

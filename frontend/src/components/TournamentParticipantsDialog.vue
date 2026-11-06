@@ -1,6 +1,7 @@
 <script setup>
 import { tournamentParticipantsService } from "@/services/tournament-participants-service.js";
-import { toFormErrors } from "@/utils/error.js";
+import { toFormFailure } from "@/utils/error.js";
+import { focusFirstInvalid } from "@/utils/focus.js";
 import { useNotify } from "@/utils/notify.js";
 import { isPreparationsStage } from "@/utils/tournament.js";
 import Button from "primevue/button";
@@ -43,6 +44,7 @@ const isAddingParticipant = ref(false);
 const isSavingSeeding = ref(false);
 const addError = ref(null);
 const addFieldErrors = ref({});
+const addForm = ref(null);
 
 const roleOrder = {
   Creator: 0,
@@ -132,7 +134,8 @@ const fetchParticipants = async () => {
 const handleAddParticipant = async () => {
   if (!props.tournament) return;
   if (!newUsername.value.trim()) {
-    addError.value = "Username is required.";
+    addError.value = null;
+    addFieldErrors.value = { username: "Username is required." };
     return;
   }
 
@@ -150,8 +153,9 @@ const handleAddParticipant = async () => {
       participants.value.push(result.data);
       resetForm();
     } else {
-      addError.value = result.error;
-      addFieldErrors.value = toFormErrors(result.errors, ["username", "role"]);
+      const failure = toFormFailure(result, ["username", "role"]);
+      addError.value = failure.banner || null;
+      addFieldErrors.value = failure.fieldErrors;
     }
   } catch (error) {
     addError.value = "An unexpected error occurred. Please try again.";
@@ -159,6 +163,9 @@ const handleAddParticipant = async () => {
   } finally {
     isAddingParticipant.value = false;
   }
+
+  // The inputs are disabled while adding, so focus them only once they are enabled again
+  await focusFirstInvalid(addForm.value);
 };
 
 const handleDeleteParticipant = (participant) => {
@@ -265,7 +272,11 @@ watch([newUsername, newRole], () => {
     :style="{ width: '40rem' }"
   >
     <!-- Add Participant Section (Only for Creator, during Preparations) -->
-    <div v-if="canManageParticipants" class="mb-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+    <div
+      v-if="canManageParticipants"
+      ref="addForm"
+      class="mb-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+    >
       <h3 class="text-lg font-semibold mb-4">Add Participant</h3>
 
       <!-- Error Message -->
