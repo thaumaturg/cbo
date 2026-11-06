@@ -1,6 +1,25 @@
 import { Form as VeeForm, Field as VeeField, ErrorMessage, defineRule, configure } from "vee-validate";
 import { required, email, min, max, regex, confirmed, min_value, max_value } from "@vee-validate/rules";
 
+/**
+ * Bind a `VeeField` to a PrimeVue input with eager validation: the field is first validated when
+ * the user leaves it, and once it is invalid, on every change until it is valid again. A server
+ * error set with `setErrors` counts as invalid, so it clears as soon as the value becomes valid.
+ * See ADR 0005; don't replace this with a global `validateOnInput: true`.
+ * Usage: `<VeeField name="title" label="Title" rules="…" v-slot="slot"><InputText v-bind="eager(slot)" /></VeeField>`
+ * @param {Object} slot - The `VeeField` slot props
+ * @returns {Object} - Props and listeners for a PrimeVue input
+ */
+export const eager = ({ value, errorMessage, handleChange, handleBlur, field }) => ({
+  modelValue: value,
+  "onUpdate:modelValue": (newValue) => handleChange(newValue, !!errorMessage),
+  // VeeField's slot `handleBlur` ignores the second argument and validates through the global
+  // `validateOnBlur` set below; `true` keeps this right for `useField`'s `handleBlur` too.
+  onBlur: (event) => handleBlur(event, true),
+  invalid: !!errorMessage,
+  name: field.name,
+});
+
 export default {
   install(app) {
     app.component("VeeForm", VeeForm);
@@ -52,6 +71,8 @@ export default {
         };
         return messages[ctx.rule?.name] ?? `${label} is invalid.`;
       },
+      // `eager()` relies on these: blur validates (VeeField's slot `handleBlur` reads this flag), while
+      // model updates don't, so typing validates only when `eager()` asks for it.
       validateOnBlur: true,
       validateOnChange: false,
       validateOnInput: false,
