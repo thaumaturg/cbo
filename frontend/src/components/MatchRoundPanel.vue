@@ -136,7 +136,7 @@ const fetchTopicDetails = async (topicId, { emitChanges = false, showErrors = fa
       topicDetailsLoadedForId.value = null;
 
       if (showErrors) {
-        notify.error("Topic Load Failed", result.error || "Failed to load questions");
+        notify.error("Topic Load Failed", result.message);
       }
       if (emitChanges) {
         emitUpdate({ questions: [] });

@@ -56,15 +56,15 @@ const fetchData = async () => {
     ]);
 
     if (!tournamentResult.success) {
-      loadError.value = tournamentResult.error;
-      notify.error("Tournament Load Failed", tournamentResult.error);
+      loadError.value = tournamentResult.message;
+      notify.error("Tournament Load Failed", tournamentResult.message);
       return;
     }
     currentUserRole.value = tournamentResult.data.currentUserRole;
 
     if (!matchResult.success) {
-      loadError.value = matchResult.error;
-      notify.error("Match Load Failed", matchResult.error);
+      loadError.value = matchResult.message;
+      notify.error("Match Load Failed", matchResult.message);
       return;
     }
     match.value = matchResult.data;
@@ -264,7 +264,7 @@ const submitRound = async (roundIndex) => {
       notify.success("Round Saved", `Round ${roundState.numberInMatch} saved successfully`);
       await refreshMatchData();
     } else {
-      notify.error("Save Failed", result.error);
+      notify.error("Save Failed", result.message);
     }
   } catch (error) {
     console.error("Error submitting round:", error);
@@ -296,7 +296,7 @@ const deleteRound = async (roundIndex) => {
       notify.success("Round Deleted", `Round ${roundState.numberInMatch} removed`);
       await refreshMatchData();
     } else {
-      notify.error("Delete Failed", result.error);
+      notify.error("Delete Failed", result.message);
     }
   } catch (error) {
     console.error("Error deleting round:", error);

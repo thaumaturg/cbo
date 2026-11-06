@@ -35,8 +35,8 @@ const fetchTournament = async () => {
     if (result.success) {
       tournament.value = result.data;
     } else {
-      loadError.value = result.error;
-      notify.error("Tournament Load Failed", result.error);
+      loadError.value = result.message;
+      notify.error("Tournament Load Failed", result.message);
     }
   } catch (error) {
     console.error("Error fetching tournament:", error);
@@ -60,8 +60,8 @@ const fetchMatches = async () => {
     if (result.success) {
       matches.value = result.data;
     } else {
-      console.error("Failed to fetch matches:", result.error);
-      notify.error("Matches Load Failed", result.error);
+      console.error("Failed to fetch matches:", result.message);
+      notify.error("Matches Load Failed", result.message);
     }
   } catch (error) {
     console.error("Error fetching matches:", error);
@@ -84,7 +84,7 @@ const fetchParticipants = async () => {
     if (result.success) {
       participants.value = result.data;
     } else {
-      console.error("Failed to fetch participants:", result.error);
+      console.error("Failed to fetch participants:", result.message);
     }
   } catch (error) {
     console.error("Error fetching participants:", error);

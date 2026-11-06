@@ -140,7 +140,7 @@ const fetchAssignedTopics = async () => {
     if (result.success) {
       assignedTopics.value = buildListFromDtos(result.data);
     } else {
-      error.value = result.error;
+      error.value = result.message;
     }
   } catch (err) {
     error.value = "Failed to load assigned topics. Please try again.";
@@ -158,7 +158,7 @@ const fetchOwnedTopics = async () => {
     if (result.success) {
       ownedTopics.value = result.data;
     } else {
-      console.error("Failed to load owned topics:", result.error);
+      console.error("Failed to load owned topics:", result.message);
     }
   } catch (err) {
     console.error("Error fetching owned topics:", err);
@@ -224,7 +224,7 @@ const saveTopics = async () => {
       assignedTopics.value = buildListFromDtos(result.data);
       hasChanges.value = false;
     } else {
-      error.value = result.error;
+      error.value = result.message;
     }
   } catch (err) {
     error.value = "An unexpected error occurred. Please try again.";

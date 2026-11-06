@@ -172,7 +172,7 @@ const fetchTopicData = async () => {
         }));
       }
     } else {
-      notify.error("Load Failed", result.error || "Could not load topic data");
+      notify.error("Load Failed", result.message);
       router.push("/");
     }
   } catch (error) {
