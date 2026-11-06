@@ -1,22 +1,23 @@
 <script setup>
 import { useAuthStore } from "@/stores/auth";
-import { useAuthDialogStore } from "@/stores/auth-dialog";
+import { keepRedirect } from "@/utils/redirect.js";
 import Button from "primevue/button";
 import Menubar from "primevue/menubar";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 
-const authDialogStore = useAuthDialogStore();
 const authStore = useAuthStore();
+const route = useRoute();
+const router = useRouter();
 
 const items = [
   // We can add more navigation items here later
 ];
 
-const toggleAuthModal = () => {
-  authDialogStore.toggle();
-};
-
 const handleLogout = () => {
   authStore.logout();
+  if (route.meta.requiresAuth) {
+    router.push({ name: "home" });
+  }
 };
 </script>
 
@@ -26,8 +27,23 @@ const handleLogout = () => {
       <RouterLink :to="{ name: 'home' }" class="text-xl font-bold">Competitive Bracket Organizer</RouterLink>
     </template>
     <template #end>
-      <div v-if="!authStore.isAuthenticated">
-        <Button label="Login/Register" severity="primary" outlined @click="toggleAuthModal" />
+      <div v-if="!authStore.isAuthenticated" class="flex items-center gap-2">
+        <RouterLink
+          v-if="route.name !== 'login'"
+          :to="{ name: 'login', query: keepRedirect(route.query) }"
+          custom
+          v-slot="{ href, navigate }"
+        >
+          <Button as="a" :href="href" label="Log in" @click="navigate" />
+        </RouterLink>
+        <RouterLink
+          v-if="route.name !== 'register'"
+          :to="{ name: 'register', query: keepRedirect(route.query) }"
+          custom
+          v-slot="{ href, navigate }"
+        >
+          <Button as="a" :href="href" label="Register" outlined @click="navigate" />
+        </RouterLink>
       </div>
       <div v-else class="flex items-center gap-3">
         <RouterLink :to="{ name: 'profile' }" class="text-xl font-bold hover:underline" v-tooltip.bottom="'Profile'">

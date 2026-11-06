@@ -1,7 +1,9 @@
 import { useAuthStore } from "@/stores/auth.js";
 import HomeView from "@/views/HomeView.vue";
+import LoginView from "@/views/LoginView.vue";
 import MatchView from "@/views/MatchView.vue";
 import ProfileView from "@/views/ProfileView.vue";
+import RegisterView from "@/views/RegisterView.vue";
 import TopicView from "@/views/TopicView.vue";
 import TournamentView from "@/views/TournamentView.vue";
 import { createRouter, createWebHistory } from "vue-router";
@@ -13,6 +15,18 @@ const router = createRouter({
       path: "/",
       name: "home",
       component: HomeView,
+    },
+    {
+      path: "/login",
+      name: "login",
+      component: LoginView,
+      meta: { guestOnly: true },
+    },
+    {
+      path: "/register",
+      name: "register",
+      component: RegisterView,
+      meta: { guestOnly: true },
     },
     {
       path: "/profile",
@@ -51,15 +65,15 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth) {
-    const authStore = useAuthStore();
-    if (!authStore.isAuthenticated) {
-      next({ name: "home", query: { authRequired: "true" } });
-      return;
-    }
+router.beforeEach((to) => {
+  const authStore = useAuthStore();
+
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    return { name: "login", query: { redirect: to.fullPath } };
   }
-  next();
+  if (to.meta.guestOnly && authStore.isAuthenticated) {
+    return { name: "home" };
+  }
 });
 
 export default router;
