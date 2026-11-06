@@ -204,7 +204,7 @@ const fetchTopicData = async () => {
     }
   } catch (error) {
     console.error("Error fetching topic:", error);
-    notify.error("Load Failed", "Unexpected error while loading topic");
+    notify.error("Load Failed", "Could not load the topic. Please try again.");
     router.push("/");
   } finally {
     isLoading.value = false;
@@ -229,10 +229,6 @@ const handlePaste = (event) => {
   if (firstRowCols !== 4 && firstRowCols !== 3) return;
 
   const maxQuestions = TOPIC_LIMITS.questionsPerTopicMax;
-  if (rows.length > maxQuestions) {
-    notify.warn("Too Many Rows", `Only the first ${maxQuestions} rows were imported`);
-  }
-
   const rowsToProcess = rows.slice(0, maxQuestions);
 
   questions.value = rowsToProcess.map((row, index) => {
@@ -263,14 +259,13 @@ const handlePaste = (event) => {
   });
 
   questionErrors.value = {};
-
-  importSuccess(event);
-};
-
-const importSuccess = (event) => {
-  notify.success("Import Complete", "Questions pasted from clipboard");
-
   event.preventDefault();
+
+  if (rows.length > maxQuestions) {
+    notify.warn("Too Many Rows", `Only the first ${maxQuestions} rows were imported.`);
+  } else {
+    notify.success("Questions imported", "Questions were pasted from the clipboard.");
+  }
 };
 
 const onInvalidSubmit = () => {
@@ -312,7 +307,8 @@ const onSubmit = async (values, { setErrors }) => {
 
     if (result.success) {
       formStatus.value = "idle";
-      notify.success(isEditMode.value ? "Topic Updated" : "Topic Created", `"${topicData.title}" saved`);
+      const verb = isEditMode.value ? "updated" : "created";
+      notify.success(`Topic ${verb}`, `"${topicData.title}" was ${verb}.`);
       router.push("/");
     } else {
       const questionFields = Object.keys(result.errors ?? {}).filter((field) => SERVER_QUESTION_FIELD.test(field));
@@ -516,7 +512,7 @@ const onSubmit = async (values, { setErrors }) => {
 
       <!-- Status Messages -->
       <div v-if="formStatus === 'loading'" class="mb-4">
-        <Message severity="info">{{ isEditMode ? "Updating" : "Creating" }} topic, please wait...</Message>
+        <Message severity="info">{{ isEditMode ? "Updating" : "Creating" }} the topic, please wait.</Message>
       </div>
       <div v-if="formStatus === 'error' && generalError" class="mb-4">
         <Message severity="error">{{ generalError }}</Message>
