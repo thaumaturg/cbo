@@ -25,9 +25,9 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/RegisterResponse"
                 }
               }
             }
@@ -3383,6 +3383,17 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "RegisterResponse": {
+        "required": [
+          "jwtToken"
+        ],
+        "type": "object",
+        "properties": {
+          "jwtToken": {
+            "type": "string"
           }
         }
       },
