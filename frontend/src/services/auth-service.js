@@ -11,13 +11,13 @@ const CLOCK_SKEW_MS = 60 * 1000;
 
 export const authService = {
   /**
-   * Register a new user
+   * Register a new account and store the received JWT, so registering also logs in.
    * @param {Object} userData - User registration data
    * @param {string} userData.email - User email
    * @param {string} userData.username - Username
    * @param {string} userData.password - Password
    * @param {string} userData.fullName - Full name (optional)
-   * @returns {Promise} - Registration response
+   * @returns {Promise} - Registration response with token
    */
   async register(userData) {
     try {
@@ -27,6 +27,11 @@ export const authService = {
         username: userData.username,
         fullName: userData.fullName,
       });
+
+      if (!this.storeToken(response.data?.jwtToken)) {
+        return clientFailure("Your account was created, but you couldn't be logged in. Log in to continue.");
+      }
+
       return { success: true, data: response.data };
     } catch (error) {
       return apiFailure(error, "Registration failed. Please try again.");
@@ -34,16 +39,16 @@ export const authService = {
   },
 
   /**
-   * Login user and store the received JWT.
+   * Log in and store the received JWT.
    * @param {Object} credentials - Login credentials
-   * @param {string} credentials.email - User email
+   * @param {string} credentials.usernameOrEmail - Username or email
    * @param {string} credentials.password - User password
    * @returns {Promise} - Login response with token
    */
   async login(credentials) {
     try {
       const response = await api.post("/Auth/Login", {
-        email: credentials.email,
+        usernameOrEmail: credentials.usernameOrEmail,
         password: credentials.password,
       });
 

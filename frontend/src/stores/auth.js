@@ -20,7 +20,6 @@ function mapClaimsToUser(claims) {
 export const useAuthStore = defineStore("auth", () => {
   const user = ref(null);
   const isLoading = ref(false);
-  const error = ref(null);
 
   const isAuthenticated = computed(() => !!user.value);
   const userEmail = computed(() => user.value?.email || null);
@@ -28,31 +27,28 @@ export const useAuthStore = defineStore("auth", () => {
   const userFullName = computed(() => user.value?.fullName || null);
   const isEmailVerified = computed(() => user.value?.emailVerified || false);
 
+  function setUserFromToken() {
+    const claims = authService.getCurrentUser();
+    if (!claims) return false;
+
+    user.value = mapClaimsToUser(claims);
+    return true;
+  }
+
   async function login(credentials) {
     isLoading.value = true;
-    error.value = null;
 
     try {
       const result = await authService.login(credentials);
+      if (!result.success) return result;
 
-      if (!result.success) {
-        error.value = result.error;
-        return result;
+      if (!setUserFromToken()) {
+        return clientFailure("You couldn't be logged in. Please try again.");
       }
-
-      const claims = authService.getCurrentUser();
-      if (!claims) {
-        error.value = "Login failed: could not establish a session.";
-        return clientFailure(error.value);
-      }
-
-      user.value = mapClaimsToUser(claims);
       return { success: true };
     } catch (err) {
       console.error("Login error:", err);
-      const failure = apiFailure(err, "An unexpected error occurred during login.");
-      error.value = failure.error;
-      return failure;
+      return apiFailure(err, "An unexpected error occurred during login.");
     } finally {
       isLoading.value = false;
     }
@@ -60,22 +56,18 @@ export const useAuthStore = defineStore("auth", () => {
 
   async function register(userData) {
     isLoading.value = true;
-    error.value = null;
 
     try {
       const result = await authService.register(userData);
+      if (!result.success) return result;
 
-      if (result.success) {
-        return { success: true };
-      } else {
-        error.value = result.error;
-        return result;
+      if (!setUserFromToken()) {
+        return clientFailure("Your account was created, but you couldn't be logged in. Log in to continue.");
       }
+      return { success: true };
     } catch (err) {
       console.error("Registration error:", err);
-      const failure = apiFailure(err, "An unexpected error occurred during registration.");
-      error.value = failure.error;
-      return failure;
+      return apiFailure(err, "An unexpected error occurred during registration.");
     } finally {
       isLoading.value = false;
     }
@@ -84,24 +76,15 @@ export const useAuthStore = defineStore("auth", () => {
   function logout() {
     authService.logout();
     user.value = null;
-    error.value = null;
-  }
-
-  function clearError() {
-    error.value = null;
   }
 
   function initializeAuth() {
-    const claims = authService.getCurrentUser();
-    if (claims) {
-      user.value = mapClaimsToUser(claims);
-    }
+    setUserFromToken();
   }
 
   return {
     user,
     isLoading,
-    error,
 
     isAuthenticated,
     userEmail,
@@ -112,7 +95,6 @@ export const useAuthStore = defineStore("auth", () => {
     login,
     register,
     logout,
-    clearError,
     initializeAuth,
   };
 });
