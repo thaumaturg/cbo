@@ -149,7 +149,7 @@ const fetchTopicDetails = async (topicId, { emitChanges = false, showErrors = fa
     topicDetailsLoadedForId.value = null;
 
     if (showErrors) {
-      notify.error("Topic Load Failed", "Failed to load questions");
+      notify.error("Topic Load Failed", "Could not load the questions. Please try again.");
     }
     if (emitChanges) {
       emitUpdate({ questions: [] });
@@ -187,7 +187,7 @@ const setAnswerValue = (questionId, participantId, value) => {
     );
 
     if (existingCorrectKey) {
-      notify.warn("Invalid Selection", "Only one correct answer per question");
+      notify.warn("Invalid Selection", "Each question can have only one correct answer.");
       return;
     }
   }

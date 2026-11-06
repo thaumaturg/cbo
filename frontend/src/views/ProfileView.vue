@@ -32,7 +32,7 @@ const onLogoutEverywhere = async () => {
 
     if (result.success) {
       authStore.logout();
-      notify.success("Logged Out Everywhere", "You have been logged out on all devices.");
+      notify.success("Logged out everywhere", "You have been logged out on all devices.");
       await router.push({ name: "home" });
     } else {
       notify.error("Logout Failed", result.message);
@@ -53,7 +53,7 @@ const onChangePasswordSubmit = async (values, { resetForm, setErrors }) => {
     });
 
     if (result.success) {
-      notify.success("Password Changed", "Your password has been updated.");
+      notify.success("Password changed", "Your password has been changed.");
       resetForm();
     } else {
       const failure = toFormFailure(result, PASSWORD_FIELDS);

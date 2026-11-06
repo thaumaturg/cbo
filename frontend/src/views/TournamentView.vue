@@ -41,7 +41,7 @@ const fetchTournament = async () => {
   } catch (error) {
     console.error("Error fetching tournament:", error);
     loadError.value = "Failed to load tournament. Please try again.";
-    notify.error("Tournament Load Failed", "Could not load tournament data");
+    notify.error("Tournament Load Failed", "Could not load the tournament. Please try again.");
   } finally {
     isLoadingTournament.value = false;
   }
@@ -65,7 +65,7 @@ const fetchMatches = async () => {
     }
   } catch (error) {
     console.error("Error fetching matches:", error);
-    notify.error("Matches Load Failed", "Could not load match list");
+    notify.error("Matches Load Failed", "Could not load the matches. Please try again.");
   } finally {
     isLoadingMatches.value = false;
   }

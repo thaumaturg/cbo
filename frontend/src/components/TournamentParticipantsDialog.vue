@@ -188,7 +188,7 @@ const handleDeleteParticipant = (participant) => {
         const result = await tournamentParticipantsService.deleteParticipant(props.tournament.id, participant.id);
 
         if (result.success) {
-          notify.success("Participant Removed", `"${participant.username}" removed from tournament`);
+          notify.success("Participant removed", `"${participant.username}" was removed from the tournament.`);
           await fetchParticipants();
         } else {
           notify.error("Remove Failed", result.message);
