@@ -1,6 +1,8 @@
 <script setup>
+import { eager } from "@/includes/validation.js";
 import { tournamentService } from "@/services/tournament-service.js";
-import { toFormErrors } from "@/utils/error.js";
+import { toFormFailure } from "@/utils/error.js";
+import { focusFirstInvalid } from "@/utils/focus.js";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import InputNumber from "primevue/inputnumber";
@@ -113,15 +115,19 @@ const onSubmit = async (values, { setErrors }) => {
         emit("tournament-updated", result.data);
       }
     } else {
+      const failure = toFormFailure(result, FORM_FIELDS);
       formStatus.value = "error";
-      generalError.value = result.error;
-      setErrors(toFormErrors(result.errors, FORM_FIELDS));
+      generalError.value = failure.banner;
+      setErrors(failure.fieldErrors);
+      await focusFirstInvalid(veeFormRef.value?.$el);
     }
   } catch {
     formStatus.value = "error";
     generalError.value = "An unexpected error occurred. Please try again.";
   }
 };
+
+const onInvalidSubmit = () => focusFirstInvalid(veeFormRef.value?.$el);
 </script>
 
 <template>
@@ -133,7 +139,7 @@ const onSubmit = async (values, { setErrors }) => {
     :draggable="false"
     :style="{ width: '50rem' }"
   >
-    <VeeForm ref="veeFormRef" :initial-values="initialValues" @submit="onSubmit">
+    <VeeForm ref="veeFormRef" :initial-values="initialValues" @submit="onSubmit" @invalid-submit="onInvalidSubmit">
       <!-- Basic Information -->
       <div class="mb-6">
         <h3 class="text-lg font-semibold mb-4">Basic Information</h3>
@@ -142,12 +148,12 @@ const onSubmit = async (values, { setErrors }) => {
         <div class="flex flex-col gap-1 mb-4">
           <div class="flex items-center gap-4">
             <label for="title" class="font-semibold w-40">Title *</label>
-            <VeeField name="title" rules="required|min:3|max:100" v-slot="{ field }">
-              <InputText v-bind="field" id="title" class="flex-auto" />
+            <VeeField name="title" label="Title" rules="required|min:3|max:100" v-slot="slot">
+              <InputText v-bind="eager(slot)" id="title" class="flex-auto" />
             </VeeField>
           </div>
           <ErrorMessage name="title" v-slot="{ message }">
-            <Message severity="error">{{ message }}</Message>
+            <Message severity="error" variant="simple">{{ message }}</Message>
           </ErrorMessage>
         </div>
 
@@ -155,12 +161,12 @@ const onSubmit = async (values, { setErrors }) => {
         <div class="flex flex-col gap-1 mb-4">
           <div class="flex items-start gap-4">
             <label for="description" class="font-semibold w-40 pt-2">Description</label>
-            <VeeField name="description" rules="max:500" v-slot="{ field }">
-              <Textarea v-bind="field" id="description" class="flex-auto" rows="3" />
+            <VeeField name="description" label="Description" rules="max:500" v-slot="slot">
+              <Textarea v-bind="eager(slot)" id="description" class="flex-auto" rows="3" />
             </VeeField>
           </div>
           <ErrorMessage name="description" v-slot="{ message }">
-            <Message severity="error">{{ message }}</Message>
+            <Message severity="error" variant="simple">{{ message }}</Message>
           </ErrorMessage>
         </div>
       </div>
@@ -173,10 +179,9 @@ const onSubmit = async (values, { setErrors }) => {
           <!-- Players Per Tournament -->
           <div class="flex flex-col gap-1">
             <label for="playersPerTournament" class="font-semibold text-sm">Players Per Tournament</label>
-            <VeeField name="playersPerTournament" v-slot="{ value, handleChange }">
+            <VeeField name="playersPerTournament" label="Players per tournament" v-slot="slot">
               <InputNumber
-                :modelValue="value"
-                @update:modelValue="handleChange"
+                v-bind="eager(slot)"
                 inputId="playersPerTournament"
                 :min="14"
                 :max="14"
@@ -185,7 +190,7 @@ const onSubmit = async (values, { setErrors }) => {
               />
             </VeeField>
             <ErrorMessage name="playersPerTournament" v-slot="{ message }">
-              <Message severity="error">{{ message }}</Message>
+              <Message severity="error" variant="simple">{{ message }}</Message>
             </ErrorMessage>
           </div>
 
@@ -194,20 +199,14 @@ const onSubmit = async (values, { setErrors }) => {
             <label for="topicsPerParticipantMin" class="font-semibold text-sm">Topics Per Participant Min</label>
             <VeeField
               name="topicsPerParticipantMin"
+              label="Minimum topics per participant"
               rules="required|min_value:0|max_value:20|lte_field:@topicsPerParticipantMax"
-              v-slot="{ value, handleChange }"
+              v-slot="slot"
             >
-              <InputNumber
-                :modelValue="value"
-                @update:modelValue="handleChange"
-                inputId="topicsPerParticipantMin"
-                :min="0"
-                :max="20"
-                showButtons
-              />
+              <InputNumber v-bind="eager(slot)" inputId="topicsPerParticipantMin" :min="0" :max="20" showButtons />
             </VeeField>
             <ErrorMessage name="topicsPerParticipantMin" v-slot="{ message }">
-              <Message severity="error">{{ message }}</Message>
+              <Message severity="error" variant="simple">{{ message }}</Message>
             </ErrorMessage>
           </div>
 
@@ -216,20 +215,14 @@ const onSubmit = async (values, { setErrors }) => {
             <label for="topicsPerParticipantMax" class="font-semibold text-sm">Topics Per Participant Max</label>
             <VeeField
               name="topicsPerParticipantMax"
+              label="Maximum topics per participant"
               rules="required|min_value:0|max_value:20"
-              v-slot="{ value, handleChange }"
+              v-slot="slot"
             >
-              <InputNumber
-                :modelValue="value"
-                @update:modelValue="handleChange"
-                inputId="topicsPerParticipantMax"
-                :min="0"
-                :max="20"
-                showButtons
-              />
+              <InputNumber v-bind="eager(slot)" inputId="topicsPerParticipantMax" :min="0" :max="20" showButtons />
             </VeeField>
             <ErrorMessage name="topicsPerParticipantMax" v-slot="{ message }">
-              <Message severity="error">{{ message }}</Message>
+              <Message severity="error" variant="simple">{{ message }}</Message>
             </ErrorMessage>
           </div>
         </div>
