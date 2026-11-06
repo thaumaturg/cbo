@@ -1,5 +1,6 @@
 <script setup>
 import { useAuthStore } from "@/stores/auth";
+import { useNotify } from "@/utils/notify.js";
 import { keepRedirect } from "@/utils/redirect.js";
 import Button from "primevue/button";
 import Menubar from "primevue/menubar";
@@ -8,6 +9,7 @@ import { RouterLink, useRoute, useRouter } from "vue-router";
 const authStore = useAuthStore();
 const route = useRoute();
 const router = useRouter();
+const notify = useNotify();
 
 const items = [
   // We can add more navigation items here later
@@ -15,6 +17,7 @@ const items = [
 
 const handleLogout = () => {
   authStore.logout();
+  notify.success("Logged out", "You have been logged out.");
   if (route.meta.requiresAuth) {
     router.push({ name: "home" });
   }
