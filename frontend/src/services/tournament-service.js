@@ -107,7 +107,7 @@ export const tournamentService = {
       });
       return { success: true, data: response.data };
     } catch (error) {
-      return apiFailure(error, "Failed to advance tournament stage. Please try again.");
+      return apiFailure(error, "Failed to change the tournament stage. Please try again.");
     }
   },
 };

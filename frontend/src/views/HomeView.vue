@@ -113,7 +113,7 @@ const handleTournamentStart = (tournament) => {
 
   const tournamentTitle = tournament.title;
   confirm.require({
-    message: `Are you sure you want to start "${tournamentTitle}"? This will advance the tournament to the Qualifications stage.`,
+    message: `Are you sure you want to start "${tournamentTitle}"? Its qualification matches will be generated.`,
     header: "Start Tournament",
     icon: "pi pi-exclamation-triangle",
     rejectProps: { label: "Cancel", severity: "secondary", outlined: true },
@@ -128,7 +128,7 @@ const handleTournamentStart = (tournament) => {
           tournaments.value[index] = { ...tournaments.value[index], ...result.data };
         }
 
-        notify.success("Tournament Started", `"${tournamentTitle}" advanced to Qualifications`);
+        notify.success("Tournament started", `"${tournamentTitle}" has started.`);
 
         // Background validation - ensure UI is in sync
         await fetchTournaments();
@@ -167,7 +167,7 @@ const handleTournamentDelete = (tournament) => {
         // Re-fetch to restore the tournament if deletion failed
         await fetchTournaments();
       } else {
-        notify.success("Tournament Deleted", `"${tournamentTitle}" removed`);
+        notify.success("Tournament deleted", `"${tournamentTitle}" was deleted.`);
         // Background validation - ensure UI is in sync
         await fetchTournaments();
       }
@@ -207,7 +207,7 @@ const handleTopicDelete = (topic) => {
         // Re-fetch to restore the topic if deletion failed
         await fetchTopics();
       } else {
-        notify.success("Topic Deleted", `"${topicTitle}" removed`);
+        notify.success("Topic deleted", `"${topicTitle}" was deleted.`);
         // Background validation - ensure UI is in sync
         await fetchTopics();
       }
@@ -229,7 +229,7 @@ const handleTournamentCreated = async (newTournament) => {
   // Step 1: OPTIMISTIC UPDATE - immediately add to UI for instant feedback
   tournaments.value.unshift(newTournament);
 
-  notify.success("Tournament Created", `"${newTournament.title}" ready`);
+  notify.success("Tournament created", `"${newTournament.title}" was created.`);
   showTournamentDialog.value = false;
 
   // Step 2: BACKGROUND VALIDATION - fetch from backend to ensure data consistency
@@ -240,7 +240,7 @@ const handleTournamentCreated = async (newTournament) => {
     }
   } catch (error) {
     console.error("Failed to sync tournaments after creation:", error);
-    notify.warn("Sync Issue", "Created but sync failed. Refresh page.");
+    notify.warn("Sync Issue", "The tournament was created, but the list couldn't be refreshed. Reload the page.");
   }
 };
 
@@ -255,7 +255,7 @@ const handleTournamentUpdated = async (updatedTournament) => {
     tournaments.value[index] = updatedTournament;
   }
 
-  notify.success("Tournament Updated", `"${updatedTournament.title}" saved`);
+  notify.success("Tournament updated", `"${updatedTournament.title}" was updated.`);
   showTournamentDialog.value = false;
 
   // Step 2: BACKGROUND VALIDATION - fetch from backend to ensure data consistency
@@ -266,7 +266,7 @@ const handleTournamentUpdated = async (updatedTournament) => {
     }
   } catch (error) {
     console.error("Failed to sync tournaments after update:", error);
-    notify.warn("Sync Issue", "Updated but sync failed. Refresh the page.");
+    notify.warn("Sync Issue", "The tournament was updated, but the list couldn't be refreshed. Reload the page.");
   }
 };
 </script>
