@@ -29,7 +29,7 @@ const onLogoutEverywhere = async () => {
       notify.success("Logged Out Everywhere", "You have been logged out on all devices.");
       await router.push({ name: "home" });
     } else {
-      notify.error("Logout Failed", result.error);
+      notify.error("Logout Failed", result.message);
     }
   } finally {
     isLoggingOutEverywhere.value = false;

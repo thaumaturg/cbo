@@ -1,5 +1,5 @@
 import { authService } from "@/services/auth-service.js";
-import { apiFailure } from "@/utils/error.js";
+import { apiFailure, clientFailure } from "@/utils/error.js";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
@@ -43,7 +43,7 @@ export const useAuthStore = defineStore("auth", () => {
       const claims = authService.getCurrentUser();
       if (!claims) {
         error.value = "Login failed: could not establish a session.";
-        return { success: false, error: error.value, errors: {} };
+        return clientFailure(error.value);
       }
 
       user.value = mapClaimsToUser(claims);

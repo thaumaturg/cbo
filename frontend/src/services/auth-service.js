@@ -1,6 +1,6 @@
 import { jwtDecode } from "jwt-decode";
 import api from "./api-interceptors.js";
-import { apiFailure } from "@/utils/error.js";
+import { apiFailure, clientFailure } from "@/utils/error.js";
 
 const TOKEN_KEY = "auth_token";
 
@@ -49,11 +49,7 @@ export const authService = {
 
       const token = response.data?.jwtToken;
       if (!this.storeToken(token)) {
-        return {
-          success: false,
-          error: "Received an invalid token from the server. Please try again.",
-          errors: {},
-        };
+        return clientFailure("Received an invalid token from the server. Please try again.");
       }
 
       return { success: true, data: response.data };
@@ -78,11 +74,7 @@ export const authService = {
       });
 
       if (!this.storeToken(response.data?.jwtToken)) {
-        return {
-          success: false,
-          error: "Your password was changed, but the session could not be renewed. Please log in again.",
-          errors: {},
-        };
+        return clientFailure("Your password was changed, but the session could not be renewed. Please log in again.");
       }
 
       return { success: true };

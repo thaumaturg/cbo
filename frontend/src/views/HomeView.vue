@@ -45,7 +45,7 @@ const fetchTournaments = async () => {
     if (result.success) {
       tournaments.value = result.data;
     } else {
-      console.error("Failed to fetch tournaments:", result.error);
+      console.error("Failed to fetch tournaments:", result.message);
     }
   } catch (error) {
     console.error("Error fetching tournaments:", error);
@@ -65,7 +65,7 @@ const fetchTopics = async () => {
     if (result.success) {
       topics.value = result.data;
     } else {
-      console.error("Failed to fetch topics:", result.error);
+      console.error("Failed to fetch topics:", result.message);
     }
   } catch (error) {
     console.error("Error fetching topics:", error);
@@ -142,8 +142,8 @@ const handleTournamentStart = (tournament) => {
         // Background validation - ensure UI is in sync
         await fetchTournaments();
       } else {
-        console.error("Failed to start tournament:", result.error);
-        notify.error("Start Failed", result.error);
+        console.error("Failed to start tournament:", result.message);
+        notify.error("Start Failed", result.message);
       }
     },
   });
@@ -171,8 +171,8 @@ const handleTournamentDelete = (tournament) => {
       const result = await tournamentService.deleteTournament(tournament.id);
 
       if (!result.success) {
-        console.error("Failed to delete tournament:", result.error);
-        notify.error("Delete Failed", result.error);
+        console.error("Failed to delete tournament:", result.message);
+        notify.error("Delete Failed", result.message);
         // Re-fetch to restore the tournament if deletion failed
         await fetchTournaments();
       } else {
@@ -211,8 +211,8 @@ const handleTopicDelete = (topic) => {
       const result = await topicService.deleteTopic(topic.id);
 
       if (!result.success) {
-        console.error("Failed to delete topic:", result.error);
-        notify.error("Delete Failed", result.error);
+        console.error("Failed to delete topic:", result.message);
+        notify.error("Delete Failed", result.message);
         // Re-fetch to restore the topic if deletion failed
         await fetchTopics();
       } else {

@@ -70,7 +70,7 @@ const fetchAuthors = async () => {
     if (result.success) {
       authors.value = result.data;
     } else {
-      addError.value = result.error;
+      addError.value = result.message;
     }
   } catch (error) {
     addError.value = "Failed to load authors. Please try again.";
@@ -136,7 +136,7 @@ const handleDeleteAuthor = (author) => {
             authors.value.splice(index, 1);
           }
         } else {
-          addError.value = result.error;
+          addError.value = result.message;
         }
       } catch (error) {
         addError.value = "An unexpected error occurred. Please try again.";

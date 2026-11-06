@@ -119,7 +119,7 @@ const fetchParticipants = async () => {
     if (result.success) {
       participants.value = result.data;
     } else {
-      addError.value = result.error;
+      addError.value = result.message;
     }
   } catch (error) {
     addError.value = "Failed to load participants. Please try again.";
@@ -184,7 +184,7 @@ const handleDeleteParticipant = (participant) => {
           notify.success("Participant Removed", `"${participant.username}" removed from tournament`);
           await fetchParticipants();
         } else {
-          notify.error("Remove Failed", result.error);
+          notify.error("Remove Failed", result.message);
         }
       } catch (error) {
         notify.error("Remove Failed", "An unexpected error occurred. Please try again.");
@@ -213,7 +213,7 @@ const handleRowReorder = async (event) => {
       const playersById = new Map(result.data.map((p) => [p.id, p]));
       participants.value = participants.value.map((p) => playersById.get(p.id) ?? p);
     } else {
-      notify.error("Seeding Update Failed", result.error);
+      notify.error("Seeding Update Failed", result.message);
       await fetchParticipants();
     }
   } catch (error) {
