@@ -47,9 +47,10 @@ export const getApiErrorMessage = (error, fallback = DEFAULT_FALLBACK) => {
  * - `message` is `error` followed by every field message, for callers that only have a toast,
  *   a load-error banner or the console and no fields of their own.
  * - `errors` lets forms show each field's messages next to that field.
+ * - `status` is the HTTP status, or undefined when no response arrived.
  * @param {unknown} error - Error thrown by the axios instance
  * @param {string} [fallback] - Message used when the response has nothing readable
- * @returns {{ success: false, error: string, message: string, errors: Record<string, string[]> }}
+ * @returns {{ success: false, error: string, message: string, errors: Record<string, string[]>, status: number | undefined }}
  */
 export const apiFailure = (error, fallback = DEFAULT_FALLBACK) => {
   const formMessage = getApiErrorMessage(error, fallback);
@@ -60,6 +61,7 @@ export const apiFailure = (error, fallback = DEFAULT_FALLBACK) => {
     error: formMessage,
     message: [formMessage, ...Object.values(errors).flat()].join(" "),
     errors,
+    status: error?.response?.status,
   };
 };
 
