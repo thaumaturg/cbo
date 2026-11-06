@@ -289,7 +289,7 @@ const handleTournamentUpdated = async (updatedTournament) => {
       <div class="text-gray-500 dark:text-gray-400">
         <i class="pi pi-lock text-5xl mb-4 block"></i>
         <p class="text-xl mb-2">Please log in to continue</p>
-        <p class="text-sm">Sign in to view and manage your tournaments and topics</p>
+        <p class="text-sm">Log in to view and manage your tournaments and topics.</p>
       </div>
     </div>
 
