@@ -3026,12 +3026,12 @@
       },
       "LoginRequest": {
         "required": [
-          "email",
+          "usernameOrEmail",
           "password"
         ],
         "type": "object",
         "properties": {
-          "email": {
+          "usernameOrEmail": {
             "type": "string"
           },
           "password": {

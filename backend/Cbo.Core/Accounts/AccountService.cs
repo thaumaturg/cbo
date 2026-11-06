@@ -95,9 +95,21 @@ public class AccountService(
 
     public async Task<Result<LoginResponse>> LoginAsync(LoginRequest loginRequest)
     {
-        ApplicationUser? user = await _userManager.FindByEmailAsync(loginRequest.Email);
+        // Until request validation moves to FluentValidation
+        List<FieldError> emptyFields = [];
+        if (string.IsNullOrWhiteSpace(loginRequest.UsernameOrEmail))
+            emptyFields.Add(new FieldError("usernameOrEmail", "Enter your username or email."));
+        if (string.IsNullOrWhiteSpace(loginRequest.Password))
+            emptyFields.Add(new FieldError("password", "Enter your password."));
+        if (emptyFields.Count > 0)
+            return Failure.Invalid("Some of the login data is invalid.", emptyFields);
+
+        // Usernames can't contain '@' (AccountIdentityOptions), so an identifier with '@' is always an email
+        ApplicationUser? user = loginRequest.UsernameOrEmail.Contains('@')
+            ? await _userManager.FindByEmailAsync(loginRequest.UsernameOrEmail)
+            : await _userManager.FindByNameAsync(loginRequest.UsernameOrEmail);
         if (user is null || !await _userManager.CheckPasswordAsync(user, loginRequest.Password))
-            return Failure.Unauthorized("The email or password is incorrect.");
+            return Failure.Unauthorized("Incorrect username, email or password.");
 
         return new LoginResponse { JwtToken = _jwtTokenService.CreateToken(user) };
     }
