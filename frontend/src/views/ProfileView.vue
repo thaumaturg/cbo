@@ -1,13 +1,15 @@
 <script setup>
+import PasswordField from "@/components/PasswordField.vue";
+import { eager } from "@/includes/validation.js";
 import { authService } from "@/services/auth-service.js";
 import { useAuthStore } from "@/stores/auth.js";
-import { toFormErrors } from "@/utils/error.js";
+import { toFormFailure } from "@/utils/error.js";
+import { focusFirstInvalid } from "@/utils/focus.js";
 import { useNotify } from "@/utils/notify.js";
 import Button from "primevue/button";
 import Card from "primevue/card";
 import InputText from "primevue/inputtext";
 import Message from "primevue/message";
-import PasswordField from "@/components/PasswordField.vue";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 
@@ -15,8 +17,12 @@ const authStore = useAuthStore();
 const notify = useNotify();
 const router = useRouter();
 
+const PASSWORD_FIELDS = ["currentPassword", "newPassword"];
+
 const isChangingPassword = ref(false);
 const isLoggingOutEverywhere = ref(false);
+const changePasswordForm = ref(null);
+const changePasswordError = ref("");
 
 const onLogoutEverywhere = async () => {
   isLoggingOutEverywhere.value = true;
@@ -38,6 +44,7 @@ const onLogoutEverywhere = async () => {
 
 const onChangePasswordSubmit = async (values, { resetForm, setErrors }) => {
   isChangingPassword.value = true;
+  changePasswordError.value = "";
 
   try {
     const result = await authService.changePassword({
@@ -49,16 +56,20 @@ const onChangePasswordSubmit = async (values, { resetForm, setErrors }) => {
       notify.success("Password Changed", "Your password has been updated.");
       resetForm();
     } else {
-      notify.error("Password Change Failed", result.error);
-      setErrors(toFormErrors(result.errors, ["currentPassword", "newPassword"]));
+      const failure = toFormFailure(result, PASSWORD_FIELDS);
+      changePasswordError.value = failure.banner;
+      setErrors(failure.fieldErrors);
+      await focusFirstInvalid(changePasswordForm.value?.$el);
     }
   } catch (error) {
     console.error("Error changing password:", error);
-    notify.error("Password Change Failed", "An unexpected error occurred. Please try again.");
+    changePasswordError.value = "An unexpected error occurred. Please try again.";
   } finally {
     isChangingPassword.value = false;
   }
 };
+
+const onChangePasswordInvalidSubmit = () => focusFirstInvalid(changePasswordForm.value?.$el);
 </script>
 
 <template>
@@ -90,20 +101,18 @@ const onChangePasswordSubmit = async (values, { resetForm, setErrors }) => {
     <Card>
       <template #title>Change Password</template>
       <template #content>
-        <VeeForm @submit="onChangePasswordSubmit">
+        <VeeForm
+          ref="changePasswordForm"
+          @submit="onChangePasswordSubmit"
+          @invalid-submit="onChangePasswordInvalidSubmit"
+        >
           <!-- Current Password Field -->
           <div class="flex flex-col gap-1 mb-4">
             <div class="flex items-center gap-4">
               <label for="currentPassword" class="font-semibold w-40">Current password</label>
-              <VeeField
-                name="currentPassword"
-                label="Current password"
-                rules="required|min:8|max:64"
-                v-slot="{ field, value }"
-              >
+              <VeeField name="currentPassword" label="Current password" rules="required|min:8|max:64" v-slot="slot">
                 <PasswordField
-                  v-bind="field"
-                  :model-value="value"
+                  v-bind="eager(slot)"
                   id="currentPassword"
                   class="flex-auto"
                   autocomplete="current-password"
@@ -123,15 +132,9 @@ const onChangePasswordSubmit = async (values, { resetForm, setErrors }) => {
                 name="newPassword"
                 label="New password"
                 rules="required|min:8|max:64|different:@currentPassword"
-                v-slot="{ field, value }"
+                v-slot="slot"
               >
-                <PasswordField
-                  v-bind="field"
-                  :model-value="value"
-                  id="newPassword"
-                  class="flex-auto"
-                  autocomplete="new-password"
-                />
+                <PasswordField v-bind="eager(slot)" id="newPassword" class="flex-auto" autocomplete="new-password" />
               </VeeField>
             </div>
             <ErrorMessage name="newPassword" v-slot="{ message }">
@@ -147,11 +150,10 @@ const onChangePasswordSubmit = async (values, { resetForm, setErrors }) => {
                 name="repeatNewPassword"
                 label="Repeat new password"
                 rules="required|confirmed:@newPassword"
-                v-slot="{ field, value }"
+                v-slot="slot"
               >
                 <PasswordField
-                  v-bind="field"
-                  :model-value="value"
+                  v-bind="eager(slot)"
                   id="repeatNewPassword"
                   class="flex-auto"
                   autocomplete="new-password"
@@ -162,6 +164,8 @@ const onChangePasswordSubmit = async (values, { resetForm, setErrors }) => {
               <Message severity="error" variant="simple">{{ message }}</Message>
             </ErrorMessage>
           </div>
+
+          <Message v-if="changePasswordError" severity="error" class="mb-4">{{ changePasswordError }}</Message>
 
           <!-- Action Buttons -->
           <div class="flex justify-end gap-2">
