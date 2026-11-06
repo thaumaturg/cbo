@@ -5,6 +5,8 @@ import { required, email, min, max, regex, confirmed, min_value, max_value } fro
  * Bind a `VeeField` to a PrimeVue input with eager validation: the field is first validated when
  * the user leaves it, and once it is invalid, on every change until it is valid again. A server
  * error set with `setErrors` counts as invalid, so it clears as soon as the value becomes valid.
+ * `InputNumber` emits `update:modelValue` only when it commits a value (blur, spin buttons, arrow
+ * keys, Enter), so number fields re-validate on each commit rather than on each keystroke.
  * See ADR 0005; don't replace this with a global `validateOnInput: true`.
  * Usage: `<VeeField name="title" label="Title" rules="…" v-slot="slot"><InputText v-bind="eager(slot)" /></VeeField>`
  * @param {Object} slot - The `VeeField` slot props
@@ -15,7 +17,8 @@ export const eager = ({ value, errorMessage, handleChange, handleBlur, field }) 
   "onUpdate:modelValue": (newValue) => handleChange(newValue, !!errorMessage),
   // VeeField's slot `handleBlur` ignores the second argument and validates through the global
   // `validateOnBlur` set below; `true` keeps this right for `useField`'s `handleBlur` too.
-  onBlur: (event) => handleBlur(event, true),
+  // Deferred because some inputs emit `blur` before the value they commit on blur (`InputNumber`).
+  onBlur: (event) => queueMicrotask(() => handleBlur(event, true)),
   invalid: !!errorMessage,
   name: field.name,
 });
