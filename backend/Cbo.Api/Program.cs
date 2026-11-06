@@ -78,6 +78,7 @@ public class Program
             .AddRoles<IdentityRole<Guid>>()
             .AddTokenProvider<DataProtectorTokenProvider<ApplicationUser>>("Cbo")
             .AddEntityFrameworkStores<CboDbContext>()
+            .AddErrorDescriber<AccountErrorDescriber>()
             .AddDefaultTokenProviders();
 
         builder.Services.Configure<IdentityOptions>(AccountIdentityOptions.Configure);
