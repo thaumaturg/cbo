@@ -37,8 +37,9 @@ async function handleSessionExpired() {
 
   useAuthStore().logout();
 
-  if (router.currentRoute.value.name !== "home") {
-    await router.push({ name: "home", query: { authRequired: "true" } });
+  const current = router.currentRoute.value;
+  if (current.name !== "login") {
+    await router.push({ name: "login", query: { redirect: current.fullPath, sessionExpired: "true" } });
   }
 }
 

@@ -12,12 +12,10 @@ import { useNotify } from "@/utils/notify.js";
 import Button from "primevue/button";
 import { useConfirm } from "primevue/useconfirm";
 import { onMounted, ref, watch } from "vue";
-import { RouterLink, useRoute, useRouter } from "vue-router";
+import { RouterLink } from "vue-router";
 
 const notify = useNotify();
 const confirm = useConfirm();
-const router = useRouter();
-const route = useRoute();
 const authStore = useAuthStore();
 
 const showTournamentDialog = ref(false);
@@ -75,13 +73,6 @@ const fetchTopics = async () => {
 };
 
 onMounted(() => {
-  // Show toast if redirected due to auth requirement
-  if (route.query.authRequired === "true") {
-    notify.warn("Login Required", "Sign in to manage topics");
-    // Clear the query parameter without adding to history
-    router.replace({ query: {} });
-  }
-
   fetchTournaments();
   fetchTopics();
 });
