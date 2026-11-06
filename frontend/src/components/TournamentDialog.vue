@@ -43,7 +43,7 @@ const initialValues = {
 
 const FORM_FIELDS = Object.keys(initialValues);
 
-const formStatus = ref("idle"); // idle | loading | success | error
+const formStatus = ref("idle"); // idle | loading | error
 const generalError = ref(null);
 const veeFormRef = ref(null);
 
@@ -107,7 +107,7 @@ const onSubmit = async (values, { setErrors }) => {
         : await tournamentService.updateTournament(props.tournament.id, tournamentData);
 
     if (result.success) {
-      formStatus.value = "success";
+      formStatus.value = "idle";
 
       if (props.mode === "create") {
         emit("tournament-created", result.data);
@@ -230,10 +230,9 @@ const onInvalidSubmit = () => focusFirstInvalid(veeFormRef.value?.$el);
 
       <!-- Status Messages -->
       <div class="mb-4" v-if="formStatus === 'loading'">
-        <Message severity="info">{{ mode === "create" ? "Creating" : "Updating" }} tournament, please wait...</Message>
-      </div>
-      <div class="mb-4" v-if="formStatus === 'success'">
-        <Message severity="success">Tournament {{ mode === "create" ? "created" : "updated" }} successfully!</Message>
+        <Message severity="info">
+          {{ mode === "create" ? "Creating" : "Updating" }} the tournament, please wait.
+        </Message>
       </div>
       <div class="mb-4" v-if="formStatus === 'error' && generalError">
         <Message severity="error">{{ generalError }}</Message>
