@@ -1,6 +1,8 @@
 <script setup>
+import { eager } from "@/includes/validation.js";
 import { topicService } from "@/services/topic-service.js";
-import { toFormErrors } from "@/utils/error.js";
+import { toFormErrors, toFormFailure } from "@/utils/error.js";
+import { focusFirstInvalid } from "@/utils/focus.js";
 import { useNotify } from "@/utils/notify.js";
 import { parseClipboardTable } from "@/utils/clipboard-parser.js";
 import Button from "primevue/button";
@@ -32,6 +34,7 @@ const formStatus = ref("idle"); // idle | loading | error
 const generalError = ref(null);
 const isLoading = ref(false);
 const questionErrors = ref({});
+const formRef = ref(null);
 
 const TOPIC_LIMITS = {
   questionsPerTopicMin: 1,
@@ -82,13 +85,13 @@ const isFormProcessing = computed(() => formStatus.value === "loading");
 const validateCostField = (value, fieldName) => {
   const { questionsCostMin, questionsCostMax } = TOPIC_LIMITS;
   if (value === null || value === undefined || value === "") {
-    return `${fieldName} is required`;
+    return `${fieldName} is required.`;
   }
   if (value < questionsCostMin) {
-    return `${fieldName} must be at least ${questionsCostMin}`;
+    return `${fieldName} must be at least ${questionsCostMin}.`;
   }
   if (value > questionsCostMax) {
-    return `${fieldName} must be at most ${questionsCostMax}`;
+    return `${fieldName} must be at most ${questionsCostMax}.`;
   }
   return null;
 };
@@ -97,10 +100,10 @@ const validateQuestion = (question) => {
   const errors = {};
 
   if (!question.text?.trim()) {
-    errors.text = "Question is required";
+    errors.text = "Question is required.";
   }
   if (!question.answer?.trim()) {
-    errors.answer = "Answer is required";
+    errors.answer = "Answer is required.";
   }
 
   const costError = validateCostField(question.cost, "Cost");
@@ -127,6 +130,30 @@ const validateAllQuestions = () => {
 
 const getFieldError = (index, field) => {
   return questionErrors.value[index]?.[field] || null;
+};
+
+// Question cells validate eagerly, like the VeeFields (see `eager()`): first when the user leaves
+// the cell, then on every change while the cell is invalid
+const validateCell = (index, field) => {
+  const question = questions.value[index];
+  if (!question) return;
+
+  const message = validateQuestion(question)[field];
+  const rowErrors = { ...questionErrors.value[index] };
+  if (message) {
+    rowErrors[field] = message;
+  } else {
+    delete rowErrors[field];
+  }
+  questionErrors.value = { ...questionErrors.value, [index]: rowErrors };
+};
+
+// Deferred because InputNumber emits `blur` before the value it commits on blur
+const onCellBlur = (index, field) => queueMicrotask(() => validateCell(index, field));
+
+const onCellUpdate = (index, field, value) => {
+  questions.value[index][field] = value;
+  if (hasFieldError(index, field)) validateCell(index, field);
 };
 
 const SERVER_QUESTION_FIELD = /^questions\[(\d+)\]\.(cost|text|answer)$/;
@@ -249,11 +276,13 @@ const importSuccess = (event) => {
 const onInvalidSubmit = () => {
   // Also validate questions when VeeValidate's validation fails
   validateAllQuestions();
+  focusFirstInvalid(formRef.value?.$el);
 };
 
 const onSubmit = async (values, { setErrors }) => {
   if (!validateAllQuestions()) {
-    generalError.value = "Please fix the errors in the questions table.";
+    generalError.value = null;
+    await focusFirstInvalid(formRef.value?.$el);
     return;
   }
 
@@ -286,10 +315,12 @@ const onSubmit = async (values, { setErrors }) => {
       notify.success(isEditMode.value ? "Topic Updated" : "Topic Created", `"${topicData.title}" saved`);
       router.push("/");
     } else {
+      const questionFields = Object.keys(result.errors ?? {}).filter((field) => SERVER_QUESTION_FIELD.test(field));
       formStatus.value = "error";
-      generalError.value = result.error;
+      generalError.value = toFormFailure(result, ["title", ...questionFields]).banner;
       setErrors(toFormErrors(result.errors, ["title"]));
       questionErrors.value = toQuestionErrors(result.errors);
+      await focusFirstInvalid(formRef.value?.$el);
     }
   } catch {
     formStatus.value = "error";
@@ -316,15 +347,15 @@ const onSubmit = async (values, { setErrors }) => {
     </div>
 
     <!-- Form -->
-    <VeeForm v-else @submit="onSubmit" @invalid-submit="onInvalidSubmit" class="space-y-8">
+    <VeeForm v-else ref="formRef" @submit="onSubmit" @invalid-submit="onInvalidSubmit" class="space-y-8">
       <!-- Basic Information Card -->
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Title -->
           <div class="flex flex-col gap-2">
             <label for="title" class="font-semibold text-gray-700 dark:text-gray-300">Title *</label>
-            <VeeField name="title" rules="required|max:100" v-model="formData.title" v-slot="{ field }">
-              <InputText v-bind="field" id="title" class="w-full" placeholder="Enter topic title" />
+            <VeeField name="title" label="Title" rules="required|max:100" v-model="formData.title" v-slot="slot">
+              <InputText v-bind="eager(slot)" id="title" class="w-full" placeholder="Enter topic title" />
             </VeeField>
             <ErrorMessage name="title" v-slot="{ message }">
               <Message severity="error" variant="simple">{{ message }}</Message>
@@ -390,7 +421,9 @@ const onSubmit = async (values, { setErrors }) => {
             <template #body="{ data, index }">
               <div class="flex flex-col gap-1">
                 <InputNumber
-                  v-model="data.cost"
+                  :model-value="data.cost"
+                  @update:model-value="(value) => onCellUpdate(index, 'cost', value)"
+                  @blur="onCellBlur(index, 'cost')"
                   class="w-full"
                   :inputClass="['w-full text-center', hasFieldError(index, 'cost') ? 'p-invalid' : '']"
                   :invalid="hasFieldError(index, 'cost')"
@@ -406,7 +439,9 @@ const onSubmit = async (values, { setErrors }) => {
             <template #body="{ data, index }">
               <div class="flex flex-col gap-1">
                 <Textarea
-                  v-model="data.text"
+                  :model-value="data.text"
+                  @update:model-value="(value) => onCellUpdate(index, 'text', value)"
+                  @blur="onCellBlur(index, 'text')"
                   class="w-full"
                   :class="{ 'p-invalid': hasFieldError(index, 'text') }"
                   placeholder="Enter question"
@@ -425,7 +460,9 @@ const onSubmit = async (values, { setErrors }) => {
             <template #body="{ data, index }">
               <div class="flex flex-col gap-1">
                 <Textarea
-                  v-model="data.answer"
+                  :model-value="data.answer"
+                  @update:model-value="(value) => onCellUpdate(index, 'answer', value)"
+                  @blur="onCellBlur(index, 'answer')"
                   class="w-full"
                   :class="{ 'p-invalid': hasFieldError(index, 'answer') }"
                   placeholder="Enter answer"
