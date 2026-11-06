@@ -80,17 +80,7 @@ public class Program
             .AddEntityFrameworkStores<CboDbContext>()
             .AddDefaultTokenProviders();
 
-        builder.Services.Configure<IdentityOptions>(options =>
-        {
-            options.Password.RequireDigit = false;
-            options.Password.RequireLowercase = false;
-            options.Password.RequireUppercase = false;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequiredLength = 8;
-            options.Password.RequiredUniqueChars = 1;
-
-            options.User.RequireUniqueEmail = true;
-        });
+        builder.Services.Configure<IdentityOptions>(AccountIdentityOptions.Configure);
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
