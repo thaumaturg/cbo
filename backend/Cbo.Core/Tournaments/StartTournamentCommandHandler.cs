@@ -73,20 +73,20 @@ public sealed class StartTournamentCommandHandler(
     }
 
     /// <summary>
-    /// Every player needs between the minimum and the maximum number of topics; other participants at most the maximum.
+    /// No participant may have more than the maximum number of topics.
+    /// The minimum is informational (ADR-0007), so a player with fewer topics doesn't block Start.
     /// </summary>
     private static Result CheckTopicCounts(Tournament tournament, List<TournamentParticipant> participants)
     {
         foreach (TournamentParticipant participant in participants)
         {
             int topicCount = participant.TournamentTopics.Count;
-            string name = participant.ApplicationUser?.UserName ?? participant.Id.ToString();
-
-            if (participant.Role == TournamentParticipantRole.Player && topicCount < tournament.TopicsPerParticipantMin)
-                return Failure.Conflict($"Player '{name}' has {topicCount} topics, but needs at least {tournament.TopicsPerParticipantMin}.");
 
             if (topicCount > tournament.TopicsPerParticipantMax)
+            {
+                string name = participant.ApplicationUser?.UserName ?? participant.Id.ToString();
                 return Failure.Conflict($"Participant '{name}' has {topicCount} topics, but the maximum is {tournament.TopicsPerParticipantMax}.");
+            }
         }
 
         return Result.Success();

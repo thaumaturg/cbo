@@ -17,7 +17,7 @@ public sealed class SetMyTournamentTopicsCommandHandler(
     ICurrentUserService currentUserService,
     IAuthorizationService authorizationService) : CommandHandler<SetMyTournamentTopicsCommand>(dbContext)
 {
-    private const string ChooseTopicsForbiddenMessage = "You don't have permission to choose topics in this tournament.";
+    private const string ChooseTopicsForbiddenMessage = "You don't have permission to bring topics to this tournament.";
 
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
     private readonly ICurrentUserService _currentUserService = currentUserService;
@@ -34,15 +34,13 @@ public sealed class SetMyTournamentTopicsCommandHandler(
         TournamentParticipant participant = await GetCurrentParticipantAsync(command.TournamentId, cancellationToken);
 
         // The count is wrong for the list as a whole, not for one item, so it has no field error
-        if (participant.Role == TournamentParticipantRole.Player && command.Topics.Count < tournament.TopicsPerParticipantMin)
-            return Failure.Invalid($"You must choose at least {tournament.TopicsPerParticipantMin} topics.");
-
+        // The minimum is informational (ADR-0007), so a shorter list is fine
         if (command.Topics.Count > tournament.TopicsPerParticipantMax)
-            return Failure.Invalid($"You can choose at most {tournament.TopicsPerParticipantMax} topics.");
+            return Failure.Invalid($"You can bring at most {tournament.TopicsPerParticipantMax} topics.");
 
-        List<FieldError> fieldErrors = await ValidateTopicIdsAsync(command.Topics, cancellationToken);
+        List<FieldError> fieldErrors = await ValidateTopicsAsync(command.Topics, tournament.TopicsPerParticipantMax, cancellationToken);
         if (fieldErrors.Count > 0)
-            return Failure.Invalid("Some of the chosen topics are invalid.", fieldErrors);
+            return Failure.Invalid("Some of the tournament topics are invalid.", fieldErrors);
 
         if (tournament.CurrentStage != TournamentStage.Preparations)
             return Failure.Conflict("Topics can only be changed during the Preparations stage.");
@@ -63,9 +61,11 @@ public sealed class SetMyTournamentTopicsCommandHandler(
     }
 
     /// <summary>
-    /// Every topic id in the request must exist, appear at most once, and be a topic the current user owns.
+    /// Every priority index must be a position below the maximum; empty slots between topics take positions too.
+    /// Every topic id must exist, appear at most once, and be a topic the current user owns.
     /// </summary>
-    private async Task<List<FieldError>> ValidateTopicIdsAsync(IReadOnlyList<ChosenTopic> topics, CancellationToken cancellationToken)
+    private async Task<List<FieldError>> ValidateTopicsAsync(
+        IReadOnlyList<ChosenTopic> topics, int topicsPerParticipantMax, CancellationToken cancellationToken)
     {
         List<Guid> topicIds = topics.Select(t => t.TopicId).Distinct().ToList();
         Dictionary<Guid, Topic> topicsById = await DbContext.Topics
@@ -79,6 +79,13 @@ public sealed class SetMyTournamentTopicsCommandHandler(
 
         for (int i = 0; i < topics.Count; i++)
         {
+            int priorityIndex = topics[i].PriorityIndex;
+            if (priorityIndex < 0 || priorityIndex >= topicsPerParticipantMax)
+            {
+                fieldErrors.Add(new FieldError(
+                    $"[{i}].priorityIndex", $"The priority position must be between 1 and {topicsPerParticipantMax}."));
+            }
+
             Guid topicId = topics[i].TopicId;
             string field = $"[{i}].topicId";
 
@@ -96,7 +103,7 @@ public sealed class SetMyTournamentTopicsCommandHandler(
 
             AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(user, topic, TopicOperations.Read);
             if (!authResult.Succeeded)
-                fieldErrors.Add(new FieldError(field, "You can only choose topics you own."));
+                fieldErrors.Add(new FieldError(field, "You can only bring topics you own."));
         }
 
         return fieldErrors;
