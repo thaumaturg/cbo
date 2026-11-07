@@ -10,6 +10,4 @@ public static class TopicOperations
         new() { Name = nameof(Update) };
     public static readonly OperationAuthorizationRequirement Delete =
         new() { Name = nameof(Delete) };
-    public static readonly OperationAuthorizationRequirement ManageAuthors =
-        new() { Name = nameof(ManageAuthors) };
 }

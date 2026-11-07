@@ -26,8 +26,7 @@ public class TopicAuthorizationHandler(
 
         if (requirement.Name == TopicOperations.Read.Name ||
             requirement.Name == TopicOperations.Update.Name ||
-            requirement.Name == TopicOperations.Delete.Name ||
-            requirement.Name == TopicOperations.ManageAuthors.Name)
+            requirement.Name == TopicOperations.Delete.Name)
         {
             if (topicAuthor is not null && topicAuthor.IsOwner)
             {
