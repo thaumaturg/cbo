@@ -1,5 +1,4 @@
 <script setup>
-import TopicAuthorsDialog from "@/components/TopicAuthorsDialog.vue";
 import TopicCard from "@/components/TopicCard.vue";
 import TournamentCard from "@/components/TournamentCard.vue";
 import TournamentDialog from "@/components/TournamentDialog.vue";
@@ -29,8 +28,6 @@ const tournamentToEdit = ref(null);
 
 const topics = ref([]);
 const isLoadingTopics = ref(false);
-const showAuthorsDialog = ref(false);
-const selectedTopic = ref(null);
 
 const fetchTournaments = async () => {
   if (!authStore.isAuthenticated) {
@@ -175,11 +172,6 @@ const handleTournamentDelete = (tournament) => {
   });
 };
 
-const handleTopicAuthors = (topic) => {
-  selectedTopic.value = topic;
-  showAuthorsDialog.value = true;
-};
-
 const handleTopicDelete = (topic) => {
   if (!authStore.isAuthenticated) {
     return;
@@ -281,7 +273,6 @@ const handleTournamentUpdated = async (updatedTournament) => {
   />
   <TournamentParticipantsDialog v-model:visible="showParticipantsDialog" :tournament="selectedTournament" />
   <TournamentTopicsDialog v-model:visible="showTopicsDialog" :tournament="selectedTournament" />
-  <TopicAuthorsDialog v-model:visible="showAuthorsDialog" :topic="selectedTopic" />
 
   <main class="container mx-auto px-4 py-8">
     <!-- Not authenticated message -->
@@ -352,7 +343,6 @@ const handleTournamentUpdated = async (updatedTournament) => {
             v-for="topic in topics"
             :key="topic.id"
             :topic="topic"
-            @authors="handleTopicAuthors"
             @delete="handleTopicDelete"
             class="w-full"
           />

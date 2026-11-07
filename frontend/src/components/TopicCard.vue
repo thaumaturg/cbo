@@ -10,11 +10,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["authors", "delete"]);
-
-const handleAuthors = () => {
-  emit("authors", props.topic);
-};
+const emit = defineEmits(["delete"]);
 
 const handleDelete = () => {
   emit("delete", props.topic);
@@ -64,18 +60,6 @@ const handleDelete = () => {
               aria-label="Edit Topic"
             />
           </RouterLink>
-
-          <Button
-            icon="pi pi-users"
-            severity="info"
-            outlined
-            rounded
-            size="small"
-            @click="handleAuthors"
-            v-tooltip.bottom="'Authors'"
-            class="p-2"
-            aria-label="Topic Authors"
-          />
 
           <Button
             icon="pi pi-trash"
