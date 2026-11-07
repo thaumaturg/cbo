@@ -1,15 +1,7 @@
 <script setup>
-import { eager } from "@/includes/validation.js";
-import { tournamentService } from "@/services/tournament-service.js";
-import { toFormFailure } from "@/utils/error.js";
-import { focusFirstInvalid } from "@/utils/focus.js";
+import TournamentForm from "@/components/TournamentForm.vue";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
-import InputNumber from "primevue/inputnumber";
-import InputText from "primevue/inputtext";
-import Message from "primevue/message";
-import Textarea from "primevue/textarea";
-import { computed, nextTick, ref, watch } from "vue";
 
 const props = defineProps({
   visible: {
@@ -29,105 +21,13 @@ const props = defineProps({
 
 const emit = defineEmits(["update:visible", "tournament-created", "tournament-updated"]);
 
-const DEFAULT_VALUES = {
-  playersPerTournament: 14,
-  topicsPerParticipantMax: 10,
-  topicsPerParticipantMin: 6,
-};
-
-const initialValues = {
-  title: "",
-  description: "",
-  ...DEFAULT_VALUES,
-};
-
-const FORM_FIELDS = Object.keys(initialValues);
-
-const formStatus = ref("idle"); // idle | loading | error
-const generalError = ref(null);
-const veeFormRef = ref(null);
-
-const isFormProcessing = computed(() => formStatus.value === "loading");
-
-const populateForm = async (tournament = null) => {
-  const values = {
-    title: tournament?.title || "",
-    description: tournament?.description || "",
-    playersPerTournament: tournament?.playersPerTournament ?? DEFAULT_VALUES.playersPerTournament,
-    topicsPerParticipantMax: tournament?.topicsPerParticipantMax ?? DEFAULT_VALUES.topicsPerParticipantMax,
-    topicsPerParticipantMin: tournament?.topicsPerParticipantMin ?? DEFAULT_VALUES.topicsPerParticipantMin,
-  };
-
-  await nextTick();
-
-  if (veeFormRef.value) {
-    if (tournament) {
-      veeFormRef.value.setValues(values);
-    } else {
-      veeFormRef.value.resetForm({ values });
-    }
-  }
-};
-
-watch(
-  () => [props.visible, props.mode, props.tournament],
-  ([visible, mode, tournament]) => {
-    if (visible && mode === "edit" && tournament) {
-      populateForm(tournament);
-    }
-
-    if (!visible) {
-      formStatus.value = "idle";
-      generalError.value = null;
-    }
-  },
-  { immediate: true },
-);
-
 const closeDialog = () => {
   emit("update:visible", false);
 };
 
-const onSubmit = async (values, { setErrors }) => {
-  formStatus.value = "loading";
-  generalError.value = null;
-
-  try {
-    const tournamentData = {
-      title: values.title,
-      description: values.description || null,
-      playersPerTournament: values.playersPerTournament,
-      topicsPerParticipantMax: values.topicsPerParticipantMax,
-      topicsPerParticipantMin: values.topicsPerParticipantMin,
-    };
-
-    const result =
-      props.mode === "create"
-        ? await tournamentService.createTournament(tournamentData)
-        : await tournamentService.updateTournament(props.tournament.id, tournamentData);
-
-    if (result.success) {
-      formStatus.value = "idle";
-
-      if (props.mode === "create") {
-        emit("tournament-created", result.data);
-      } else {
-        emit("tournament-updated", result.data);
-      }
-    } else {
-      const failure = toFormFailure(result, FORM_FIELDS);
-      formStatus.value = "error";
-      generalError.value = failure.banner;
-      setErrors(failure.fieldErrors);
-      await focusFirstInvalid(veeFormRef.value?.$el);
-    }
-  } catch {
-    formStatus.value = "error";
-    generalError.value = "An unexpected error occurred. Please try again.";
-  }
+const onSaved = (tournament) => {
+  emit(props.mode === "create" ? "tournament-created" : "tournament-updated", tournament);
 };
-
-const onInvalidSubmit = () => focusFirstInvalid(veeFormRef.value?.$el);
 </script>
 
 <template>
@@ -139,115 +39,18 @@ const onInvalidSubmit = () => focusFirstInvalid(veeFormRef.value?.$el);
     :draggable="false"
     :style="{ width: '50rem' }"
   >
-    <VeeForm ref="veeFormRef" :initial-values="initialValues" @submit="onSubmit" @invalid-submit="onInvalidSubmit">
-      <!-- Basic Information -->
-      <div class="mb-6">
-        <h3 class="text-lg font-semibold mb-4">Basic Information</h3>
-
-        <!-- Title -->
-        <div class="flex flex-col gap-1 mb-4">
-          <div class="flex items-center gap-4">
-            <label for="title" class="font-semibold w-40">Title *</label>
-            <VeeField name="title" label="Title" rules="required|min:3|max:100" v-slot="slot">
-              <InputText v-bind="eager(slot)" id="title" class="flex-auto" />
-            </VeeField>
-          </div>
-          <ErrorMessage name="title" v-slot="{ message }">
-            <Message severity="error" variant="simple">{{ message }}</Message>
-          </ErrorMessage>
+    <TournamentForm :tournament="mode === 'edit' ? tournament : null" @saved="onSaved">
+      <template #actions="{ submitting }">
+        <div class="flex justify-end gap-2">
+          <Button type="button" label="Cancel" severity="secondary" @click="closeDialog" :disabled="submitting" />
+          <Button
+            type="submit"
+            :label="mode === 'create' ? 'Create Tournament' : 'Save Changes'"
+            :disabled="submitting"
+          />
         </div>
-
-        <!-- Description -->
-        <div class="flex flex-col gap-1 mb-4">
-          <div class="flex items-start gap-4">
-            <label for="description" class="font-semibold w-40 pt-2">Description</label>
-            <VeeField name="description" label="Description" rules="max:500" v-slot="slot">
-              <Textarea v-bind="eager(slot)" id="description" class="flex-auto" rows="3" />
-            </VeeField>
-          </div>
-          <ErrorMessage name="description" v-slot="{ message }">
-            <Message severity="error" variant="simple">{{ message }}</Message>
-          </ErrorMessage>
-        </div>
-      </div>
-
-      <!-- Tournament Settings -->
-      <div class="mb-6">
-        <h3 class="text-lg font-semibold mb-4">Tournament Settings</h3>
-
-        <div class="grid grid-cols-2 gap-4">
-          <!-- Players Per Tournament -->
-          <div class="flex flex-col gap-1">
-            <label for="playersPerTournament" class="font-semibold text-sm">Players Per Tournament</label>
-            <VeeField name="playersPerTournament" label="Players per tournament" v-slot="slot">
-              <InputNumber
-                v-bind="eager(slot)"
-                inputId="playersPerTournament"
-                :min="14"
-                :max="14"
-                showButtons
-                disabled
-              />
-            </VeeField>
-            <ErrorMessage name="playersPerTournament" v-slot="{ message }">
-              <Message severity="error" variant="simple">{{ message }}</Message>
-            </ErrorMessage>
-          </div>
-
-          <!-- Topics Per Participant Min -->
-          <div class="flex flex-col gap-1">
-            <label for="topicsPerParticipantMin" class="font-semibold text-sm">Topics Per Participant Min</label>
-            <VeeField
-              name="topicsPerParticipantMin"
-              label="Minimum topics per participant"
-              rules="required|min_value:0|max_value:20|lte_field:@topicsPerParticipantMax"
-              v-slot="slot"
-            >
-              <InputNumber v-bind="eager(slot)" inputId="topicsPerParticipantMin" :min="0" :max="20" showButtons />
-            </VeeField>
-            <ErrorMessage name="topicsPerParticipantMin" v-slot="{ message }">
-              <Message severity="error" variant="simple">{{ message }}</Message>
-            </ErrorMessage>
-          </div>
-
-          <!-- Topics Per Participant Max -->
-          <div class="flex flex-col gap-1">
-            <label for="topicsPerParticipantMax" class="font-semibold text-sm">Topics Per Participant Max</label>
-            <VeeField
-              name="topicsPerParticipantMax"
-              label="Maximum topics per participant"
-              rules="required|min_value:0|max_value:20"
-              v-slot="slot"
-            >
-              <InputNumber v-bind="eager(slot)" inputId="topicsPerParticipantMax" :min="0" :max="20" showButtons />
-            </VeeField>
-            <ErrorMessage name="topicsPerParticipantMax" v-slot="{ message }">
-              <Message severity="error" variant="simple">{{ message }}</Message>
-            </ErrorMessage>
-          </div>
-        </div>
-      </div>
-
-      <!-- Status Messages -->
-      <div class="mb-4" v-if="formStatus === 'loading'">
-        <Message severity="info">
-          {{ mode === "create" ? "Creating" : "Updating" }} the tournament, please wait.
-        </Message>
-      </div>
-      <div class="mb-4" v-if="formStatus === 'error' && generalError">
-        <Message severity="error">{{ generalError }}</Message>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex justify-end gap-2">
-        <Button type="button" label="Cancel" severity="secondary" @click="closeDialog" :disabled="isFormProcessing" />
-        <Button
-          type="submit"
-          :label="mode === 'create' ? 'Create Tournament' : 'Save Changes'"
-          :disabled="isFormProcessing"
-        />
-      </div>
-    </VeeForm>
+      </template>
+    </TournamentForm>
   </Dialog>
 </template>
 
