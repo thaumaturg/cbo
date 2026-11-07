@@ -1,10 +1,12 @@
 <script setup>
 import { eager } from "@/includes/validation.js";
 import { topicService } from "@/services/topic-service.js";
+import { useAuthStore } from "@/stores/auth.js";
 import { toFormErrors, toFormFailure } from "@/utils/error.js";
 import { focusFirstInvalid } from "@/utils/focus.js";
 import { useNotify } from "@/utils/notify.js";
 import { parseClipboardTable } from "@/utils/clipboard-parser.js";
+import { useUnsavedChangesGuard } from "@/utils/unsaved-changes.js";
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
 import Column from "primevue/column";
@@ -12,27 +14,47 @@ import DataTable from "primevue/datatable";
 import InputNumber from "primevue/inputnumber";
 import InputText from "primevue/inputtext";
 import Message from "primevue/message";
+import Tag from "primevue/tag";
 import Textarea from "primevue/textarea";
-import { computed, onMounted, ref } from "vue";
+import { useConfirm } from "primevue/useconfirm";
+import { computed, ref, watch } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 
 const router = useRouter();
 const route = useRoute();
 const notify = useNotify();
+const confirm = useConfirm();
+const authStore = useAuthStore();
+
+const TOPIC_ROUTE_NAMES = ["topic-new", "topic-edit"];
+const PLAYED_DELETE_HINT = "Played topics can't be deleted.";
 
 const isEditMode = computed(() => route.params.id && route.params.id !== "new");
 const topicId = computed(() => (isEditMode.value ? route.params.id : null));
-const pageTitle = computed(() => (isEditMode.value ? "Edit Topic" : "Create New Topic"));
 
-const formData = ref({
+// The topic as last loaded or saved; null on /topics/new
+const topic = ref(null);
+
+// A played topic can't be changed or deleted, so every control reads this one flag
+const readOnly = computed(() => isEditMode.value && !!topic.value?.isPlayed);
+
+const pageTitle = computed(() => {
+  if (readOnly.value) return "View Topic";
+  return isEditMode.value ? "Edit Topic" : "Create New Topic";
+});
+
+const createEmptyFormData = () => ({
   title: "",
   description: "",
   isAuthor: true,
 });
 
+const formData = ref(createEmptyFormData());
+
 const formStatus = ref("idle"); // idle | loading | error
 const generalError = ref(null);
 const isLoading = ref(false);
+const isDeleting = ref(false);
 const questionErrors = ref({});
 const formRef = ref(null);
 
@@ -56,7 +78,71 @@ const createEmptyQuestion = (questionNumber) => ({
   comment: "",
 });
 
-const questions = ref(Array.from({ length: DEFAULT_QUESTION_COUNT }, (_, index) => createEmptyQuestion(index + 1)));
+const createEmptyQuestions = () =>
+  Array.from({ length: DEFAULT_QUESTION_COUNT }, (_, index) => createEmptyQuestion(index + 1));
+
+const questions = ref(createEmptyQuestions());
+
+// Co-authors only, as `{ username }`; the owner is never part of the request's list (ADR-0006)
+const coAuthors = ref([]);
+const newAuthorUsername = ref("");
+const addAuthorError = ref(null);
+const authorErrors = ref({}); // co-author index -> message
+
+const ownerUsername = computed(
+  () => topic.value?.authors.find((author) => author.isOwner)?.username ?? authStore.userName,
+);
+
+const authorRows = computed(() => [
+  { username: ownerUsername.value, isOwner: true, isAuthor: formData.value.isAuthor, coAuthorIndex: null },
+  ...coAuthors.value.map((coAuthor, index) => ({
+    username: coAuthor.username,
+    isOwner: false,
+    isAuthor: true,
+    coAuthorIndex: index,
+  })),
+]);
+
+const sameUsername = (a, b) => a?.toLowerCase() === b?.toLowerCase();
+
+// Only local checks; the server checks that the account exists on Save
+const addCoAuthor = () => {
+  const username = newAuthorUsername.value.trim();
+
+  if (!username) {
+    addAuthorError.value = "Username is required.";
+  } else if (sameUsername(username, ownerUsername.value)) {
+    addAuthorError.value = "You're the owner of this topic already.";
+  } else if (coAuthors.value.some((coAuthor) => sameUsername(coAuthor.username, username))) {
+    addAuthorError.value = "This user is already in the list.";
+  } else {
+    coAuthors.value.push({ username });
+    newAuthorUsername.value = "";
+    authorErrors.value = {};
+  }
+};
+
+const removeCoAuthor = (index) => {
+  coAuthors.value.splice(index, 1);
+  authorErrors.value = {};
+};
+
+watch(newAuthorUsername, () => {
+  addAuthorError.value = null;
+});
+
+const serializeState = () =>
+  JSON.stringify({ formData: formData.value, questions: questions.value, coAuthors: coAuthors.value });
+
+// The state as last loaded or saved, to compare the current state against
+const savedState = ref(serializeState());
+const isDirty = computed(() => serializeState() !== savedState.value);
+
+const markClean = () => {
+  savedState.value = serializeState();
+};
+
+useUnsavedChangesGuard(isDirty);
 
 const canAddQuestion = computed(() => questions.value.length < TOPIC_LIMITS.questionsPerTopicMax);
 const canRemoveQuestion = computed(() => questions.value.length > TOPIC_LIMITS.questionsPerTopicMin);
@@ -81,6 +167,9 @@ const removeQuestion = (index) => {
 };
 
 const isFormProcessing = computed(() => formStatus.value === "loading");
+const isBusy = computed(() => isFormProcessing.value || isDeleting.value);
+// Locked while saving too, since a successful save repopulates the form from the response
+const inputsDisabled = computed(() => readOnly.value || isBusy.value);
 
 const validateCostField = (value, fieldName) => {
   const { questionsCostMin, questionsCostMax } = TOPIC_LIMITS;
@@ -170,53 +259,97 @@ const toQuestionErrors = (errors = {}) => {
   return byIndex;
 };
 
+const SERVER_AUTHOR_FIELD = /^authors\[(\d+)\]\.username$/;
+
+// Server errors for the co-author rows, keyed by the index in the sent list
+const toAuthorErrors = (errors = {}) => {
+  const byIndex = {};
+  for (const [field, messages] of Object.entries(errors)) {
+    const match = SERVER_AUTHOR_FIELD.exec(field);
+    if (match) byIndex[match[1]] = messages.join(" ");
+  }
+  return byIndex;
+};
+
 const hasFieldError = (index, field) => {
   return !!getFieldError(index, field);
 };
 
-const fetchTopicData = async () => {
-  if (!isEditMode.value) return;
+// Shows the saved topic, or the empty form when `savedTopic` is null, and marks it clean
+const applyTopic = (savedTopic) => {
+  topic.value = savedTopic;
 
-  isLoading.value = true;
-  try {
-    const result = await topicService.getTopicById(topicId.value);
-    if (result.success) {
-      const topic = result.data;
-      formData.value = {
-        title: topic.title,
-        description: topic.description || "",
-        isAuthor: topic.isAuthor,
-      };
+  formData.value = savedTopic
+    ? {
+        title: savedTopic.title,
+        description: savedTopic.description || "",
+        isAuthor: savedTopic.isAuthor,
+      }
+    : createEmptyFormData();
 
-      if (topic.questions && topic.questions.length > 0) {
-        questions.value = topic.questions.map((q) => ({
+  questions.value =
+    savedTopic?.questions?.length > 0
+      ? savedTopic.questions.map((q) => ({
           id: q.id,
           questionNumber: q.questionNumber,
           cost: q.cost,
           text: q.text,
           answer: q.answer,
           comment: q.comment || "",
-        }));
-      }
+        }))
+      : createEmptyQuestions();
+
+  coAuthors.value = (savedTopic?.authors ?? [])
+    .filter((author) => !author.isOwner)
+    .map((author) => ({ username: author.username }));
+
+  formStatus.value = "idle";
+  generalError.value = null;
+  questionErrors.value = {};
+  authorErrors.value = {};
+  newAuthorUsername.value = "";
+  addAuthorError.value = null;
+  markClean();
+};
+
+const loadTopic = async () => {
+  if (!isEditMode.value) {
+    applyTopic(null);
+    return;
+  }
+
+  // Already shown, for example right after creating it
+  if (topic.value?.id === topicId.value) return;
+
+  isLoading.value = true;
+  try {
+    const result = await topicService.getTopicById(topicId.value);
+    if (result.success) {
+      applyTopic(result.data);
     } else {
       notify.error("Load Failed", result.message);
-      router.push("/");
+      router.push({ name: "topics" });
     }
   } catch (error) {
     console.error("Error fetching topic:", error);
     notify.error("Load Failed", "Could not load the topic. Please try again.");
-    router.push("/");
+    router.push({ name: "topics" });
   } finally {
     isLoading.value = false;
   }
 };
 
-onMounted(() => {
-  fetchTopicData();
-});
+// The router keeps this component when going from /topics/new to /topics/:id, so follow the route
+watch(
+  () => route.params.id,
+  () => {
+    if (TOPIC_ROUTE_NAMES.includes(route.name)) loadTopic();
+  },
+  { immediate: true },
+);
 
 const handlePaste = (event) => {
-  if (!event.clipboardData) return;
+  if (readOnly.value || !event.clipboardData) return;
 
   const rows = parseClipboardTable(event.clipboardData);
 
@@ -299,29 +432,63 @@ const onSubmit = async (values, { setErrors }) => {
       description: formData.value.description?.trim() || null,
       isAuthor: formData.value.isAuthor,
       questions: questionsToSend,
+      authors: coAuthors.value.map((coAuthor) => ({ username: coAuthor.username })),
     };
 
-    const result = isEditMode.value
-      ? await topicService.updateTopic(topicId.value, topicData)
-      : await topicService.createTopic(topicData);
+    const isCreating = !isEditMode.value;
+    const result = isCreating
+      ? await topicService.createTopic(topicData)
+      : await topicService.updateTopic(topicId.value, topicData);
 
     if (result.success) {
-      formStatus.value = "idle";
-      const verb = isEditMode.value ? "updated" : "created";
-      notify.success(`Topic ${verb}`, `"${topicData.title}" was ${verb}.`);
-      router.push("/");
+      // Repopulate from the response, so new questions get their ids and the next save keeps them
+      applyTopic(result.data);
+      const verb = isCreating ? "created" : "updated";
+      notify.success(`Topic ${verb}`, `"${result.data.title}" was ${verb}.`);
+      if (isCreating) {
+        await router.replace({ name: "topic-edit", params: { id: result.data.id } });
+      }
     } else {
-      const questionFields = Object.keys(result.errors ?? {}).filter((field) => SERVER_QUESTION_FIELD.test(field));
+      const fieldsShown = Object.keys(result.errors ?? {}).filter(
+        (field) => SERVER_QUESTION_FIELD.test(field) || SERVER_AUTHOR_FIELD.test(field),
+      );
       formStatus.value = "error";
-      generalError.value = toFormFailure(result, ["title", ...questionFields]).banner;
+      generalError.value = toFormFailure(result, ["title", ...fieldsShown]).banner;
       setErrors(toFormErrors(result.errors, ["title"]));
       questionErrors.value = toQuestionErrors(result.errors);
+      authorErrors.value = toAuthorErrors(result.errors);
       await focusFirstInvalid(formRef.value?.$el);
     }
   } catch {
     formStatus.value = "error";
     generalError.value = "An unexpected error occurred. Please try again.";
   }
+};
+
+const handleDelete = () => {
+  const { id, title } = topic.value;
+
+  confirm.require({
+    message: `Are you sure you want to delete "${title}"?`,
+    header: "Delete Topic",
+    icon: "pi pi-exclamation-triangle",
+    rejectProps: { label: "Cancel", severity: "secondary", outlined: true },
+    acceptProps: { label: "Delete", severity: "danger" },
+    accept: async () => {
+      isDeleting.value = true;
+      const result = await topicService.deleteTopic(id);
+      isDeleting.value = false;
+
+      if (result.success) {
+        // Unsaved edits of a deleted topic aren't worth a leave prompt
+        markClean();
+        notify.success("Topic deleted", `"${title}" was deleted.`);
+        router.push({ name: "topics" });
+      } else {
+        notify.error("Delete Failed", result.message);
+      }
+    },
+  });
 };
 </script>
 
@@ -333,6 +500,10 @@ const onSubmit = async (values, { setErrors }) => {
         {{ pageTitle }}
       </h1>
     </div>
+
+    <Message v-if="readOnly && !isLoading" severity="info" class="mb-8">
+      This topic has been played, so it can't be changed or deleted.
+    </Message>
 
     <!-- Loading State -->
     <div v-if="isLoading" class="text-center py-12">
@@ -351,7 +522,13 @@ const onSubmit = async (values, { setErrors }) => {
           <div class="flex flex-col gap-2">
             <label for="title" class="font-semibold text-gray-700 dark:text-gray-300">Title *</label>
             <VeeField name="title" label="Title" rules="required|max:100" v-model="formData.title" v-slot="slot">
-              <InputText v-bind="eager(slot)" id="title" class="w-full" placeholder="Enter topic title" />
+              <InputText
+                v-bind="eager(slot)"
+                id="title"
+                class="w-full"
+                placeholder="Enter topic title"
+                :disabled="inputsDisabled"
+              />
             </VeeField>
             <ErrorMessage name="title" v-slot="{ message }">
               <Message severity="error" variant="simple">{{ message }}</Message>
@@ -367,12 +544,13 @@ const onSubmit = async (values, { setErrors }) => {
               rows="3"
               class="w-full"
               placeholder="Enter topic description (optional)"
+              :disabled="inputsDisabled"
             />
           </div>
 
           <!-- Checkbox -->
           <div class="flex items-center gap-3 md:col-span-2">
-            <Checkbox v-model="formData.isAuthor" inputId="isAuthor" :binary="true" />
+            <Checkbox v-model="formData.isAuthor" inputId="isAuthor" :binary="true" :disabled="inputsDisabled" />
             <label for="isAuthor" class="cursor-pointer text-gray-700 dark:text-gray-300">
               <span class="font-medium">I am the Author</span>
               <span class="block text-sm text-gray-500">Check if you authored this topic's questions</span>
@@ -390,7 +568,7 @@ const onSubmit = async (values, { setErrors }) => {
           </h2>
         </div>
 
-        <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+        <div v-if="!readOnly" class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <p class="text-sm text-blue-700 dark:text-blue-300">
             <strong>Paste Format:</strong> Select cells in Google Sheets containing your questions (4 columns: Cost,
             Question, Answer, Comment) and paste here. Alternatively, use 3 columns: Question, Answer, Comment - costs
@@ -423,6 +601,7 @@ const onSubmit = async (values, { setErrors }) => {
                   class="w-full"
                   :inputClass="['w-full text-center', hasFieldError(index, 'cost') ? 'p-invalid' : '']"
                   :invalid="hasFieldError(index, 'cost')"
+                  :disabled="inputsDisabled"
                 />
                 <small v-if="hasFieldError(index, 'cost')" class="text-red-500 text-xs">
                   {{ getFieldError(index, "cost") }}
@@ -444,6 +623,7 @@ const onSubmit = async (values, { setErrors }) => {
                   rows="3"
                   autoResize
                   :invalid="hasFieldError(index, 'text')"
+                  :disabled="inputsDisabled"
                 />
                 <small v-if="hasFieldError(index, 'text')" class="text-red-500 text-xs">
                   {{ getFieldError(index, "text") }}
@@ -465,6 +645,7 @@ const onSubmit = async (values, { setErrors }) => {
                   rows="3"
                   autoResize
                   :invalid="hasFieldError(index, 'answer')"
+                  :disabled="inputsDisabled"
                 />
                 <small v-if="hasFieldError(index, 'answer')" class="text-red-500 text-xs">
                   {{ getFieldError(index, "answer") }}
@@ -475,11 +656,18 @@ const onSubmit = async (values, { setErrors }) => {
 
           <Column field="comment" header="Comment" style="min-width: 200px">
             <template #body="{ data }">
-              <Textarea v-model="data.comment" class="w-full" placeholder="Optional comment" rows="3" autoResize />
+              <Textarea
+                v-model="data.comment"
+                class="w-full"
+                placeholder="Optional comment"
+                rows="3"
+                autoResize
+                :disabled="inputsDisabled"
+              />
             </template>
           </Column>
 
-          <Column style="width: 60px" class="text-center">
+          <Column v-if="!readOnly" style="width: 60px" class="text-center">
             <template #body="{ index }">
               <Button
                 type="button"
@@ -488,7 +676,7 @@ const onSubmit = async (values, { setErrors }) => {
                 text
                 rounded
                 aria-label="Remove question"
-                :disabled="!canRemoveQuestion || isFormProcessing"
+                :disabled="!canRemoveQuestion || isBusy"
                 @click="removeQuestion(index)"
               />
             </template>
@@ -497,17 +685,94 @@ const onSubmit = async (values, { setErrors }) => {
 
         <div class="flex items-center justify-between mt-4">
           <Button
+            v-if="!readOnly"
             type="button"
             label="Add Question"
             icon="pi pi-plus"
             outlined
-            :disabled="!canAddQuestion || isFormProcessing"
+            :disabled="!canAddQuestion || isBusy"
             @click="addQuestion"
           />
-          <span class="text-sm text-gray-500 dark:text-gray-400">
+          <span class="ml-auto text-sm text-gray-500 dark:text-gray-400">
             {{ questions.length }} / {{ TOPIC_LIMITS.questionsPerTopicMax }} questions
           </span>
         </div>
+      </div>
+
+      <!-- Authors Card -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-6">
+          <i class="pi pi-users text-blue-500"></i>
+          Authors
+        </h2>
+
+        <div v-if="!readOnly" class="flex gap-2 mb-4">
+          <div class="flex-1 flex flex-col gap-1">
+            <label for="newAuthorUsername" class="sr-only">Username</label>
+            <InputText
+              id="newAuthorUsername"
+              v-model="newAuthorUsername"
+              placeholder="Username"
+              class="w-full"
+              :invalid="!!addAuthorError"
+              :disabled="isBusy"
+              @keydown.enter.prevent="addCoAuthor"
+            />
+            <Message v-if="addAuthorError" severity="error" variant="simple">{{ addAuthorError }}</Message>
+          </div>
+          <Button
+            type="button"
+            label="Add"
+            icon="pi pi-plus"
+            outlined
+            class="self-start"
+            :disabled="isBusy"
+            @click="addCoAuthor"
+          />
+        </div>
+
+        <DataTable :value="authorRows" dataKey="username" stripedRows>
+          <Column header="Username">
+            <template #body="{ data }">
+              <div class="flex flex-col gap-1">
+                <span
+                  :tabindex="authorErrors[data.coAuthorIndex] ? -1 : undefined"
+                  :aria-invalid="authorErrors[data.coAuthorIndex] ? 'true' : undefined"
+                >
+                  {{ data.username }}
+                </span>
+                <small v-if="authorErrors[data.coAuthorIndex]" class="text-red-500 text-xs">
+                  {{ authorErrors[data.coAuthorIndex] }}
+                </small>
+              </div>
+            </template>
+          </Column>
+
+          <Column header="Role">
+            <template #body="{ data }">
+              <div class="flex gap-2">
+                <Tag v-if="data.isOwner" value="Owner" severity="contrast" />
+                <Tag v-if="data.isAuthor" value="Author" severity="info" />
+              </div>
+            </template>
+          </Column>
+
+          <Column v-if="!readOnly" style="width: 60px" class="text-center">
+            <template #body="{ data }">
+              <Button
+                v-if="!data.isOwner"
+                type="button"
+                icon="pi pi-trash"
+                severity="danger"
+                text
+                rounded
+                aria-label="Remove author"
+                :disabled="isBusy"
+                @click="removeCoAuthor(data.coAuthorIndex)"
+              />
+            </template>
+          </Column>
+        </DataTable>
       </div>
 
       <!-- Status Messages -->
@@ -519,25 +784,41 @@ const onSubmit = async (values, { setErrors }) => {
       </div>
 
       <!-- Action Buttons -->
-      <div class="flex justify-end gap-4 pt-4">
-        <RouterLink to="/" custom v-slot="{ navigate }">
+      <div class="flex items-center gap-4 pt-4">
+        <!-- The span shows the tooltip, since a disabled button gets no mouse events -->
+        <span v-if="isEditMode" v-tooltip.top="{ value: PLAYED_DELETE_HINT, disabled: !readOnly }">
           <Button
             type="button"
-            label="Cancel"
-            severity="secondary"
+            label="Delete Topic"
+            icon="pi pi-trash"
+            severity="danger"
             outlined
-            icon="pi pi-times"
-            @click="navigate"
-            :disabled="isFormProcessing"
+            :disabled="readOnly || isBusy"
+            :loading="isDeleting"
+            @click="handleDelete"
           />
-        </RouterLink>
-        <Button
-          type="submit"
-          :label="isEditMode ? 'Save Changes' : 'Create Topic'"
-          icon="pi pi-check"
-          :disabled="isFormProcessing"
-          :loading="isFormProcessing"
-        />
+        </span>
+        <div class="ml-auto flex gap-4">
+          <RouterLink :to="{ name: 'topics' }" custom v-slot="{ navigate }">
+            <Button
+              type="button"
+              :label="readOnly ? 'Back' : 'Cancel'"
+              severity="secondary"
+              outlined
+              :icon="readOnly ? 'pi pi-arrow-left' : 'pi pi-times'"
+              @click="navigate"
+              :disabled="isBusy"
+            />
+          </RouterLink>
+          <Button
+            v-if="!readOnly"
+            type="submit"
+            :label="isEditMode ? 'Save Changes' : 'Create Topic'"
+            icon="pi pi-check"
+            :disabled="isBusy"
+            :loading="isFormProcessing"
+          />
+        </div>
       </div>
     </VeeForm>
   </main>
