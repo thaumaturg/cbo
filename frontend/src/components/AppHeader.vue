@@ -4,6 +4,7 @@ import { useNotify } from "@/utils/notify.js";
 import { keepRedirect } from "@/utils/redirect.js";
 import Button from "primevue/button";
 import Menubar from "primevue/menubar";
+import { computed } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 
 const authStore = useAuthStore();
@@ -11,9 +12,19 @@ const route = useRoute();
 const router = useRouter();
 const notify = useNotify();
 
-const items = [
-  // We can add more navigation items here later
-];
+const items = computed(() =>
+  authStore.isAuthenticated
+    ? [
+        { label: "Tournaments", icon: "pi pi-trophy", route: { name: "tournaments" } },
+        { label: "Topics", icon: "pi pi-book", route: { name: "topics" } },
+      ]
+    : [],
+);
+
+const isActiveSection = (item) => {
+  const sectionPath = router.resolve(item.route).path;
+  return route.path === sectionPath || route.path.startsWith(`${sectionPath}/`);
+};
 
 const handleLogout = () => {
   authStore.logout();
@@ -28,6 +39,20 @@ const handleLogout = () => {
   <Menubar :model="items" class="header-menubar container mx-auto px-4 py-8">
     <template #start>
       <RouterLink :to="{ name: 'home' }" class="text-xl font-bold">Competitive Bracket Organizer</RouterLink>
+    </template>
+    <template #item="{ item, props }">
+      <RouterLink :to="item.route" custom v-slot="{ href, navigate }">
+        <a
+          :href="href"
+          v-bind="props.action"
+          :class="{ 'active-section': isActiveSection(item) }"
+          :aria-current="isActiveSection(item) ? 'page' : undefined"
+          @click="navigate"
+        >
+          <span :class="item.icon" v-bind="props.icon" />
+          <span v-bind="props.label">{{ item.label }}</span>
+        </a>
+      </RouterLink>
     </template>
     <template #end>
       <div v-if="!authStore.isAuthenticated" class="flex items-center gap-2">
@@ -62,5 +87,14 @@ const handleLogout = () => {
 .header-menubar {
   border: none;
   background: transparent;
+}
+
+.active-section {
+  color: var(--p-primary-color);
+  font-weight: 600;
+}
+
+.active-section span {
+  color: inherit;
 }
 </style>
