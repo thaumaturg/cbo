@@ -5,8 +5,8 @@ import { tournamentMatchesService } from "@/services/tournament-matches-service.
 import { tournamentParticipantsService } from "@/services/tournament-participants-service.js";
 import { tournamentService } from "@/services/tournament-service.js";
 import { useNotify } from "@/utils/notify.js";
-import { isPreparationsStage, stageBadgeSeverity } from "@/utils/tournament.js";
-import Badge from "primevue/badge";
+import { isPreparationsStage, stageTagSeverity } from "@/utils/tournament.js";
+import Tag from "primevue/tag";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
@@ -24,7 +24,7 @@ const loadError = ref(null);
 
 const isInPreparations = computed(() => isPreparationsStage(tournament.value?.currentStage));
 
-const stageSeverity = computed(() => stageBadgeSeverity(tournament.value?.currentStage));
+const stageSeverity = computed(() => stageTagSeverity(tournament.value?.currentStage));
 
 const fetchTournament = async () => {
   isLoadingTournament.value = true;
@@ -128,7 +128,7 @@ onMounted(async () => {
           <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
             {{ tournament.title }}
           </h1>
-          <Badge :value="tournament.currentStage" :severity="stageSeverity" class="text-sm" />
+          <Tag :value="tournament.currentStage" :severity="stageSeverity" class="text-sm" />
         </div>
         <p v-if="tournament.description" class="text-gray-600 dark:text-gray-400 ml-14">
           {{ tournament.description }}

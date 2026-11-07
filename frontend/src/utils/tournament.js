@@ -7,11 +7,11 @@
 export const isPreparationsStage = (stage) => stage === "Preparations";
 
 /**
- * Map a tournament stage to the PrimeVue Badge severity used to display it.
+ * Map a tournament stage to the PrimeVue Tag severity used to display it.
  * @param {string|null|undefined} stage - Tournament stage name
- * @returns {string} - Badge severity
+ * @returns {string} - Tag severity
  */
-export const stageBadgeSeverity = (stage) => {
+export const stageTagSeverity = (stage) => {
   switch (stage) {
     case "Preparations":
       return "secondary";
@@ -19,5 +19,23 @@ export const stageBadgeSeverity = (stage) => {
       return "info";
     default:
       return "success";
+  }
+};
+
+/**
+ * Map a participant role to the PrimeVue Tag severity used to display it.
+ * @param {string|null|undefined} role - Participant role name
+ * @returns {string} - Tag severity
+ */
+export const roleTagSeverity = (role) => {
+  switch (role) {
+    case "Creator":
+      return "contrast";
+    case "Organizer":
+      return "info";
+    case "Player":
+      return "success";
+    default:
+      return "secondary";
   }
 };
