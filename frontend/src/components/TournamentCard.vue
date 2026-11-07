@@ -1,8 +1,8 @@
 <script setup>
-import { isPreparationsStage, stageBadgeSeverity } from "@/utils/tournament.js";
-import Badge from "primevue/badge";
+import { isPreparationsStage, stageTagSeverity } from "@/utils/tournament.js";
 import Button from "primevue/button";
 import Card from "primevue/card";
+import Tag from "primevue/tag";
 import { computed } from "vue";
 import { RouterLink } from "vue-router";
 
@@ -17,7 +17,7 @@ const emit = defineEmits(["settings", "participants", "topics", "start", "delete
 
 const isInPreparations = computed(() => isPreparationsStage(props.tournament.currentStage));
 
-const stageSeverity = computed(() => stageBadgeSeverity(props.tournament.currentStage));
+const stageSeverity = computed(() => stageTagSeverity(props.tournament.currentStage));
 
 const handleSettings = () => {
   emit("settings", props.tournament);
@@ -52,7 +52,7 @@ const handleDelete = () => {
             >
               {{ tournament.title }}
             </RouterLink>
-            <Badge v-if="!isInPreparations" :value="tournament.currentStage" :severity="stageSeverity" />
+            <Tag v-if="!isInPreparations" :value="tournament.currentStage" :severity="stageSeverity" />
           </div>
           <p v-if="tournament.description" class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
             {{ tournament.description }}
