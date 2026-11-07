@@ -12,6 +12,16 @@ public record QuestionValidationModel(
     string? Text,
     string? Answer);
 
+/// <summary>
+/// A co-author row of a create or update request, with the account its username resolved to.
+/// <paramref name="NormalizedUsername"/> is null when the username is blank, and <paramref name="UserId"/> when no
+/// account has it.
+/// </summary>
+public record CoAuthorValidationModel(
+    string? Username,
+    string? NormalizedUsername,
+    Guid? UserId);
+
 public interface ITopicValidationService
 {
     /// <summary>
@@ -19,6 +29,12 @@ public interface ITopicValidationService
     /// Returns field errors keyed by camelCase JSON path (for example <c>questions[0].text</c>); empty when valid.
     /// </summary>
     List<FieldError> ValidateQuestions(IReadOnlyList<QuestionValidationModel> questions);
+
+    /// <summary>
+    /// Validates a topic's co-authors: each one names an existing account other than <paramref name="ownerId"/>, at
+    /// most once. Returns field errors keyed by <c>authors[i].username</c>; empty when valid.
+    /// </summary>
+    List<FieldError> ValidateCoAuthors(IReadOnlyList<CoAuthorValidationModel> coAuthors, Guid ownerId);
 }
 
 public class TopicValidationService : ITopicValidationService
@@ -33,6 +49,29 @@ public class TopicValidationService : ITopicValidationService
         for (int i = 0; i < questions.Count; i++)
         {
             ValidateQuestionFields(questions[i], i, errors);
+        }
+
+        return errors;
+    }
+
+    public List<FieldError> ValidateCoAuthors(IReadOnlyList<CoAuthorValidationModel> coAuthors, Guid ownerId)
+    {
+        List<FieldError> errors = [];
+        HashSet<string> seenNormalizedUsernames = [];
+
+        for (int i = 0; i < coAuthors.Count; i++)
+        {
+            CoAuthorValidationModel coAuthor = coAuthors[i];
+            string field = $"authors[{i}].username";
+
+            if (coAuthor.NormalizedUsername is null)
+                errors.Add(new FieldError(field, "Username is required."));
+            else if (!seenNormalizedUsernames.Add(coAuthor.NormalizedUsername))
+                errors.Add(new FieldError(field, "This author appears more than once."));
+            else if (coAuthor.UserId is null)
+                errors.Add(new FieldError(field, $"User '{coAuthor.Username}' doesn't exist."));
+            else if (coAuthor.UserId == ownerId)
+                errors.Add(new FieldError(field, "The owner can't be added as a co-author."));
         }
 
         return errors;

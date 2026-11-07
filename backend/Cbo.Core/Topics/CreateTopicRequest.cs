@@ -6,4 +6,5 @@ public record CreateTopicRequest
     public string? Description { get; set; }
     public required bool IsAuthor { get; set; }
     public required ICollection<CreateQuestionRequest> Questions { get; set; }
+    public required ICollection<TopicAuthorRequest> Authors { get; set; }
 }

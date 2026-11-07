@@ -79,7 +79,8 @@ public static class TopicEndpoints
             createTopicRequest.IsAuthor,
             createTopicRequest.Questions
                 .Select(q => new NewQuestion(q.QuestionNumber, q.Cost, q.Text, q.Answer, q.Comment))
-                .ToList());
+                .ToList(),
+            createTopicRequest.Authors.Select(a => a.Username).ToList());
 
         Result<Guid> created = await createTopic.HandleAsync(command, cancellationToken);
         if (created.IsFailure)
@@ -106,7 +107,8 @@ public static class TopicEndpoints
             updateTopicRequest.IsAuthor,
             updateTopicRequest.Questions
                 .Select(q => new EditedQuestion(q.Id, q.QuestionNumber, q.Cost, q.Text, q.Answer, q.Comment))
-                .ToList());
+                .ToList(),
+            updateTopicRequest.Authors.Select(a => a.Username).ToList());
 
         Result updated = await updateTopic.HandleAsync(command, cancellationToken);
         if (updated.IsFailure)

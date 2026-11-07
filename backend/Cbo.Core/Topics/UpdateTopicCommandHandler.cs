@@ -1,27 +1,32 @@
 using Cbo.Core.Accounts;
 using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
+using Cbo.Core.Data.Configuration;
 using Cbo.Core.Domain;
 using Cbo.Results;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cbo.Core.Topics;
 
 /// <summary>
-/// Updates the topic's details and syncs its questions: questions with an id are changed, questions without one are
-/// added, and the topic's other questions are removed.
+/// Updates the topic's details and syncs its questions and co-authors. Questions with an id are changed, questions
+/// without one are added, and the topic's other questions are removed. Co-authors still listed are kept, new ones are
+/// added and the rest are removed; the owner's row only gets its <see cref="TopicAuthor.IsAuthor"/> flag updated.
 /// </summary>
 public sealed class UpdateTopicCommandHandler(
     CboDbContext dbContext,
     ITopicAccessService topicAccessService,
     ITopicValidationService topicValidationService,
-    ICurrentUserService currentUserService) : CommandHandler<UpdateTopicCommand>(dbContext)
+    ICurrentUserService currentUserService,
+    ILookupNormalizer lookupNormalizer) : CommandHandler<UpdateTopicCommand>(dbContext)
 {
     private const string UpdateForbiddenMessage = "You don't have permission to edit this topic.";
 
     private readonly ITopicAccessService _topicAccessService = topicAccessService;
     private readonly ITopicValidationService _topicValidationService = topicValidationService;
     private readonly ICurrentUserService _currentUserService = currentUserService;
+    private readonly ILookupNormalizer _lookupNormalizer = lookupNormalizer;
 
     protected override async Task<Result> ExecuteAsync(UpdateTopicCommand command, CancellationToken cancellationToken)
     {
@@ -32,15 +37,22 @@ public sealed class UpdateTopicCommandHandler(
 
         Topic topic = access.Value;
 
+        // Only the owner can update the topic, so the current user is its owner
+        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
+
         List<Question> existingQuestions = await DbContext.Questions
             .Where(q => q.TopicId == command.TopicId)
             .ToListAsync(cancellationToken);
+
+        List<CoAuthorValidationModel> coAuthors = await CoAuthorLookup.LookUpAsync(
+            DbContext, _lookupNormalizer, command.CoAuthorUsernames, cancellationToken);
 
         List<FieldError> fieldErrors = _topicValidationService.ValidateQuestions(
             command.Questions
                 .Select(q => new QuestionValidationModel(q.QuestionNumber, q.Cost, q.Text, q.Answer))
                 .ToList());
         fieldErrors.AddRange(ValidateQuestionIds(existingQuestions, command.Questions));
+        fieldErrors.AddRange(_topicValidationService.ValidateCoAuthors(coAuthors, currentUserId));
         if (fieldErrors.Count > 0)
             return TopicFailures.Invalid(fieldErrors);
 
@@ -52,13 +64,52 @@ public sealed class UpdateTopicCommandHandler(
 
         SyncQuestions(command.TopicId, existingQuestions, command.Questions);
 
-        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
-        TopicAuthor? currentAuthor = await DbContext.TopicAuthors
-            .FirstOrDefaultAsync(ta => ta.TopicId == command.TopicId && ta.ApplicationUserId == currentUserId, cancellationToken);
-        if (currentAuthor is not null)
-            currentAuthor.IsAuthor = command.IsAuthor;
+        List<TopicAuthor> existingAuthors = await DbContext.TopicAuthors
+            .Where(ta => ta.TopicId == command.TopicId)
+            .ToListAsync(cancellationToken);
+
+        TopicAuthor? owner = existingAuthors.FirstOrDefault(ta => ta.IsOwner);
+        if (owner is not null)
+            owner.IsAuthor = command.IsAuthor;
+
+        // Validation guarantees every co-author resolved to an account
+        SyncCoAuthors(
+            command.TopicId,
+            existingAuthors.Where(ta => !ta.IsOwner).ToList(),
+            coAuthors.Select(a => a.UserId!.Value).ToList());
 
         return Result.Success();
+    }
+
+    protected override Failure? MapSaveFailure(UpdateTopicCommand command, DbUpdateException exception)
+    {
+        // Lost a race with a simultaneous save that added the same co-author
+        if (PostgresConstraint.IsUniqueViolation(exception, TopicAuthorConfiguration.TopicIdApplicationUserIdIndexName))
+            return Failure.Conflict("Someone changed this topic's authors at the same time. Reload the page and try again.");
+
+        return null;
+    }
+
+    /// <summary>
+    /// Keeps the rows of co-authors still in <paramref name="coAuthorUserIds"/>, so their ids stay stable, removes the
+    /// others and adds rows for the new ones. Never sees the owner's row.
+    /// </summary>
+    private void SyncCoAuthors(Guid topicId, List<TopicAuthor> existingCoAuthors, IReadOnlyList<Guid> coAuthorUserIds)
+    {
+        HashSet<Guid> keptUserIds = coAuthorUserIds.ToHashSet();
+        DbContext.TopicAuthors.RemoveRange(existingCoAuthors.Where(ta => !keptUserIds.Contains(ta.ApplicationUserId)));
+
+        HashSet<Guid> existingUserIds = existingCoAuthors.Select(ta => ta.ApplicationUserId).ToHashSet();
+        foreach (Guid userId in coAuthorUserIds.Where(id => !existingUserIds.Contains(id)))
+        {
+            DbContext.TopicAuthors.Add(new TopicAuthor
+            {
+                IsOwner = false,
+                IsAuthor = true,
+                ApplicationUserId = userId,
+                TopicId = topicId,
+            });
+        }
     }
 
     /// <summary>
