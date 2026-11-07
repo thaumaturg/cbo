@@ -8,15 +8,13 @@ import { onBeforeRouteLeave, onBeforeRouteUpdate } from "vue-router";
  * Clear the dirty state before navigating on purpose (for example after a save that replaces the
  * route), or the user is asked anyway.
  * @param {import("vue").MaybeRefOrGetter<boolean>} isDirty - Whether there are unsaved changes
- * @param {Object} [options]
- * @param {() => void} [options.onDiscard] - Called when the user chooses to discard their changes
  * @returns {{ confirmDiscard: () => Promise<boolean> }} - `confirmDiscard` asks the same question
  *   when dirty and resolves `true` at once when clean, for in-page switches such as tabs
  */
-export function useUnsavedChangesGuard(isDirty, { onDiscard } = {}) {
+export function useUnsavedChangesGuard(isDirty) {
   const confirm = useConfirm();
 
-  // Settles the open prompt, if any. A newer prompt or navigation replaces it.
+  // Settles the open prompt, if any. A newer prompt replaces it.
   let settleOpenPrompt = null;
 
   const confirmDiscard = () => {
@@ -32,9 +30,6 @@ export function useUnsavedChangesGuard(isDirty, { onDiscard } = {}) {
           return;
         }
         settleOpenPrompt = null;
-        if (discard) {
-          onDiscard?.();
-        }
         resolve(discard);
       };
       settleOpenPrompt = settle;
@@ -53,23 +48,8 @@ export function useUnsavedChangesGuard(isDirty, { onDiscard } = {}) {
     });
   };
 
-  // An expired session sends the user to log in; they can't save anyway, so don't hold them up.
-  const isSessionExpiry = (to) => to.name === "login" && to.query.sessionExpired === "true";
-
-  const guard = (to) => {
-    if (!isSessionExpiry(to)) {
-      return confirmDiscard();
-    }
-
-    if (settleOpenPrompt) {
-      settleOpenPrompt(false);
-      confirm.close();
-    }
-    return true;
-  };
-
-  onBeforeRouteLeave(guard);
-  onBeforeRouteUpdate(guard);
+  onBeforeRouteLeave(() => confirmDiscard());
+  onBeforeRouteUpdate(() => confirmDiscard());
 
   const onBeforeUnload = (event) => {
     if (toValue(isDirty)) {
