@@ -3,30 +3,37 @@ using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
 using Cbo.Core.Domain;
 using Cbo.Results;
+using Microsoft.AspNetCore.Identity;
 
 namespace Cbo.Core.Topics;
 
+/// <summary>
+/// Creates the topic with its questions, the current user as its owner, and its co-authors.
+/// </summary>
 public sealed class CreateTopicCommandHandler(
     CboDbContext dbContext,
     ITopicValidationService topicValidationService,
-    ICurrentUserService currentUserService) : CommandHandler<CreateTopicCommand, Guid>(dbContext)
+    ICurrentUserService currentUserService,
+    ILookupNormalizer lookupNormalizer) : CommandHandler<CreateTopicCommand, Guid>(dbContext)
 {
     private readonly ITopicValidationService _topicValidationService = topicValidationService;
     private readonly ICurrentUserService _currentUserService = currentUserService;
+    private readonly ILookupNormalizer _lookupNormalizer = lookupNormalizer;
 
-    protected override Task<Result<Guid>> ExecuteAsync(CreateTopicCommand command, CancellationToken cancellationToken) =>
-        Task.FromResult(CreateTopic(command));
-
-    private Result<Guid> CreateTopic(CreateTopicCommand command)
+    protected override async Task<Result<Guid>> ExecuteAsync(CreateTopicCommand command, CancellationToken cancellationToken)
     {
+        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
+
+        List<CoAuthorValidationModel> coAuthors = await CoAuthorLookup.LookUpAsync(
+            DbContext, _lookupNormalizer, command.CoAuthorUsernames, cancellationToken);
+
         List<FieldError> fieldErrors = _topicValidationService.ValidateQuestions(
             command.Questions
                 .Select(q => new QuestionValidationModel(q.QuestionNumber, q.Cost, q.Text, q.Answer))
                 .ToList());
+        fieldErrors.AddRange(_topicValidationService.ValidateCoAuthors(coAuthors, currentUserId));
         if (fieldErrors.Count > 0)
             return TopicFailures.Invalid(fieldErrors);
-
-        Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
 
         // Set here rather than by the database default, so the id is known before the save
         var topic = new Topic
@@ -56,6 +63,18 @@ public sealed class CreateTopicCommandHandler(
             ApplicationUserId = currentUserId,
             TopicId = topic.Id,
         });
+
+        // Validation guarantees every co-author resolved to an account
+        foreach (CoAuthorValidationModel coAuthor in coAuthors)
+        {
+            topic.TopicAuthors.Add(new TopicAuthor
+            {
+                IsOwner = false,
+                IsAuthor = true,
+                ApplicationUserId = coAuthor.UserId!.Value,
+                TopicId = topic.Id,
+            });
+        }
 
         DbContext.Topics.Add(topic);
 

@@ -6,4 +6,5 @@ public record UpdateTopicRequest
     public string? Description { get; set; }
     public required bool IsAuthor { get; set; }
     public required ICollection<UpdateQuestionRequest> Questions { get; set; }
+    public required ICollection<TopicAuthorRequest> Authors { get; set; }
 }
