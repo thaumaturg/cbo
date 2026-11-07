@@ -6,6 +6,7 @@ import ProfileView from "@/views/ProfileView.vue";
 import RegisterView from "@/views/RegisterView.vue";
 import TopicView from "@/views/TopicView.vue";
 import TournamentView from "@/views/TournamentView.vue";
+import TournamentsView from "@/views/TournamentsView.vue";
 import { createRouter, createWebHistory } from "vue-router";
 
 const router = createRouter({
@@ -44,6 +45,12 @@ const router = createRouter({
       path: "/topics/:id",
       name: "topic-edit",
       component: TopicView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/tournaments",
+      name: "tournaments",
+      component: TournamentsView,
       meta: { requiresAuth: true },
     },
     {
