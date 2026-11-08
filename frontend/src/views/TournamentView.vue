@@ -1,12 +1,20 @@
 <script setup>
 import MatchCard from "@/components/MatchCard.vue";
+import TournamentParticipantsPanel from "@/components/TournamentParticipantsPanel.vue";
+import TournamentSettingsPanel from "@/components/TournamentSettingsPanel.vue";
 import TournamentStandingsCard from "@/components/TournamentStandingsCard.vue";
+import TournamentTopicsPanel from "@/components/TournamentTopicsPanel.vue";
 import { tournamentMatchesService } from "@/services/tournament-matches-service.js";
 import { tournamentParticipantsService } from "@/services/tournament-participants-service.js";
 import { tournamentService } from "@/services/tournament-service.js";
 import { useNotify } from "@/utils/notify.js";
 import { isPreparationsStage, stageTagSeverity } from "@/utils/tournament.js";
 import Button from "primevue/button";
+import Tab from "primevue/tab";
+import TabList from "primevue/tablist";
+import TabPanel from "primevue/tabpanel";
+import TabPanels from "primevue/tabpanels";
+import Tabs from "primevue/tabs";
 import Tag from "primevue/tag";
 import { useConfirm } from "primevue/useconfirm";
 import { computed, onMounted, ref } from "vue";
@@ -26,11 +34,16 @@ const isLoadingParticipants = ref(false);
 const loadError = ref(null);
 
 const isStarting = ref(false);
+const activeTab = ref("participants");
 
 const isInPreparations = computed(() => isPreparationsStage(tournament.value?.currentStage));
 const isCreator = computed(() => tournament.value?.currentUserRole === "Creator");
 // Only the Creator can change the tournament, and only before Start
 const canManage = computed(() => isCreator.value && isInPreparations.value);
+
+const participantsReadOnly = computed(() => !canManage.value);
+const topicsReadOnly = computed(() => !isInPreparations.value);
+const settingsReadOnly = computed(() => !canManage.value);
 
 const stageSeverity = computed(() => stageTagSeverity(tournament.value?.currentStage));
 
@@ -229,6 +242,26 @@ onMounted(async () => {
           </div>
         </div>
       </div>
+
+      <!-- Management Tabs -->
+      <Tabs v-model:value="activeTab" class="mt-8">
+        <TabList>
+          <Tab value="participants">Participants</Tab>
+          <Tab value="my-topics">My Topics</Tab>
+          <Tab value="settings">Settings</Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel value="participants">
+            <TournamentParticipantsPanel :tournament="tournament" :read-only="participantsReadOnly" />
+          </TabPanel>
+          <TabPanel value="my-topics">
+            <TournamentTopicsPanel :tournament="tournament" :read-only="topicsReadOnly" />
+          </TabPanel>
+          <TabPanel value="settings">
+            <TournamentSettingsPanel :tournament="tournament" :read-only="settingsReadOnly" />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
     </div>
   </main>
 </template>
