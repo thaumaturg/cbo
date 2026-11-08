@@ -6,12 +6,15 @@ import { tournamentParticipantsService } from "@/services/tournament-participant
 import { tournamentService } from "@/services/tournament-service.js";
 import { useNotify } from "@/utils/notify.js";
 import { isPreparationsStage, stageTagSeverity } from "@/utils/tournament.js";
+import Button from "primevue/button";
 import Tag from "primevue/tag";
+import { useConfirm } from "primevue/useconfirm";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
 const notify = useNotify();
+const confirm = useConfirm();
 
 const tournamentId = computed(() => route.params.tournamentId);
 const tournament = ref(null);
@@ -22,7 +25,12 @@ const isLoadingMatches = ref(false);
 const isLoadingParticipants = ref(false);
 const loadError = ref(null);
 
+const isStarting = ref(false);
+
 const isInPreparations = computed(() => isPreparationsStage(tournament.value?.currentStage));
+const isCreator = computed(() => tournament.value?.currentUserRole === "Creator");
+// Only the Creator can change the tournament, and only before Start
+const canManage = computed(() => isCreator.value && isInPreparations.value);
 
 const stageSeverity = computed(() => stageTagSeverity(tournament.value?.currentStage));
 
@@ -93,6 +101,47 @@ const fetchParticipants = async () => {
   }
 };
 
+// Reloads the tournament while the page stays on screen, unlike fetchTournament's loading state
+const refreshTournament = async () => {
+  const result = await tournamentService.getTournamentById(tournamentId.value);
+  if (result.success) {
+    tournament.value = result.data;
+  } else {
+    notify.error("Tournament Load Failed", result.message);
+  }
+};
+
+const handleStart = () => {
+  const { id, title } = tournament.value;
+
+  confirm.require({
+    message: `Are you sure you want to start "${title}"? Its qualification matches will be generated.`,
+    header: "Start Tournament",
+    icon: "pi pi-exclamation-triangle",
+    rejectProps: { label: "Cancel", severity: "secondary", outlined: true },
+    acceptProps: { label: "Start" },
+    accept: async () => {
+      isStarting.value = true;
+      try {
+        const result = await tournamentService.advanceStage(id, "Qualifications");
+
+        if (result.success) {
+          notify.success("Tournament started", `"${title}" has started.`);
+          await refreshTournament();
+          await Promise.all([fetchMatches(), fetchParticipants()]);
+        } else {
+          notify.error("Start Failed", result.message);
+        }
+      } catch (error) {
+        console.error("Error starting tournament:", error);
+        notify.error("Start Failed", "An unexpected error occurred. Please try again.");
+      } finally {
+        isStarting.value = false;
+      }
+    },
+  });
+};
+
 onMounted(async () => {
   await fetchTournament();
   if (tournament.value && !isInPreparations.value) {
@@ -129,6 +178,14 @@ onMounted(async () => {
             {{ tournament.title }}
           </h1>
           <Tag :value="tournament.currentStage" :severity="stageSeverity" class="text-sm" />
+          <Button
+            v-if="canManage"
+            label="Start"
+            icon="pi pi-play"
+            severity="success"
+            :loading="isStarting"
+            @click="handleStart"
+          />
         </div>
         <p v-if="tournament.description" class="text-gray-600 dark:text-gray-400 ml-14">
           {{ tournament.description }}
