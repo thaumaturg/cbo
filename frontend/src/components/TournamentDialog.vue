@@ -3,30 +3,21 @@ import TournamentForm from "@/components/TournamentForm.vue";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 
-const props = defineProps({
+defineProps({
   visible: {
     type: Boolean,
     required: true,
   },
-  mode: {
-    type: String,
-    default: "create",
-    validator: (val) => ["create", "edit"].includes(val),
-  },
-  tournament: {
-    type: Object,
-    default: null,
-  },
 });
 
-const emit = defineEmits(["update:visible", "tournament-created", "tournament-updated"]);
+const emit = defineEmits(["update:visible", "tournament-created"]);
 
 const closeDialog = () => {
   emit("update:visible", false);
 };
 
 const onSaved = (tournament) => {
-  emit(props.mode === "create" ? "tournament-created" : "tournament-updated", tournament);
+  emit("tournament-created", tournament);
 };
 </script>
 
@@ -35,19 +26,15 @@ const onSaved = (tournament) => {
     :visible="visible"
     @update:visible="closeDialog"
     modal
-    :header="mode === 'create' ? 'Create New Tournament' : 'Edit Tournament'"
+    header="Create New Tournament"
     :draggable="false"
     :style="{ width: '50rem' }"
   >
-    <TournamentForm :tournament="mode === 'edit' ? tournament : null" @saved="onSaved">
+    <TournamentForm :tournament="null" @saved="onSaved">
       <template #actions="{ submitting }">
         <div class="flex justify-end gap-2">
           <Button type="button" label="Cancel" severity="secondary" @click="closeDialog" :disabled="submitting" />
-          <Button
-            type="submit"
-            :label="mode === 'create' ? 'Create Tournament' : 'Save Changes'"
-            :disabled="submitting"
-          />
+          <Button type="submit" label="Create Tournament" :disabled="submitting" />
         </div>
       </template>
     </TournamentForm>
