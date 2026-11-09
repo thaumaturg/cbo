@@ -9,6 +9,7 @@ import { tournamentParticipantsService } from "@/services/tournament-participant
 import { tournamentService } from "@/services/tournament-service.js";
 import { useNotify } from "@/utils/notify.js";
 import { isPreparationsStage, stageTagSeverity } from "@/utils/tournament.js";
+import { useUnsavedChangesGuard } from "@/utils/unsaved-changes.js";
 import Button from "primevue/button";
 import Tab from "primevue/tab";
 import TabList from "primevue/tablist";
@@ -17,7 +18,7 @@ import TabPanels from "primevue/tabpanels";
 import Tabs from "primevue/tabs";
 import Tag from "primevue/tag";
 import { useConfirm } from "primevue/useconfirm";
-import { computed, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
@@ -46,6 +47,32 @@ const topicsReadOnly = computed(() => !isInPreparations.value);
 const settingsReadOnly = computed(() => !canManage.value);
 
 const stageSeverity = computed(() => stageTagSeverity(tournament.value?.currentStage));
+
+const settingsPanel = ref(null);
+const settingsDirty = ref(false);
+const { confirmDiscard } = useUnsavedChangesGuard(settingsDirty);
+
+const handleTabChange = async (nextTab) => {
+  if (activeTab.value !== "settings" || !settingsDirty.value) {
+    activeTab.value = nextTab;
+    return;
+  }
+
+  // Tabs has already switched itself and only follows `value` when it changes, so send it to the
+  // new tab and back to keep Settings on screen while the user decides
+  activeTab.value = nextTab;
+  await nextTick();
+  activeTab.value = "settings";
+
+  if (await confirmDiscard()) {
+    settingsPanel.value?.reset();
+    activeTab.value = nextTab;
+  }
+};
+
+const handleTournamentUpdated = (updatedTournament) => {
+  tournament.value = updatedTournament;
+};
 
 const fetchTournament = async () => {
   isLoadingTournament.value = true;
@@ -164,7 +191,6 @@ onMounted(async () => {
 </script>
 
 <template>
-
   <main class="container mx-auto px-4 py-8">
     <!-- Loading State -->
     <div v-if="isLoadingTournament" class="text-center py-16">
@@ -244,7 +270,7 @@ onMounted(async () => {
       </div>
 
       <!-- Management Tabs -->
-      <Tabs v-model:value="activeTab" class="mt-8">
+      <Tabs :value="activeTab" class="mt-8" @update:value="handleTabChange">
         <TabList>
           <Tab value="participants">Participants</Tab>
           <Tab value="my-topics">My Topics</Tab>
@@ -258,7 +284,13 @@ onMounted(async () => {
             <TournamentTopicsPanel :tournament="tournament" :read-only="topicsReadOnly" />
           </TabPanel>
           <TabPanel value="settings">
-            <TournamentSettingsPanel :tournament="tournament" :read-only="settingsReadOnly" />
+            <TournamentSettingsPanel
+              ref="settingsPanel"
+              v-model:dirty="settingsDirty"
+              :tournament="tournament"
+              :read-only="settingsReadOnly"
+              @updated="handleTournamentUpdated"
+            />
           </TabPanel>
         </TabPanels>
       </Tabs>
