@@ -38,7 +38,7 @@ onMounted(fetchTournaments);
 </script>
 
 <template>
-  <TournamentDialog v-model:visible="showCreateDialog" mode="create" @tournament-created="handleTournamentCreated" />
+  <TournamentDialog v-model:visible="showCreateDialog" @tournament-created="handleTournamentCreated" />
 
   <main class="container mx-auto px-4 py-8">
     <div class="mb-6 flex items-center gap-4">
