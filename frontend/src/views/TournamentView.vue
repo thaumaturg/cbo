@@ -163,7 +163,7 @@ const handleStart = () => {
     accept: async () => {
       isStarting.value = true;
       try {
-        const result = await tournamentService.advanceStage(id, "Qualifications");
+        const result = await tournamentService.startTournament(id);
 
         if (result.success) {
           notify.success("Tournament started", `"${title}" has started.`);
