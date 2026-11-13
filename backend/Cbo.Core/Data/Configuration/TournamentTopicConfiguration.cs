@@ -6,6 +6,9 @@ namespace Cbo.Core.Data.Configuration;
 
 public class TournamentTopicConfiguration : IEntityTypeConfiguration<TournamentTopic>
 {
+    public const string TournamentIdTopicIdIndexName = "ix_tournament_topics_tournament_id_topic_id";
+    public const string TournamentParticipantIdPriorityIndexIndexName = "ix_tournament_topics_tournament_participant_id_priority_index";
+
     public void Configure(EntityTypeBuilder<TournamentTopic> entity)
     {
         entity.HasKey(tt => tt.Id);
@@ -48,6 +51,12 @@ public class TournamentTopicConfiguration : IEntityTypeConfiguration<TournamentT
         // Only a topic's owner can bring it, and an account is a participant at most once
         // Match details rely on it to find a round's tournament topic by topic id.
         entity.HasIndex(tt => new { tt.TournamentId, tt.TopicId })
-            .IsUnique();
+            .IsUnique()
+            .HasDatabaseName(TournamentIdTopicIdIndexName);
+
+        // A participant takes each priority position at most once (ADR-0007: the maximum counts positions)
+        entity.HasIndex(tt => new { tt.TournamentParticipantId, tt.PriorityIndex })
+            .IsUnique()
+            .HasDatabaseName(TournamentParticipantIdPriorityIndexIndexName);
     }
 }
