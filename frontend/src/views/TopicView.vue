@@ -93,14 +93,19 @@ const ownerUsername = computed(
   () => topic.value?.authors.find((author) => author.isOwner)?.username ?? authStore.userName,
 );
 
+// Co-authors listed by username, which is also how the server orders them
+const byUsername = (a, b) => a.username.localeCompare(b.username, undefined, { sensitivity: "base" });
+
 const authorRows = computed(() => [
   { username: ownerUsername.value, isOwner: true, isAuthor: formData.value.isAuthor, coAuthorIndex: null },
-  ...coAuthors.value.map((coAuthor, index) => ({
-    username: coAuthor.username,
-    isOwner: false,
-    isAuthor: true,
-    coAuthorIndex: index,
-  })),
+  ...coAuthors.value
+    .map((coAuthor, index) => ({
+      username: coAuthor.username,
+      isOwner: false,
+      isAuthor: true,
+      coAuthorIndex: index,
+    }))
+    .sort(byUsername),
 ]);
 
 const sameUsername = (a, b) => a?.toLowerCase() === b?.toLowerCase();

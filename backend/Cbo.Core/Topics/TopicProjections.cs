@@ -8,7 +8,8 @@ namespace Cbo.Core.Topics;
 public static class TopicProjections
 {
     /// <summary>
-    /// Questions come ordered by number, authors by id. <see cref="TopicResponse.IsAuthor"/> is the current user's flag.
+    /// Questions come ordered by number. Authors come with the owner first, then by username, case-insensitively.
+    /// <see cref="TopicResponse.IsAuthor"/> is the current user's flag.
     /// </summary>
     public static Expression<Func<Topic, TopicResponse>> ToResponse(Guid currentUserId)
     {
@@ -32,7 +33,8 @@ public static class TopicProjections
                 .ToList(),
             Authors = t.TopicAuthors
                 .AsQueryable()
-                .OrderBy(ta => ta.Id)
+                .OrderByDescending(ta => ta.IsOwner)
+                .ThenBy(ta => ta.ApplicationUser!.NormalizedUserName)
                 .Select(toAuthorResponse)
                 .ToList(),
         };
