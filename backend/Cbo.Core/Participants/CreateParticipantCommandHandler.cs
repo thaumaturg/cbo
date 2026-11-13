@@ -31,7 +31,7 @@ public sealed class CreateParticipantCommandHandler(
 
         ApplicationUser? user = await _userManager.FindByNameAsync(command.Username);
         if (user is null)
-            return ParticipantFailures.InvalidField("username", $"User '{command.Username}' doesn't exist.");
+            return ParticipantFailures.InvalidField("username", $"There's no account with the username '{command.Username}'.");
 
         if (access.Value.CurrentStage != TournamentStage.Preparations)
             return ParticipantFailures.Locked();

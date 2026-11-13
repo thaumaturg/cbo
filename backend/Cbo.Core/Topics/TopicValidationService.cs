@@ -69,7 +69,7 @@ public class TopicValidationService : ITopicValidationService
             else if (!seenNormalizedUsernames.Add(coAuthor.NormalizedUsername))
                 errors.Add(new FieldError(field, "This author appears more than once."));
             else if (coAuthor.UserId is null)
-                errors.Add(new FieldError(field, $"User '{coAuthor.Username}' doesn't exist."));
+                errors.Add(new FieldError(field, $"There's no account with the username '{coAuthor.Username}'."));
             else if (coAuthor.UserId == ownerId)
                 errors.Add(new FieldError(field, "The owner can't be added as a co-author."));
         }

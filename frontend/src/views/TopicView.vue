@@ -114,7 +114,7 @@ const addCoAuthor = () => {
   } else if (sameUsername(username, ownerUsername.value)) {
     addAuthorError.value = "You're the owner of this topic already.";
   } else if (coAuthors.value.some((coAuthor) => sameUsername(coAuthor.username, username))) {
-    addAuthorError.value = "This user is already in the list.";
+    addAuthorError.value = "This account is already in the list.";
   } else {
     coAuthors.value.push({ username });
     newAuthorUsername.value = "";
