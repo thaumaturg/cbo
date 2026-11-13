@@ -95,19 +95,18 @@ export const tournamentService = {
   },
 
   /**
-   * Advance tournament to the next stage
+   * Start a tournament: move it from Preparations to Qualifications
    * @param {string} tournamentId - Tournament ID (GUID)
-   * @param {string} stage - Target stage
    * @returns {Promise} - API response with updated tournament
    */
-  async advanceStage(tournamentId, stage) {
+  async startTournament(tournamentId) {
     try {
       const response = await api.patch(`/Tournaments/${tournamentId}`, {
-        stage: stage,
+        stage: "Qualifications",
       });
       return { success: true, data: response.data };
     } catch (error) {
-      return apiFailure(error, "Failed to change the tournament stage. Please try again.");
+      return apiFailure(error, "Failed to start the tournament. Please try again.");
     }
   },
 };
