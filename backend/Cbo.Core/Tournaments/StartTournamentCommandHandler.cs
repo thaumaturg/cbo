@@ -17,7 +17,7 @@ public sealed class StartTournamentCommandHandler(
     IMatchGenerationService matchGenerationService) : CommandHandler<StartTournamentCommand>(dbContext)
 {
     private const string StartForbiddenMessage = "You don't have permission to start this tournament.";
-    private const string AlreadyStartedMessage = "The tournament has already started. It can only advance to Qualifications from the Preparations stage.";
+    private const string AlreadyStartedMessage = "The tournament has already started. Only a tournament in the Preparations stage can be started.";
 
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
     private readonly IMatchGenerationService _matchGenerationService = matchGenerationService;
@@ -25,7 +25,7 @@ public sealed class StartTournamentCommandHandler(
     protected override async Task<Result> ExecuteAsync(StartTournamentCommand command, CancellationToken cancellationToken)
     {
         Result<Tournament> access = await _tournamentAccessService.LoadTournamentWithAccessAsync(
-            command.TournamentId, TournamentOperations.AdvanceStage, StartForbiddenMessage, cancellationToken);
+            command.TournamentId, TournamentOperations.Start, StartForbiddenMessage, cancellationToken);
         if (access.IsFailure)
             return access.Failure;
 

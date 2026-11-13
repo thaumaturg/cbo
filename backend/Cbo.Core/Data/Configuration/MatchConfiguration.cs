@@ -29,7 +29,7 @@ public class MatchConfiguration : IEntityTypeConfiguration<Match>
         entity.Property(m => m.TournamentId)
             .IsRequired();
 
-        // A tournament has each match number at most once; also stops two simultaneous stage advances from generating the matches twice
+        // A tournament has each match number at most once; also stops two simultaneous Starts from generating the matches twice
         entity.HasIndex(m => new { m.TournamentId, m.NumberInTournament })
             .IsUnique()
             .HasDatabaseName(TournamentIdNumberInTournamentIndexName);

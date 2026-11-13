@@ -36,7 +36,7 @@ public class TournamentAuthorizationHandler(
         if (requirement.Name == TournamentOperations.Update.Name ||
             requirement.Name == TournamentOperations.Delete.Name ||
             requirement.Name == TournamentOperations.ManageParticipants.Name ||
-            requirement.Name == TournamentOperations.AdvanceStage.Name ||
+            requirement.Name == TournamentOperations.Start.Name ||
             requirement.Name == TournamentOperations.ManageRounds.Name)
         {
             if (participant.Role == TournamentParticipantRole.Creator)
