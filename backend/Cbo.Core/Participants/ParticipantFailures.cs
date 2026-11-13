@@ -21,5 +21,5 @@ internal static class ParticipantFailures
         Failure.Conflict($"A tournament can have at most {DefaultSettings.OrganizersPerTournamentMax} organizers.");
 
     public static Failure AlreadyAParticipant(string username) =>
-        Failure.Conflict($"User '{username}' is already a participant in this tournament.");
+        Failure.Conflict($"'{username}' is already a participant in this tournament.");
 }
