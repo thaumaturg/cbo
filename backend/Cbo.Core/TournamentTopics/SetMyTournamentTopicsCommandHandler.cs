@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Cbo.Core.Accounts;
 using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
+using Cbo.Core.Data.Configuration;
 using Cbo.Core.Domain;
 using Cbo.Core.Topics;
 using Cbo.Core.Tournaments;
@@ -60,9 +61,19 @@ public sealed class SetMyTournamentTopicsCommandHandler(
         return Result.Success();
     }
 
+    protected override Failure? MapSaveFailure(SetMyTournamentTopicsCommand command, DbUpdateException exception)
+    {
+        // Lost a race with a simultaneous save of the same participant's tournament topics
+        if (PostgresConstraint.IsUniqueViolation(exception, TournamentTopicConfiguration.TournamentParticipantIdPriorityIndexIndexName) ||
+            PostgresConstraint.IsUniqueViolation(exception, TournamentTopicConfiguration.TournamentIdTopicIdIndexName))
+            return Failure.Conflict("Your tournament topics were changed at the same time. Reload the page and try again.");
+
+        return null;
+    }
+
     /// <summary>
-    /// Every priority index must be a position below the maximum; empty slots between topics take positions too.
-    /// Every topic id must exist, appear at most once, and be a topic the current user owns.
+    /// Every priority index must be a position below the maximum, taken at most once; empty slots between topics take
+    /// positions too. Every topic id must exist, appear at most once, and be a topic the current user owns.
     /// </summary>
     private async Task<List<FieldError>> ValidateTopicsAsync(
         IReadOnlyList<BroughtTopic> topics, int topicsPerParticipantMax, CancellationToken cancellationToken)
@@ -74,36 +85,43 @@ public sealed class SetMyTournamentTopicsCommandHandler(
             .ToDictionaryAsync(t => t.Id, cancellationToken);
 
         List<FieldError> fieldErrors = [];
+        HashSet<int> seenPriorityIndexes = [];
         HashSet<Guid> seenTopicIds = [];
         ClaimsPrincipal user = _currentUserService.GetRequiredCurrentUser();
 
         for (int i = 0; i < topics.Count; i++)
         {
             int priorityIndex = topics[i].PriorityIndex;
+            string priorityField = $"[{i}].priorityIndex";
+
             if (priorityIndex < 0 || priorityIndex >= topicsPerParticipantMax)
             {
                 fieldErrors.Add(new FieldError(
-                    $"[{i}].priorityIndex", $"The priority position must be between 1 and {topicsPerParticipantMax}."));
+                    priorityField, $"The priority position must be between 1 and {topicsPerParticipantMax}."));
+            }
+            else if (!seenPriorityIndexes.Add(priorityIndex))
+            {
+                fieldErrors.Add(new FieldError(priorityField, "This priority position appears more than once."));
             }
 
             Guid topicId = topics[i].TopicId;
-            string field = $"[{i}].topicId";
+            string topicField = $"[{i}].topicId";
 
             if (!seenTopicIds.Add(topicId))
             {
-                fieldErrors.Add(new FieldError(field, "This topic appears more than once."));
+                fieldErrors.Add(new FieldError(topicField, "This topic appears more than once."));
                 continue;
             }
 
             if (!topicsById.TryGetValue(topicId, out Topic? topic))
             {
-                fieldErrors.Add(new FieldError(field, "This topic doesn't exist."));
+                fieldErrors.Add(new FieldError(topicField, "This topic doesn't exist."));
                 continue;
             }
 
             AuthorizationResult authResult = await _authorizationService.AuthorizeAsync(user, topic, TopicOperations.Read);
             if (!authResult.Succeeded)
-                fieldErrors.Add(new FieldError(field, "You can only bring topics you own."));
+                fieldErrors.Add(new FieldError(topicField, "You can only bring topics you own."));
         }
 
         return fieldErrors;
