@@ -149,7 +149,7 @@ public static class TournamentEndpoints
         if (startTournamentRequest.Stage != TournamentStage.Qualifications)
             return Failure.Invalid(
                 "Some of the stage data is invalid.",
-                new FieldError("stage", "Only advancing to the Qualifications stage is currently supported.")).ToProblem();
+                new FieldError("stage", "The stage can only be set to Qualifications, which starts the tournament.")).ToProblem();
 
         Result started = await startTournament.HandleAsync(new StartTournamentCommand(id), cancellationToken);
         if (started.IsFailure)
