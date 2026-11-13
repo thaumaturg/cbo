@@ -68,14 +68,14 @@ public static class TournamentTopicEndpoints
 
     private static async Task<IResult> SetMyTournamentTopicsAsync(
         Guid tournamentId,
-        List<ChosenTopicRequest> chosenTopics,
+        List<TournamentTopicRequest> tournamentTopics,
         [FromServices] ICommandHandler<SetMyTournamentTopicsCommand> setMyTopics,
         [FromServices] IQueryHandler<GetMyTournamentTopicsQuery, List<TournamentTopicResponse>> getMyTopics,
         CancellationToken cancellationToken)
     {
         var command = new SetMyTournamentTopicsCommand(
             tournamentId,
-            chosenTopics.Select(topic => new ChosenTopic(topic.TopicId, topic.PriorityIndex)).ToList());
+            tournamentTopics.Select(topic => new BroughtTopic(topic.TopicId, topic.PriorityIndex)).ToList());
 
         Result updated = await setMyTopics.HandleAsync(command, cancellationToken);
         if (updated.IsFailure)

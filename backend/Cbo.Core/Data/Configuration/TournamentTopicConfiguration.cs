@@ -45,7 +45,7 @@ public class TournamentTopicConfiguration : IEntityTypeConfiguration<TournamentT
             .OnDelete(DeleteBehavior.Cascade);
 
         // A topic is in a tournament at most once.
-        // Only a topic's owner can choose it, and a user is a participant at most once
+        // Only a topic's owner can bring it, and an account is a participant at most once
         // Match details rely on it to find a round's tournament topic by topic id.
         entity.HasIndex(tt => new { tt.TournamentId, tt.TopicId })
             .IsUnique();

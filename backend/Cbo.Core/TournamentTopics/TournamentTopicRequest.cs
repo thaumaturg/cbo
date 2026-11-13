@@ -1,6 +1,6 @@
 namespace Cbo.Core.TournamentTopics;
 
-public record ChosenTopicRequest
+public record TournamentTopicRequest
 {
     public required Guid TopicId { get; set; }
     public required int PriorityIndex { get; set; }
