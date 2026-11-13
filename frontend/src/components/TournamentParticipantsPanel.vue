@@ -39,6 +39,9 @@ const participants = ref([]);
 const isLoading = ref(false);
 const isAdding = ref(false);
 const isSavingSeeding = ref(false);
+const isChangingRole = ref(false);
+// Select keeps the picked role even when the change fails, so its key changes to show the saved role again
+const roleSelectsVersion = ref(0);
 const loadError = ref(null);
 const addError = ref(null);
 const addFieldErrors = ref({});
@@ -69,6 +72,7 @@ const players = computed(() => {
 });
 
 const canReorderPlayers = computed(() => !props.readOnly && players.value.length > 1);
+const isRoleSelectDisabled = computed(() => isChangingRole.value || isSavingSeeding.value);
 
 const organizerCount = computed(() => participants.value.filter((p) => p.role === "Organizer").length);
 
@@ -163,8 +167,33 @@ const handleRemoveParticipant = (participant) => {
   });
 };
 
+const handleRoleChange = async (participant, role) => {
+  if (role === participant.role || isRoleSelectDisabled.value) return;
+
+  isChangingRole.value = true;
+
+  try {
+    const result = await tournamentParticipantsService.updateParticipant(props.tournament.id, participant.id, { role });
+
+    if (result.success) {
+      const article = role === "Organizer" ? "an" : "a";
+      notify.success("Role changed", `"${participant.username}" was made ${article} ${role}.`);
+    } else {
+      notify.error("Role Change Failed", result.message);
+    }
+  } catch (error) {
+    notify.error("Role Change Failed", "An unexpected error occurred. Please try again.");
+    console.error("Error changing participant role:", error);
+  } finally {
+    // Seeds follow a role change, and a failed change shows the old role again
+    await fetchParticipants();
+    roleSelectsVersion.value++;
+    isChangingRole.value = false;
+  }
+};
+
 const handleRowReorder = async (event) => {
-  if (isSavingSeeding.value) return;
+  if (isSavingSeeding.value || isChangingRole.value) return;
 
   const orderedIds = event.value.map((p) => p.id);
 
@@ -277,11 +306,24 @@ watch([newUsername, newRole], () => {
       <!-- Staff -->
       <div v-if="staff.length > 0">
         <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Staff</h4>
-        <DataTable :value="staff" dataKey="id" size="small" stripedRows :loading="isLoading">
+        <DataTable :value="staff" dataKey="id" size="small" stripedRows :loading="isLoading || isChangingRole">
           <Column field="username" header="Username" />
           <Column header="Role">
             <template #body="{ data }">
-              <Tag :value="data.role" :severity="roleTagSeverity(data.role)" />
+              <Select
+                v-if="!readOnly && data.role !== 'Creator'"
+                :key="`${data.id}-${roleSelectsVersion}`"
+                :modelValue="data.role"
+                :options="roleOptions"
+                optionLabel="label"
+                optionValue="value"
+                :aria-label="`Role of ${data.username}`"
+                size="small"
+                class="w-36"
+                :disabled="isRoleSelectDisabled"
+                @update:modelValue="(role) => handleRoleChange(data, role)"
+              />
+              <Tag v-else :value="data.role" :severity="roleTagSeverity(data.role)" />
             </template>
           </Column>
           <Column header="Topics">
@@ -317,12 +359,28 @@ watch([newUsername, newRole], () => {
           dataKey="id"
           size="small"
           stripedRows
-          :loading="isLoading || isSavingSeeding"
+          :loading="isLoading || isSavingSeeding || isChangingRole"
           @row-reorder="handleRowReorder"
         >
           <Column v-if="canReorderPlayers" rowReorder style="width: 3rem" />
           <Column field="seed" header="Seed" style="width: 4rem" />
           <Column field="username" header="Player" />
+          <Column v-if="!readOnly" header="Role">
+            <template #body="{ data }">
+              <Select
+                :key="`${data.id}-${roleSelectsVersion}`"
+                :modelValue="data.role"
+                :options="roleOptions"
+                optionLabel="label"
+                optionValue="value"
+                :aria-label="`Role of ${data.username}`"
+                size="small"
+                class="w-36"
+                :disabled="isRoleSelectDisabled"
+                @update:modelValue="(role) => handleRoleChange(data, role)"
+              />
+            </template>
+          </Column>
           <Column header="Topics">
             <template #body="{ data }">{{ topicsLabel(data) }}</template>
           </Column>
