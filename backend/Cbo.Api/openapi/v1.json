@@ -2152,7 +2152,7 @@
               "schema": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/ChosenTopicRequest"
+                  "$ref": "#/components/schemas/TournamentTopicRequest"
                 }
               }
             }
@@ -2430,27 +2430,6 @@
         "properties": {
           "jwtToken": {
             "type": "string"
-          }
-        }
-      },
-      "ChosenTopicRequest": {
-        "required": [
-          "topicId",
-          "priorityIndex"
-        ],
-        "type": "object",
-        "properties": {
-          "topicId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "priorityIndex": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
           }
         }
       },
@@ -3371,6 +3350,27 @@
           "Stage6",
           "Stage7"
         ]
+      },
+      "TournamentTopicRequest": {
+        "required": [
+          "topicId",
+          "priorityIndex"
+        ],
+        "type": "object",
+        "properties": {
+          "topicId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "priorityIndex": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
       },
       "TournamentTopicResponse": {
         "required": [

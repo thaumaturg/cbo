@@ -17,7 +17,7 @@ public sealed class SetMyTournamentTopicsCommandHandler(
     ICurrentUserService currentUserService,
     IAuthorizationService authorizationService) : CommandHandler<SetMyTournamentTopicsCommand>(dbContext)
 {
-    private const string ChooseTopicsForbiddenMessage = "You don't have permission to bring topics to this tournament.";
+    private const string BringTopicsForbiddenMessage = "You don't have permission to bring topics to this tournament.";
 
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
     private readonly ICurrentUserService _currentUserService = currentUserService;
@@ -26,7 +26,7 @@ public sealed class SetMyTournamentTopicsCommandHandler(
     protected override async Task<Result> ExecuteAsync(SetMyTournamentTopicsCommand command, CancellationToken cancellationToken)
     {
         Result<Tournament> access = await _tournamentAccessService.LoadTournamentWithAccessAsync(
-            command.TournamentId, TournamentOperations.Read, ChooseTopicsForbiddenMessage, cancellationToken);
+            command.TournamentId, TournamentOperations.Read, BringTopicsForbiddenMessage, cancellationToken);
         if (access.IsFailure)
             return access.Failure;
 
@@ -65,7 +65,7 @@ public sealed class SetMyTournamentTopicsCommandHandler(
     /// Every topic id must exist, appear at most once, and be a topic the current user owns.
     /// </summary>
     private async Task<List<FieldError>> ValidateTopicsAsync(
-        IReadOnlyList<ChosenTopic> topics, int topicsPerParticipantMax, CancellationToken cancellationToken)
+        IReadOnlyList<BroughtTopic> topics, int topicsPerParticipantMax, CancellationToken cancellationToken)
     {
         List<Guid> topicIds = topics.Select(t => t.TopicId).Distinct().ToList();
         Dictionary<Guid, Topic> topicsById = await DbContext.Topics

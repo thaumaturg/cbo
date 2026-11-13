@@ -1,6 +1,6 @@
 /**
  * Whether a tournament is still in Preparations. The API only accepts changes to
- * the settings, participants, seeding and topic choices during this stage.
+ * the settings, participants, seeding and tournament topics during this stage.
  * @param {string|null|undefined} stage - Tournament stage name
  * @returns {boolean}
  */

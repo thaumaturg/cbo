@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Cbo.Core.Topics;
 
 /// <summary>
-/// Deletes a topic that hasn't been played. Its questions, authors and tournament choices go with it (database cascade).
+/// Deletes a topic that hasn't been played. Its questions, authors and tournament topics go with it (database cascade).
 /// </summary>
 public sealed class DeleteTopicCommandHandler(
     CboDbContext dbContext,
