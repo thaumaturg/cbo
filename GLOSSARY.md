@@ -16,6 +16,10 @@ _Avoid_: User, profile, login (as a noun for the account)
 The move of a tournament from the Preparations stage to the Qualifications stage, which generates its qualification matches.
 _Avoid_: Advance stage, advance to Qualifications, play
 
+**Started**:
+Said of a tournament once it has left the Preparations stage, whichever stage it is in now.
+_Avoid_: In progress, active, running
+
 ### Topics
 
 **Topic**:
