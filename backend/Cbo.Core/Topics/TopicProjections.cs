@@ -39,4 +39,23 @@ public static class TopicProjections
                 .ToList(),
         };
     }
+
+    /// <summary>
+    /// A topics list row. <see cref="TopicListItemResponse.AuthorCount"/> counts every topic author row, including an owner
+    /// who isn't an author. <see cref="TopicListItemResponse.IsAuthor"/> is the current user's flag.
+    /// </summary>
+    public static Expression<Func<Topic, TopicListItemResponse>> ToListItemResponse(Guid currentUserId) =>
+        t => new TopicListItemResponse
+        {
+            Id = t.Id,
+            Title = t.Title,
+            QuestionCount = t.Questions.Count,
+            AuthorCount = t.TopicAuthors.Count,
+            IsAuthor = t.TopicAuthors
+                .Where(ta => ta.ApplicationUserId == currentUserId)
+                .Select(ta => ta.IsAuthor)
+                .FirstOrDefault(),
+            IsPlayed = t.Rounds.Any(),
+            CreatedAt = t.CreatedAt,
+        };
 }
