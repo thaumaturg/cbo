@@ -2,6 +2,7 @@
 import TopicsTable from "@/components/TopicsTable.vue";
 import {
   DEFAULT_PAGE_SIZE,
+  MAX_SEARCH_LENGTH,
   parseBoolean,
   parsePage,
   parsePageSize,
@@ -166,6 +167,7 @@ onBeforeUnmount(() => {
         :modelValue="searchText"
         placeholder="Search by title"
         aria-label="Search by title"
+        :maxlength="MAX_SEARCH_LENGTH"
         class="w-64"
         @update:modelValue="handleSearchInput"
       />

@@ -248,6 +248,7 @@
             "name": "search",
             "in": "query",
             "schema": {
+              "maxLength": 200,
               "type": "string"
             }
           },
@@ -635,6 +636,7 @@
             "name": "search",
             "in": "query",
             "schema": {
+              "maxLength": 200,
               "type": "string"
             }
           },

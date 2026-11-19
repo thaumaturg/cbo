@@ -10,7 +10,7 @@ public static class PagingRules
 {
     public const string InvalidMessage = "Some of the list parameters are invalid.";
 
-    public static List<FieldError> Validate<T>(int page, int pageSize, string? sort, SortKeys<T> sortKeys)
+    public static List<FieldError> Validate<T>(int page, int pageSize, string? sort, string? search, SortKeys<T> sortKeys)
     {
         ArgumentNullException.ThrowIfNull(sortKeys);
 
@@ -24,6 +24,9 @@ public static class PagingRules
 
         if (!sortKeys.IsValid(sort))
             errors.Add(new FieldError("sort", sortKeys.UnknownKeyMessage));
+
+        if (search?.Trim().Length > PagingDefaults.MaxSearchLength)
+            errors.Add(new FieldError("search", $"The search can be at most {PagingDefaults.MaxSearchLength} characters."));
 
         return errors;
     }

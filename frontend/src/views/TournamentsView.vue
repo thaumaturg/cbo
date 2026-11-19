@@ -3,6 +3,7 @@ import TournamentDialog from "@/components/TournamentDialog.vue";
 import TournamentsTable from "@/components/TournamentsTable.vue";
 import {
   DEFAULT_PAGE_SIZE,
+  MAX_SEARCH_LENGTH,
   parseManyOf,
   parseOneOf,
   parsePage,
@@ -173,6 +174,7 @@ const handleTournamentCreated = (tournament) => {
         :modelValue="searchText"
         placeholder="Search by title"
         aria-label="Search by title"
+        :maxlength="MAX_SEARCH_LENGTH"
         class="w-64"
         @update:modelValue="handleSearchInput"
       />
