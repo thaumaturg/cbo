@@ -81,6 +81,9 @@ const handleRowReorder = (event) => {
 
 const isPaged = computed(() => props.paging !== undefined);
 
+// An empty page past the end of a non-empty list isn't an empty list: the view moves to the last page
+const isListEmpty = computed(() => !isPaged.value || props.paging.totalCount === 0);
+
 const sortField = computed(() => props.paging?.sort?.replace(/^-/, "") ?? null);
 const sortOrder = computed(() => {
   const sort = props.paging?.sort;
@@ -175,11 +178,13 @@ const handleSort = (event) => {
       </template>
     </Column>
     <template #empty>
-      <div v-if="filtered" class="flex items-center gap-3">
-        <span>No topics match these filters</span>
-        <Button label="Clear filters" size="small" severity="secondary" text @click="emit('clear-filters')" />
-      </div>
-      <template v-else>{{ emptyMessage }}</template>
+      <template v-if="isListEmpty">
+        <div v-if="filtered" class="flex items-center gap-3">
+          <span>No topics match these filters</span>
+          <Button label="Clear filters" size="small" severity="secondary" text @click="emit('clear-filters')" />
+        </div>
+        <template v-else>{{ emptyMessage }}</template>
+      </template>
     </template>
   </DataTable>
 </template>
