@@ -34,7 +34,7 @@ public sealed class GetTournamentsQueryHandler(
 
     private static List<FieldError> Validate(GetTournamentsQuery query)
     {
-        List<FieldError> errors = PagingRules.Validate(query.Page, query.PageSize, query.Sort, TournamentListFilter.SortKeys);
+        List<FieldError> errors = PagingRules.Validate(query.Page, query.PageSize, query.Sort, query.Search, TournamentListFilter.SortKeys);
 
         // Binding accepts numbers for enums, so an undefined value can still get here
         if (query.Stage is { } stage && !Enum.IsDefined(stage))

@@ -11,7 +11,7 @@ namespace Cbo.Core.Tournaments;
 /// instead of a binding error. <see cref="Role"/> is singular because it repeats once per value.
 /// </summary>
 /// <remarks>
-/// <c>[DefaultValue]</c>, <c>[Range]</c> and <c>[Description]</c> only document the parameters in OpenAPI.
+/// <c>[DefaultValue]</c>, <c>[Range]</c>, <c>[MaxLength]</c> and <c>[Description]</c> only document the parameters in OpenAPI.
 /// The handler validates them.
 /// </remarks>
 public record GetTournamentsRequest
@@ -32,6 +32,7 @@ public record GetTournamentsRequest
     public string? Sort { get; set; }
 
     [FromQuery(Name = "search")]
+    [MaxLength(PagingDefaults.MaxSearchLength)]
     public string? Search { get; set; }
 
     [FromQuery(Name = "stage")]

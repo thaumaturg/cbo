@@ -6,6 +6,9 @@ export const PAGE_SIZES = [10, 25, 50];
 
 export const DEFAULT_PAGE_SIZE = 25;
 
+/** Longest search the server accepts, after trimming. */
+export const MAX_SEARCH_LENGTH = 200;
+
 // The server binds `page` to an int, so a larger number would be a binding 400.
 const MAX_PAGE = 2 ** 31 - 1;
 
@@ -93,11 +96,16 @@ export function parseSort(value, keys, fallback) {
 /**
  * Parse free text, such as `search`, from the route query
  * @param {string | string[] | undefined} value - Raw query value
- * @returns {string | undefined} - The text as written, or `undefined` when missing or blank
+ * @returns {string | undefined} - The text as written, or `undefined` when missing, blank, or longer than
+ *   {@link MAX_SEARCH_LENGTH} after trimming
  */
 export function parseText(value) {
   const text = firstValue(value);
-  return typeof text === "string" && text.trim() !== "" ? text : undefined;
+  if (typeof text !== "string") {
+    return undefined;
+  }
+  const length = text.trim().length;
+  return length > 0 && length <= MAX_SEARCH_LENGTH ? text : undefined;
 }
 
 /**
