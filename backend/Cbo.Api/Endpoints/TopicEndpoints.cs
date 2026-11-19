@@ -1,5 +1,6 @@
 using Cbo.Api.ErrorHandling;
 using Cbo.Core.Cqrs;
+using Cbo.Core.Paging;
 using Cbo.Core.Topics;
 using Cbo.Results;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +15,8 @@ public static class TopicEndpoints
 
         topics.MapGet("", GetTopicsAsync)
             .WithName("GetTopics")
-            .Produces<List<TopicResponse>>()
+            .Produces<PageResponse<TopicListItemResponse>>()
+            .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         topics.MapGet("{id:guid}", GetTopicAsync)
@@ -51,10 +53,19 @@ public static class TopicEndpoints
     }
 
     private static async Task<IResult> GetTopicsAsync(
-        [FromServices] IQueryHandler<GetTopicsQuery, List<TopicResponse>> getTopics,
+        [AsParameters] GetTopicsRequest getTopicsRequest,
+        [FromServices] IQueryHandler<GetTopicsQuery, PageResponse<TopicListItemResponse>> getTopics,
         CancellationToken cancellationToken)
     {
-        Result<List<TopicResponse>> result = await getTopics.HandleAsync(new GetTopicsQuery(), cancellationToken);
+        var query = new GetTopicsQuery(
+            getTopicsRequest.Page ?? PagingDefaults.FirstPage,
+            getTopicsRequest.PageSize ?? PagingDefaults.DefaultPageSize,
+            getTopicsRequest.Sort,
+            getTopicsRequest.Search,
+            getTopicsRequest.Played,
+            getTopicsRequest.IsAuthor);
+
+        Result<PageResponse<TopicListItemResponse>> result = await getTopics.HandleAsync(query, cancellationToken);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }
 
