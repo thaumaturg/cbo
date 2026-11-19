@@ -3,12 +3,22 @@ import { apiFailure } from "@/utils/error.js";
 
 export const tournamentService = {
   /**
-   * Get all tournaments for the current user
-   * @returns {Promise} - API response with user's tournaments
+   * Get one page of the tournaments the current user takes part in
+   * @param {Object} [params] - List params, named as in the API (see `useListQuery`)
+   * @param {number} [params.page] - Page number, from 1
+   * @param {number} [params.pageSize] - Rows per page, 1–100
+   * @param {string} [params.sort] - `title`, `stage` or `createdAt`, with an optional leading `-` for descending
+   * @param {string} [params.search] - Text the title contains
+   * @param {"Preparations" | "Started"} [params.stage] - Stage filter
+   * @param {Array<"Creator" | "Organizer" | "Player">} [params.role] - The current user's role is one of these
+   * @param {Object} [options] - Request options
+   * @param {AbortSignal} [options.signal] - Cancels the request
+   * @returns {Promise} - API response with a page: `{ items, page, pageSize, totalCount }`
    */
-  async getAllTournaments() {
+  async getTournaments(params = {}, { signal } = {}) {
     try {
-      const response = await api.get("/Tournaments");
+      // indexes: null sends arrays as repeated keys (role=Creator&role=Player), which ASP.NET binds
+      const response = await api.get("/Tournaments", { params, signal, paramsSerializer: { indexes: null } });
       return { success: true, data: response.data };
     } catch (error) {
       return apiFailure(error, "Failed to fetch tournaments. Please try again.");
