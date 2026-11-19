@@ -1,5 +1,6 @@
 <script setup>
 import TopicsTable from "@/components/TopicsTable.vue";
+import { useListPage } from "@/composables/use-list-page.js";
 import {
   DEFAULT_PAGE_SIZE,
   MAX_SEARCH_LENGTH,
@@ -11,15 +12,12 @@ import {
   useListQuery,
 } from "@/composables/use-list-query.js";
 import { topicService } from "@/services/topic-service.js";
-import { useNotify } from "@/utils/notify.js";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";
-import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { RouterLink } from "vue-router";
 
 const SORT_KEYS = ["title", "questionCount", "createdAt"];
-const SEARCH_DELAY_MS = 300;
 
 const defaults = {
   page: 1,
@@ -48,83 +46,22 @@ const isAuthorOptions = [
   { label: "I'm an author: no", value: false },
 ];
 
-const notify = useNotify();
-const { params, update, isFiltered, reset } = useListQuery({
+const listQuery = useListQuery({
   parse,
   defaults,
   filterKeys: ["search", "played", "isAuthor"],
 });
-
-const topics = ref([]);
-const totalCount = ref(0);
-const isLoading = ref(false);
-
-// The default order shows no sort indicator (see TopicsTable)
-const paging = computed(() => ({
-  page: params.value.page,
-  pageSize: params.value.pageSize,
-  totalCount: totalCount.value,
-  sort: params.value.sort === defaults.sort ? undefined : params.value.sort,
-}));
-
-let requestController;
-
-const fetchTopics = async (listParams) => {
-  requestController?.abort();
-  const controller = new AbortController();
-  requestController = controller;
-
-  isLoading.value = true;
-  const result = await topicService.getTopics(listParams, { signal: controller.signal });
-  // A newer request replaced this one, or the view unmounted: its result is stale, not an error
-  if (controller.signal.aborted) return;
-
-  isLoading.value = false;
-  if (result.success) {
-    topics.value = result.data.items;
-    totalCount.value = result.data.totalCount;
-    // A page past the end of a non-empty list goes to the last page. PrimeVue's paginator only does that when the
-    // total changes. It can't loop: the last page isn't past the end.
-    if (result.data.items.length === 0 && result.data.totalCount > 0) {
-      update({ page: Math.ceil(result.data.totalCount / listParams.pageSize) }, { replace: true });
-    }
-  } else {
-    notify.error("Load Failed", result.message);
-  }
-};
-
-watch(params, fetchTopics, { immediate: true });
-
-// The search box has its own text, written to the URL once typing stops
-const searchText = ref(params.value.search ?? "");
-let searchTimer;
-
-const cancelPendingSearch = () => {
-  clearTimeout(searchTimer);
-  searchTimer = undefined;
-};
-
-const handleSearchInput = (text) => {
-  searchText.value = text ?? "";
-  cancelPendingSearch();
-  searchTimer = setTimeout(() => {
-    searchTimer = undefined;
-    const search = parseText(searchText.value);
-    if (search !== params.value.search) {
-      update({ search }, { resetPage: true, replace: true });
-    }
-  }, SEARCH_DELAY_MS);
-};
-
-// Back/Forward and Clear filters change the search in the URL; only sync the box when the user isn't typing
-watch(
-  () => params.value.search,
-  (search) => {
-    if (searchTimer === undefined && parseText(searchText.value) !== search) {
-      searchText.value = search ?? "";
-    }
-  },
-);
+const { params, update, isFiltered } = listQuery;
+const {
+  items: topics,
+  isLoading,
+  paging,
+  searchText,
+  handleSearchInput,
+  handlePage,
+  handleSort,
+  clearFilters,
+} = useListPage({ listQuery, defaultSort: defaults.sort, load: topicService.getTopics });
 
 const handlePlayedChange = (played) => {
   update({ played: played ?? undefined }, { resetPage: true });
@@ -133,29 +70,6 @@ const handlePlayedChange = (played) => {
 const handleIsAuthorChange = (isAuthor) => {
   update({ isAuthor: isAuthor ?? undefined }, { resetPage: true });
 };
-
-const handlePage = ({ page, pageSize }) => {
-  // Once the total arrives, PrimeVue's paginator moves a page past the end to the last page.
-  // That isn't a step the user took, so it replaces the URL instead of adding a history entry.
-  const isPastEnd = (params.value.page - 1) * params.value.pageSize >= totalCount.value;
-  // A new page size starts again from the first page
-  update({ page, pageSize }, { resetPage: pageSize !== params.value.pageSize, replace: isPastEnd });
-};
-
-const handleSort = ({ sort }) => {
-  update({ sort }, { resetPage: true });
-};
-
-const clearFilters = () => {
-  cancelPendingSearch();
-  searchText.value = "";
-  reset();
-};
-
-onBeforeUnmount(() => {
-  cancelPendingSearch();
-  requestController?.abort();
-});
 </script>
 
 <template>
