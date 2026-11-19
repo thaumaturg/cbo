@@ -1,6 +1,7 @@
 <script setup>
 import TournamentDialog from "@/components/TournamentDialog.vue";
 import TournamentsTable from "@/components/TournamentsTable.vue";
+import { useListPage } from "@/composables/use-list-page.js";
 import {
   DEFAULT_PAGE_SIZE,
   MAX_SEARCH_LENGTH,
@@ -18,13 +19,12 @@ import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import MultiSelect from "primevue/multiselect";
 import Select from "primevue/select";
-import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 
 const SORT_KEYS = ["title", "stage", "createdAt"];
 const STAGES = ["Preparations", "Started"];
 const ROLES = ["Creator", "Organizer", "Player"];
-const SEARCH_DELAY_MS = 300;
 
 const defaults = {
   page: 1,
@@ -49,83 +49,24 @@ const roleOptions = ROLES.map((role) => ({ label: role, value: role }));
 
 const router = useRouter();
 const notify = useNotify();
-const { params, update, isFiltered, reset } = useListQuery({
+const listQuery = useListQuery({
   parse,
   defaults,
   filterKeys: ["search", "stage", "role"],
 });
+const { params, update, isFiltered } = listQuery;
+const {
+  items: tournaments,
+  isLoading,
+  paging,
+  searchText,
+  handleSearchInput,
+  handlePage,
+  handleSort,
+  clearFilters,
+} = useListPage({ listQuery, defaultSort: defaults.sort, load: tournamentService.getTournaments });
 
-const tournaments = ref([]);
-const totalCount = ref(0);
-const isLoading = ref(false);
 const showCreateDialog = ref(false);
-
-// The default order shows no sort indicator (see TournamentsTable)
-const paging = computed(() => ({
-  page: params.value.page,
-  pageSize: params.value.pageSize,
-  totalCount: totalCount.value,
-  sort: params.value.sort === defaults.sort ? undefined : params.value.sort,
-}));
-
-let requestController;
-
-const fetchTournaments = async (listParams) => {
-  requestController?.abort();
-  const controller = new AbortController();
-  requestController = controller;
-
-  isLoading.value = true;
-  const result = await tournamentService.getTournaments(listParams, { signal: controller.signal });
-  // A newer request replaced this one, or the view unmounted: its result is stale, not an error
-  if (controller.signal.aborted) return;
-
-  isLoading.value = false;
-  if (result.success) {
-    tournaments.value = result.data.items;
-    totalCount.value = result.data.totalCount;
-    // A page past the end of a non-empty list goes to the last page. PrimeVue's paginator only does that when the
-    // total changes. It can't loop: the last page isn't past the end.
-    if (result.data.items.length === 0 && result.data.totalCount > 0) {
-      update({ page: Math.ceil(result.data.totalCount / listParams.pageSize) }, { replace: true });
-    }
-  } else {
-    notify.error("Load Failed", result.message);
-  }
-};
-
-watch(params, fetchTournaments, { immediate: true });
-
-// The search box has its own text, written to the URL once typing stops
-const searchText = ref(params.value.search ?? "");
-let searchTimer;
-
-const cancelPendingSearch = () => {
-  clearTimeout(searchTimer);
-  searchTimer = undefined;
-};
-
-const handleSearchInput = (text) => {
-  searchText.value = text ?? "";
-  cancelPendingSearch();
-  searchTimer = setTimeout(() => {
-    searchTimer = undefined;
-    const search = parseText(searchText.value);
-    if (search !== params.value.search) {
-      update({ search }, { resetPage: true, replace: true });
-    }
-  }, SEARCH_DELAY_MS);
-};
-
-// Back/Forward and Clear filters change the search in the URL; only sync the box when the user isn't typing
-watch(
-  () => params.value.search,
-  (search) => {
-    if (searchTimer === undefined && parseText(searchText.value) !== search) {
-      searchText.value = search ?? "";
-    }
-  },
-);
 
 const handleStageChange = (stage) => {
   update({ stage: stage ?? undefined }, { resetPage: true });
@@ -134,29 +75,6 @@ const handleStageChange = (stage) => {
 const handleRoleChange = (role) => {
   update({ role }, { resetPage: true });
 };
-
-const handlePage = ({ page, pageSize }) => {
-  // Once the total arrives, PrimeVue's paginator moves a page past the end to the last page.
-  // That isn't a step the user took, so it replaces the URL instead of adding a history entry.
-  const isPastEnd = (params.value.page - 1) * params.value.pageSize >= totalCount.value;
-  // A new page size starts again from the first page
-  update({ page, pageSize }, { resetPage: pageSize !== params.value.pageSize, replace: isPastEnd });
-};
-
-const handleSort = ({ sort }) => {
-  update({ sort }, { resetPage: true });
-};
-
-const clearFilters = () => {
-  cancelPendingSearch();
-  searchText.value = "";
-  reset();
-};
-
-onBeforeUnmount(() => {
-  cancelPendingSearch();
-  requestController?.abort();
-});
 
 const handleTournamentCreated = (tournament) => {
   notify.success("Tournament created", `"${tournament.title}" was created.`);
