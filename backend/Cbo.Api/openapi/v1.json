@@ -206,52 +206,60 @@
         "operationId": "GetTopics",
         "parameters": [
           {
-            "name": "Page",
+            "name": "page",
             "in": "query",
             "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
               "pattern": "^-?(?:0|[1-9]\\d*)$",
               "type": [
                 "integer",
                 "string"
               ],
-              "format": "int32"
+              "format": "int32",
+              "default": 1
             }
           },
           {
-            "name": "PageSize",
+            "name": "pageSize",
             "in": "query",
             "schema": {
+              "maximum": 100,
+              "minimum": 1,
               "pattern": "^-?(?:0|[1-9]\\d*)$",
               "type": [
                 "integer",
                 "string"
               ],
-              "format": "int32"
+              "format": "int32",
+              "default": 25
             }
           },
           {
-            "name": "Sort",
+            "name": "sort",
+            "in": "query",
+            "description": "One sort key, with an optional leading - for descending. Allowed: title, questionCount, createdAt.",
+            "schema": {
+              "type": "string",
+              "default": "-createdAt"
+            }
+          },
+          {
+            "name": "search",
             "in": "query",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "Search",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Played",
+            "name": "played",
             "in": "query",
             "schema": {
               "type": "boolean"
             }
           },
           {
-            "name": "IsAuthor",
+            "name": "isAuthor",
             "in": "query",
             "schema": {
               "type": "boolean"
@@ -585,52 +593,60 @@
         "operationId": "GetTournaments",
         "parameters": [
           {
-            "name": "Page",
+            "name": "page",
             "in": "query",
             "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
               "pattern": "^-?(?:0|[1-9]\\d*)$",
               "type": [
                 "integer",
                 "string"
               ],
-              "format": "int32"
+              "format": "int32",
+              "default": 1
             }
           },
           {
-            "name": "PageSize",
+            "name": "pageSize",
             "in": "query",
             "schema": {
+              "maximum": 100,
+              "minimum": 1,
               "pattern": "^-?(?:0|[1-9]\\d*)$",
               "type": [
                 "integer",
                 "string"
               ],
-              "format": "int32"
+              "format": "int32",
+              "default": 25
             }
           },
           {
-            "name": "Sort",
+            "name": "sort",
+            "in": "query",
+            "description": "One sort key, with an optional leading - for descending. Allowed: title, stage, createdAt.",
+            "schema": {
+              "type": "string",
+              "default": "-createdAt"
+            }
+          },
+          {
+            "name": "search",
             "in": "query",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "Search",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Stage",
+            "name": "stage",
             "in": "query",
             "schema": {
               "$ref": "#/components/schemas/TournamentStageFilter"
             }
           },
           {
-            "name": "Role",
+            "name": "role",
             "in": "query",
             "schema": {
               "type": "array",

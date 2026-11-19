@@ -7,7 +7,13 @@ namespace Cbo.Core.Tournaments;
 /// <summary>The filters and sort keys of the tournaments list (ADR-0008). Every filter must translate to SQL.</summary>
 public static class TournamentListFilter
 {
-    public static readonly SortKeys<Tournament> SortKeys = new SortKeys<Tournament>("-createdAt", t => t.Id)
+    public const string DefaultSort = "-createdAt";
+
+    // For the OpenAPI document: keep the keys in step with SortKeys
+    public const string SortDescription =
+        "One sort key, with an optional leading - for descending. Allowed: title, stage, createdAt.";
+
+    public static readonly SortKeys<Tournament> SortKeys = new SortKeys<Tournament>(DefaultSort, t => t.Id)
         .Add("title", t => t.Title)
         // current_stage is stored as a string, and alphabetical order matches stage order up to Stage9
         .Add("stage", t => t.CurrentStage)

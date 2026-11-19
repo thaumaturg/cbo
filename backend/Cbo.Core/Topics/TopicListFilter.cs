@@ -7,7 +7,13 @@ namespace Cbo.Core.Topics;
 /// <summary>The filters and sort keys of the topics list (ADR-0008). Every filter must translate to SQL.</summary>
 public static class TopicListFilter
 {
-    public static readonly SortKeys<Topic> SortKeys = new SortKeys<Topic>("-createdAt", t => t.Id)
+    public const string DefaultSort = "-createdAt";
+
+    // For the OpenAPI document: keep the keys in step with SortKeys
+    public const string SortDescription =
+        "One sort key, with an optional leading - for descending. Allowed: title, questionCount, createdAt.";
+
+    public static readonly SortKeys<Topic> SortKeys = new SortKeys<Topic>(DefaultSort, t => t.Id)
         .Add("title", t => t.Title)
         .Add("questionCount", t => t.Questions.Count)
         .Add("createdAt", t => t.CreatedAt);
