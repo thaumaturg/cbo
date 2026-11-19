@@ -3,12 +3,22 @@ import { apiFailure } from "@/utils/error.js";
 
 export const topicService = {
   /**
-   * Get all topics owned by the current user
-   * @returns {Promise} - API response with user's topics
+   * Get one page of the topics the current user owns
+   * @param {Object} [params] - List params, named as in the API (see `useListQuery`)
+   * @param {number} [params.page] - Page number, from 1
+   * @param {number} [params.pageSize] - Rows per page, 1–100
+   * @param {string} [params.sort] - `title`, `questionCount` or `createdAt`, with an optional leading `-` for descending
+   * @param {string} [params.search] - Text the title contains
+   * @param {boolean} [params.played] - Whether the topic has been played
+   * @param {boolean} [params.isAuthor] - Whether the current user is an author of the topic
+   * @param {Object} [options] - Request options
+   * @param {AbortSignal} [options.signal] - Cancels the request
+   * @returns {Promise} - API response with a page: `{ items, page, pageSize, totalCount }`, where each item is
+   *   `{ id, title, questionCount, authorCount, isAuthor, isPlayed, createdAt }`
    */
-  async getAllTopics() {
+  async getTopics(params = {}, { signal } = {}) {
     try {
-      const response = await api.get("/Topics");
+      const response = await api.get("/Topics", { params, signal, paramsSerializer: { indexes: null } });
       return { success: true, data: response.data };
     } catch (error) {
       return apiFailure(error, "Failed to fetch topics. Please try again.");
