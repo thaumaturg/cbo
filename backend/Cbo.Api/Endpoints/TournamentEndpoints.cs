@@ -1,6 +1,7 @@
 using Cbo.Api.ErrorHandling;
 using Cbo.Core.Cqrs;
 using Cbo.Core.Domain;
+using Cbo.Core.Paging;
 using Cbo.Core.Tournaments;
 using Cbo.Results;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +16,8 @@ public static class TournamentEndpoints
 
         tournaments.MapGet("", GetTournamentsAsync)
             .WithName("GetTournaments")
-            .Produces<List<TournamentResponse>>()
+            .Produces<PageResponse<TournamentResponse>>()
+            .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         tournaments.MapGet("{id:guid}", GetTournamentAsync)
@@ -60,10 +62,19 @@ public static class TournamentEndpoints
     }
 
     private static async Task<IResult> GetTournamentsAsync(
-        [FromServices] IQueryHandler<GetTournamentsQuery, List<TournamentResponse>> getTournaments,
+        [AsParameters] GetTournamentsRequest getTournamentsRequest,
+        [FromServices] IQueryHandler<GetTournamentsQuery, PageResponse<TournamentResponse>> getTournaments,
         CancellationToken cancellationToken)
     {
-        Result<List<TournamentResponse>> result = await getTournaments.HandleAsync(new GetTournamentsQuery(), cancellationToken);
+        var query = new GetTournamentsQuery(
+            getTournamentsRequest.Page ?? PagingDefaults.FirstPage,
+            getTournamentsRequest.PageSize ?? PagingDefaults.DefaultPageSize,
+            getTournamentsRequest.Sort,
+            getTournamentsRequest.Search,
+            getTournamentsRequest.Stage,
+            getTournamentsRequest.Role ?? []);
+
+        Result<PageResponse<TournamentResponse>> result = await getTournaments.HandleAsync(query, cancellationToken);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
     }
 
