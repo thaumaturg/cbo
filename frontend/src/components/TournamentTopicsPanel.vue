@@ -74,9 +74,11 @@ const load = async () => {
   loadError.value = null;
 
   try {
+    // Loads at most 100 owned topics, the server's maximum page size, and suggests only those.
+    // See "Known limitations" in docs/specs/list-pagination-and-filtering.md (§ 7).
     const [myResult, ownedResult] = await Promise.all([
       tournamentTopicsService.getMyTopics(props.tournament.id),
-      topicService.getAllTopics(),
+      topicService.getTopics({ pageSize: 100 }),
     ]);
     const failed = [myResult, ownedResult].find((result) => !result.success);
     if (failed) {
@@ -85,7 +87,7 @@ const load = async () => {
       return;
     }
 
-    ownedTopics.value = ownedResult.data;
+    ownedTopics.value = ownedResult.data.items;
     list.value = buildList(myResult.data);
     savedPayload = JSON.stringify(toPayload(list.value));
   } catch (error) {
