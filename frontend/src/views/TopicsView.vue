@@ -83,6 +83,11 @@ const fetchTopics = async (listParams) => {
   if (result.success) {
     topics.value = result.data.items;
     totalCount.value = result.data.totalCount;
+    // A page past the end of a non-empty list goes to the last page. PrimeVue's paginator only does that when the
+    // total changes. It can't loop: the last page isn't past the end.
+    if (result.data.items.length === 0 && result.data.totalCount > 0) {
+      update({ page: Math.ceil(result.data.totalCount / listParams.pageSize) }, { replace: true });
+    }
   } else {
     notify.error("Load Failed", result.message);
   }
