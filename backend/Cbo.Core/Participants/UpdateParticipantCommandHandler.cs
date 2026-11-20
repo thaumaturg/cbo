@@ -40,10 +40,6 @@ public sealed class UpdateParticipantCommandHandler(
         if (access.Value.CurrentStage != TournamentStage.Preparations)
             return ParticipantFailures.Locked();
 
-        bool becomesOrganizer = command.Role == TournamentParticipantRole.Organizer && participant.Role != TournamentParticipantRole.Organizer;
-        if (becomesOrganizer && await ParticipantRules.HasMaxOrganizersAsync(DbContext, command.TournamentId, cancellationToken))
-            return ParticipantFailures.TooManyOrganizers();
-
         bool becomesPlayer = command.Role == TournamentParticipantRole.Player && participant.Role != TournamentParticipantRole.Player;
         bool leavesPlayerRole = command.Role != TournamentParticipantRole.Player && participant.Role == TournamentParticipantRole.Player;
 

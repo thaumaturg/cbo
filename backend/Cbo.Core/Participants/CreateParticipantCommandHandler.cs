@@ -36,10 +36,6 @@ public sealed class CreateParticipantCommandHandler(
         if (access.Value.CurrentStage != TournamentStage.Preparations)
             return ParticipantFailures.Locked();
 
-        if (command.Role == TournamentParticipantRole.Organizer
-            && await ParticipantRules.HasMaxOrganizersAsync(DbContext, command.TournamentId, cancellationToken))
-            return ParticipantFailures.TooManyOrganizers();
-
         bool isAlreadyAParticipant = await DbContext.TournamentParticipants
             .AnyAsync(tp => tp.ApplicationUserId == user.Id && tp.TournamentId == command.TournamentId, cancellationToken);
         if (isAlreadyAParticipant)

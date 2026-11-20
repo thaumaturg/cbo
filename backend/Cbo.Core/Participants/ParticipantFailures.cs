@@ -1,4 +1,3 @@
-using Cbo.Core.Domain;
 using Cbo.Results;
 
 namespace Cbo.Core.Participants;
@@ -16,9 +15,6 @@ internal static class ParticipantFailures
 
     public static Failure Locked() =>
         Failure.Conflict("Participants can only be changed during the Preparations stage.");
-
-    public static Failure TooManyOrganizers() =>
-        Failure.Conflict($"A tournament can have at most {DefaultSettings.OrganizersPerTournamentMax} organizers.");
 
     public static Failure AlreadyAParticipant(string username) =>
         Failure.Conflict($"'{username}' is already a participant in this tournament.");

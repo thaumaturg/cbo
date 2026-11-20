@@ -5,18 +5,10 @@ using Microsoft.EntityFrameworkCore;
 namespace Cbo.Core.Participants;
 
 /// <summary>
-/// Organizer limit and player seeding rules shared by the participant command handlers. Reads and stages only.
+/// Player seeding rules shared by the participant command handlers. Reads and stages only.
 /// </summary>
 internal static class ParticipantRules
 {
-    public static async Task<bool> HasMaxOrganizersAsync(CboDbContext dbContext, Guid tournamentId, CancellationToken cancellationToken)
-    {
-        int organizerCount = await dbContext.TournamentParticipants
-            .CountAsync(tp => tp.TournamentId == tournamentId && tp.Role == TournamentParticipantRole.Organizer, cancellationToken);
-
-        return organizerCount >= DefaultSettings.OrganizersPerTournamentMax;
-    }
-
     /// <summary>
     /// Returns the seed for a newly added player: one past the highest seed currently taken.
     /// </summary>
