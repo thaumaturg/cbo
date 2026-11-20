@@ -62,7 +62,7 @@ const TOPIC_LIMITS = {
   questionsPerTopicMin: 1,
   questionsPerTopicMax: 10,
   questionsCostMin: 1,
-  questionsCostMax: 1000,
+  questionsCostMax: 150,
   questionsCostPerTopicMax: 150,
 };
 
