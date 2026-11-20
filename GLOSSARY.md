@@ -10,6 +10,10 @@ Organizes tournaments in which participants bring topics and players compete in 
 A person's registration in the organizer, identified by a unique username and a unique email. One account can take part in many tournaments.
 _Avoid_: User, profile, login (as a noun for the account)
 
+**Friend**:
+An account that another account has put on its friend list. Only an owner's friends can be added as authors of their topic, unless the owner is not an author themselves. Only a creator's friends can be added as participants in their tournament. For now the list is one-sided: the friend isn't asked and doesn't know.
+_Avoid_: Contact, buddy, follower, connection
+
 ### Tournament lifecycle
 
 **Start**:
