@@ -61,7 +61,7 @@ const formRef = ref(null);
 const TOPIC_LIMITS = {
   questionsPerTopicMin: 1,
   questionsPerTopicMax: 10,
-  questionsCostMin: -1000,
+  questionsCostMin: 1,
   questionsCostMax: 1000,
 };
 
