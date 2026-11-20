@@ -63,6 +63,7 @@ const TOPIC_LIMITS = {
   questionsPerTopicMax: 10,
   questionsCostMin: 1,
   questionsCostMax: 1000,
+  questionsCostPerTopicMax: 150,
 };
 
 const DEFAULT_QUESTION_COUNT = 5;
@@ -206,9 +207,17 @@ const validateQuestion = (question) => {
   return errors;
 };
 
+const totalCost = computed(() => questions.value.reduce((sum, q) => sum + (Number(q.cost) || 0), 0));
+
+const totalCostError = computed(() =>
+  totalCost.value > TOPIC_LIMITS.questionsCostPerTopicMax
+    ? `The total cost of the questions cannot be more than ${TOPIC_LIMITS.questionsCostPerTopicMax} (currently ${totalCost.value}).`
+    : null,
+);
+
 const validateAllQuestions = () => {
   const allErrors = {};
-  let hasAnyError = false;
+  let hasAnyError = !!totalCostError.value;
 
   questions.value.forEach((q, index) => {
     const errors = validateQuestion(q, index);
@@ -699,9 +708,15 @@ const handleDelete = () => {
             @click="addQuestion"
           />
           <span class="ml-auto text-sm text-gray-500 dark:text-gray-400">
-            {{ questions.length }} / {{ TOPIC_LIMITS.questionsPerTopicMax }} questions
+            {{ questions.length }} / {{ TOPIC_LIMITS.questionsPerTopicMax }} questions ·
+            <span :class="{ 'text-red-500 font-medium': totalCostError }">
+              total cost {{ totalCost }} / {{ TOPIC_LIMITS.questionsCostPerTopicMax }}
+            </span>
           </span>
         </div>
+        <Message v-if="totalCostError && !readOnly" severity="error" variant="simple" class="mt-2">
+          {{ totalCostError }}
+        </Message>
       </div>
 
       <!-- Authors Card -->

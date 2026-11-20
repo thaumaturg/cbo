@@ -45,6 +45,7 @@ public class TopicValidationService : ITopicValidationService
 
         ValidateQuestionCount(questions, errors);
         ValidateQuestionNumbering(questions, errors);
+        ValidateTotalCost(questions, errors);
 
         for (int i = 0; i < questions.Count; i++)
         {
@@ -106,6 +107,19 @@ public class TopicValidationService : ITopicValidationService
         {
             errors.Add(new FieldError("questions",
                 $"Question numbers must be unique and sequential from 1 to {questions.Count}."));
+        }
+    }
+
+    private static void ValidateTotalCost(
+        IReadOnlyList<QuestionValidationModel> questions,
+        List<FieldError> errors)
+    {
+        long totalCost = questions.Sum(q => (long)q.Cost);
+
+        if (totalCost > DefaultSettings.QuestionsCostPerTopicMax)
+        {
+            errors.Add(new FieldError("questions",
+                $"The total cost of a topic's questions cannot be more than {DefaultSettings.QuestionsCostPerTopicMax} (currently {totalCost})."));
         }
     }
 
