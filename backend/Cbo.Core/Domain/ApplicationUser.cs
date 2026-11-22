@@ -11,4 +11,5 @@ public class ApplicationUser : IdentityUser<Guid>, IAuditable
     // Navigation properties
     public ICollection<TournamentParticipant> TournamentParticipants { get; set; } = [];
     public ICollection<TopicAuthor> TopicAuthors { get; set; } = [];
+    public ICollection<Friendship> Friendships { get; set; } = [];
 }

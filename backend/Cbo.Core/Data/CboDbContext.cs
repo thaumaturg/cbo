@@ -8,6 +8,7 @@ namespace Cbo.Core.Data;
 public class CboDbContext(DbContextOptions<CboDbContext> dbContextOptions) : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(dbContextOptions)
 {
     public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+    public DbSet<Friendship> Friendships { get; set; }
     public DbSet<Match> Matches { get; set; }
     public DbSet<MatchParticipant> MatchParticipants { get; set; }
     public DbSet<Question> Questions { get; set; }

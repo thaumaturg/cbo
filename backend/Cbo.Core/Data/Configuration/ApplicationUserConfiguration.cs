@@ -32,5 +32,11 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
             .WithOne(ta => ta.ApplicationUser)
             .HasForeignKey(ta => ta.ApplicationUserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // One-to-many: ApplicationUser -> Friendships (the account's own friend list)
+        entity.HasMany(au => au.Friendships)
+            .WithOne(f => f.ApplicationUser)
+            .HasForeignKey(f => f.ApplicationUserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
