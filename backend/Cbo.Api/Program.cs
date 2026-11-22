@@ -141,6 +141,7 @@ public class Program
 
         RouteGroupBuilder api = app.MapGroup("/api").RequireAuthorization();
         api.MapAuthEndpoints();
+        api.MapFriendEndpoints();
         api.MapTopicEndpoints();
         api.MapTournamentEndpoints();
         api.MapTournamentParticipantEndpoints();
