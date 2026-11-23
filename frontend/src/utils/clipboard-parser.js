@@ -12,32 +12,37 @@
  *   so no TSV parser can always reconstruct the original cells.
  *
  * Therefore we parse the HTML flavor whenever present and fall back to TSV only for plain-text sources.
+ *
+ * A row is blank when every cell is empty or whitespace. Blank rows are dropped by default.
+ * Pass `{ keepBlankRows: true }` to keep them in place, for example where they separate groups of rows.
  */
 
 /**
  * Parse tabular data from a paste event's clipboard.
  *
  * @param {DataTransfer} clipboardData - `event.clipboardData` from a paste event
- * @returns {string[][]} 2D array of rows and cells (blank rows removed)
+ * @param {{ keepBlankRows?: boolean }} [options] - `keepBlankRows`: keep blank rows instead of removing them
+ * @returns {string[][]} 2D array of rows and cells
  */
-export const parseClipboardTable = (clipboardData) => {
+export const parseClipboardTable = (clipboardData, { keepBlankRows = false } = {}) => {
   const html = clipboardData.getData("text/html");
   if (html) {
-    const rows = parseHtmlTable(html);
-    if (rows.length > 0) return rows;
+    const rows = parseHtmlTable(html, { keepBlankRows });
+    if (rows.some(isNonBlankRow)) return rows;
   }
 
   const text = clipboardData.getData("text/plain");
-  return text ? parseTabSeparatedData(text) : [];
+  return text ? parseTabSeparatedData(text, { keepBlankRows }) : [];
 };
 
 /**
  * Extract cell values from an HTML fragment containing a table.
  *
  * @param {string} html - `text/html` clipboard content
+ * @param {{ keepBlankRows?: boolean }} [options] - `keepBlankRows`: keep blank rows instead of removing them
  * @returns {string[][]} 2D array of rows and cells, or [] if no table found
  */
-export const parseHtmlTable = (html) => {
+export const parseHtmlTable = (html, { keepBlankRows = false } = {}) => {
   const doc = new DOMParser().parseFromString(html, "text/html");
   const table = doc.querySelector("table");
   if (!table) return [];
@@ -46,7 +51,7 @@ export const parseHtmlTable = (html) => {
     Array.from(tr.querySelectorAll("td, th"), extractCellText),
   );
 
-  return rows.filter(isNonBlankRow);
+  return keepBlankRows ? rows : rows.filter(isNonBlankRow);
 };
 
 /**
@@ -89,9 +94,10 @@ const extractCellText = (cell) => {
  * Spreadsheet pastes go through parseHtmlTable, which is unambiguous.
  *
  * @param {string} text - Raw TSV text
- * @returns {string[][]} 2D array of rows and cells (blank rows removed)
+ * @param {{ keepBlankRows?: boolean }} [options] - `keepBlankRows`: keep blank rows instead of removing them
+ * @returns {string[][]} 2D array of rows and cells
  */
-export const parseTabSeparatedData = (text) => {
+export const parseTabSeparatedData = (text, { keepBlankRows = false } = {}) => {
   const rows = [];
   let row = [];
   let cell = "";
@@ -144,7 +150,7 @@ export const parseTabSeparatedData = (text) => {
   }
   endRow();
 
-  return rows.filter(isNonBlankRow);
+  return keepBlankRows ? rows : rows.filter(isNonBlankRow);
 };
 
 const isNonBlankRow = (row) => row.some((cell) => cell.trim() !== "");
