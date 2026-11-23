@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/stores/auth.js";
+import FriendsView from "@/views/FriendsView.vue";
 import HomeView from "@/views/HomeView.vue";
 import LoginView from "@/views/LoginView.vue";
 import MatchView from "@/views/MatchView.vue";
@@ -70,6 +71,12 @@ const router = createRouter({
       path: "/tournaments/:tournamentId/matches/:matchId",
       name: "match-view",
       component: MatchView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/friends",
+      name: "friends",
+      component: FriendsView,
       meta: { requiresAuth: true },
     },
     {

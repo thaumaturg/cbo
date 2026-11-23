@@ -17,6 +17,7 @@ const items = computed(() =>
     ? [
         { label: "Tournaments", icon: "pi pi-trophy", route: { name: "tournaments" } },
         { label: "Topics", icon: "pi pi-book", route: { name: "topics" } },
+        { label: "Friends", icon: "pi pi-users", route: { name: "friends" } },
       ]
     : [],
 );
