@@ -8,7 +8,8 @@ using Microsoft.AspNetCore.Identity;
 namespace Cbo.Core.Topics;
 
 /// <summary>
-/// Creates the topic with its questions, the current user as its owner, and its co-authors.
+/// Creates the topic with its questions, the current user as its owner, and its co-authors, unless the account
+/// already owns as many topics as allowed.
 /// </summary>
 public sealed class CreateTopicCommandHandler(
     CboDbContext dbContext,
@@ -34,6 +35,11 @@ public sealed class CreateTopicCommandHandler(
         fieldErrors.AddRange(_topicValidationService.ValidateCoAuthors(coAuthors, currentUserId));
         if (fieldErrors.Count > 0)
             return TopicFailures.Invalid(fieldErrors);
+
+        int ownedCount = await TopicRules.CountOwnedAsync(DbContext, currentUserId, cancellationToken);
+        Failure? capFailure = TopicCountRules.CheckOwnedTopicsCap(ownedCount, addedCount: 1);
+        if (capFailure is not null)
+            return capFailure;
 
         // Set here rather than by the database default, so the id is known before the save
         var topic = new Topic
