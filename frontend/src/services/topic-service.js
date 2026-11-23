@@ -54,6 +54,21 @@ export const topicService = {
   },
 
   /**
+   * Create many topics at once, all or none of them
+   * @param {Object} payload - `{ isAuthor, topics: [{ title, description, questions }] }`, at most
+   *   `TOPICS_PER_IMPORT_MAX` topics
+   * @returns {Promise} - API response with `{ count }`, the number of topics created
+   */
+  async importTopics(payload) {
+    try {
+      const response = await api.post("/Topics/import", payload);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return apiFailure(error, "Failed to import topics. Please try again.");
+    }
+  },
+
+  /**
    * Update topic with questions
    * @param {string} topicId - Topic ID (GUID)
    * @param {Object} topicData - Pre-formatted topic data from view (questions must include IDs)
