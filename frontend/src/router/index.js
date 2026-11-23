@@ -5,6 +5,7 @@ import LoginView from "@/views/LoginView.vue";
 import MatchView from "@/views/MatchView.vue";
 import ProfileView from "@/views/ProfileView.vue";
 import RegisterView from "@/views/RegisterView.vue";
+import TopicImportView from "@/views/TopicImportView.vue";
 import TopicView from "@/views/TopicView.vue";
 import TopicsView from "@/views/TopicsView.vue";
 import TournamentView from "@/views/TournamentView.vue";
@@ -47,6 +48,12 @@ const router = createRouter({
       path: "/topics/new",
       name: "topic-new",
       component: TopicView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/topics/import",
+      name: "topic-import",
+      component: TopicImportView,
       meta: { requiresAuth: true },
     },
     {
