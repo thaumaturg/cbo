@@ -1,4 +1,5 @@
 <script setup>
+import FriendPicker from "@/components/FriendPicker.vue";
 import { tournamentParticipantsService } from "@/services/tournament-participants-service.js";
 import { toFormFailure } from "@/utils/error.js";
 import { focusFirstInvalid } from "@/utils/focus.js";
@@ -28,6 +29,7 @@ const props = defineProps({
 const notify = useNotify();
 const confirm = useConfirm();
 
+const pickedFriend = ref(null);
 const newUsername = ref("");
 const newRole = ref("Player");
 const roleOptions = [
@@ -45,6 +47,8 @@ const roleSelectsVersion = ref(0);
 const loadError = ref(null);
 const addError = ref(null);
 const addFieldErrors = ref({});
+// Which box the last add came from, so a username error shows under that box
+const lastAddWasPicked = ref(false);
 const addForm = ref(null);
 
 const roleOrder = {
@@ -78,7 +82,16 @@ const organizerCount = computed(() => participants.value.filter((p) => p.role ==
 
 const topicsLabel = (participant) => `${participant.topicsCount} / ${props.tournament.topicsPerParticipantMax}`;
 
+// Participants, whom the friend picker doesn't suggest
+const participantUsernames = computed(() => participants.value.map((p) => p.username));
+
+const usernameToAdd = computed(() => pickedFriend.value?.username ?? newUsername.value.trim());
+
+const pickerError = computed(() => (lastAddWasPicked.value ? addFieldErrors.value.username : null));
+const typedUsernameError = computed(() => (lastAddWasPicked.value ? null : addFieldErrors.value.username));
+
 const resetAddForm = () => {
+  pickedFriend.value = null;
   newUsername.value = "";
   newRole.value = "Player";
   addError.value = null;
@@ -105,7 +118,10 @@ const fetchParticipants = async () => {
 };
 
 const handleAddParticipant = async () => {
-  if (!newUsername.value.trim()) {
+  const username = usernameToAdd.value;
+  lastAddWasPicked.value = !!pickedFriend.value;
+
+  if (!username) {
     addError.value = null;
     addFieldErrors.value = { username: "Username is required." };
     return;
@@ -117,7 +133,7 @@ const handleAddParticipant = async () => {
 
   try {
     const result = await tournamentParticipantsService.createParticipant(props.tournament.id, {
-      username: newUsername.value.trim(),
+      username,
       role: newRole.value,
     });
 
@@ -233,7 +249,16 @@ watch(
   },
 );
 
-watch([newUsername, newRole], () => {
+// Picking a friend clears the typed username, and typing a username unpicks the friend
+watch(pickedFriend, (friend) => {
+  if (friend) newUsername.value = "";
+});
+
+watch(newUsername, (username) => {
+  if (username.trim()) pickedFriend.value = null;
+});
+
+watch([pickedFriend, newUsername, newRole], () => {
   addFieldErrors.value = {};
 });
 </script>
@@ -245,20 +270,36 @@ watch([newUsername, newRole], () => {
       <Message v-if="addError" severity="error">{{ addError }}</Message>
 
       <div class="flex gap-2">
-        <div class="flex-1 flex flex-col gap-1">
-          <label for="newParticipantUsername" class="sr-only">Username</label>
-          <InputText
-            id="newParticipantUsername"
-            v-model="newUsername"
-            placeholder="Username"
-            class="w-full"
-            :invalid="!!addFieldErrors.username"
-            :disabled="isAdding"
-            @keyup.enter="handleAddParticipant"
-          />
-          <Message v-if="addFieldErrors.username" severity="error" variant="simple">
-            {{ addFieldErrors.username }}
-          </Message>
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="flex flex-col gap-1">
+            <FriendPicker
+              v-model="pickedFriend"
+              :exclude-usernames="participantUsernames"
+              :invalid="!!pickerError"
+              :disabled="isAdding"
+            />
+            <Message v-if="pickerError" severity="error" variant="simple">
+              {{ pickerError }}
+            </Message>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="newParticipantUsername" class="text-sm text-gray-600 dark:text-gray-400">
+              Not on your friend list? Add by username
+            </label>
+            <InputText
+              id="newParticipantUsername"
+              v-model="newUsername"
+              placeholder="Username"
+              class="w-full"
+              :invalid="!!typedUsernameError"
+              :disabled="isAdding"
+              @keyup.enter="handleAddParticipant"
+            />
+            <Message v-if="typedUsernameError" severity="error" variant="simple">
+              {{ typedUsernameError }}
+            </Message>
+          </div>
         </div>
         <div class="w-40 flex flex-col gap-1">
           <Select
@@ -280,7 +321,7 @@ watch([newUsername, newRole], () => {
           severity="success"
           class="self-start"
           :loading="isAdding"
-          :disabled="!newUsername.trim() || isAdding"
+          :disabled="!usernameToAdd || isAdding"
           @click="handleAddParticipant"
         />
       </div>
