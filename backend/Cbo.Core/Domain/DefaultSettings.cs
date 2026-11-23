@@ -2,6 +2,7 @@ namespace Cbo.Core.Domain;
 
 public static class DefaultSettings
 {
+    public const int OwnedTopicsMax = 1000;
     public const int ParticipantsPerMatchMax = 4;
     public const int ParticipantsPerMatchMin = 2;
     public const int PlayersPerTournament = 14;
@@ -12,6 +13,7 @@ public static class DefaultSettings
     public const int QuestionsPerTopicMin = 1;
     public const int RoundsPerMatch = 4;
     public const int TopicsAuthorsMax = 3;
+    public const int TopicsPerImportMax = 50;
     public const int TopicsPerParticipantMax = 10;
     public const int TopicsPerParticipantMin = 6;
     public const int TopicsPerMatch = 4;
