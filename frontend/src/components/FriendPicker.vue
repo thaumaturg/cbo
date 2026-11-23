@@ -23,6 +23,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  invalid: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(["update:modelValue", "pick"]);
@@ -117,6 +121,7 @@ onMounted(fetchFriends);
         placeholder="Pick from your friends…"
         aria-label="Pick from your friends"
         class="flex-1"
+        :invalid="invalid"
         :disabled="disabled"
         dropdown
         forceSelection
