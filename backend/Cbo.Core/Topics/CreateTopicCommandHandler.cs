@@ -41,34 +41,8 @@ public sealed class CreateTopicCommandHandler(
         if (capFailure is not null)
             return capFailure;
 
-        // Set here rather than by the database default, so the id is known before the save
-        var topic = new Topic
-        {
-            Id = Guid.CreateVersion7(),
-            Title = command.Title,
-            Description = command.Description,
-        };
-
-        foreach (NewQuestion question in command.Questions)
-        {
-            topic.Questions.Add(new Question
-            {
-                QuestionNumber = question.QuestionNumber,
-                Cost = question.Cost,
-                Text = question.Text,
-                Answer = question.Answer,
-                Comment = question.Comment,
-                TopicId = topic.Id,
-            });
-        }
-
-        topic.TopicAuthors.Add(new TopicAuthor
-        {
-            IsOwner = true,
-            IsAuthor = command.IsAuthor,
-            ApplicationUserId = currentUserId,
-            TopicId = topic.Id,
-        });
+        Topic topic = TopicFactory.Create(
+            command.Title, command.Description, command.Questions, currentUserId, command.IsAuthor);
 
         // Validation guarantees every co-author resolved to an account
         foreach (CoAuthorValidationModel coAuthor in coAuthors)
