@@ -9,6 +9,9 @@ namespace Cbo.Api.Endpoints;
 
 public static class TopicEndpoints
 {
+    // Kestrel answers a larger body with 413; 50 full topics take a fraction of it
+    private const long ImportBodyMaxBytes = 1_048_576;
+
     public static RouteGroupBuilder MapTopicEndpoints(this RouteGroupBuilder api)
     {
         RouteGroupBuilder topics = api.MapGroup("Topics").WithTags("Topics");
@@ -32,6 +35,15 @@ public static class TopicEndpoints
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status409Conflict);
+
+        topics.MapPost("import", ImportTopicsAsync)
+            .WithName("ImportTopics")
+            .WithMetadata(new RequestSizeLimitAttribute(ImportBodyMaxBytes))
+            .Produces<ImportTopicsResponse>(StatusCodes.Status201Created)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .ProducesProblem(StatusCodes.Status413PayloadTooLarge);
 
         topics.MapPut("{id:guid}", UpdateTopicAsync)
             .WithName("UpdateTopic")
@@ -103,6 +115,30 @@ public static class TopicEndpoints
             return topic.Failure.ToProblem();
 
         return TypedResults.CreatedAtRoute(topic.Value, "GetTopic", new { id = topic.Value.Id });
+    }
+
+    private static async Task<IResult> ImportTopicsAsync(
+        ImportTopicsRequest importTopicsRequest,
+        [FromServices] ICommandHandler<ImportTopicsCommand, int> importTopics,
+        CancellationToken cancellationToken)
+    {
+        var command = new ImportTopicsCommand(
+            importTopicsRequest.IsAuthor,
+            importTopicsRequest.Topics
+                .Select(t => new ImportedTopic(
+                    t.Title,
+                    t.Description,
+                    t.Questions
+                        .Select(q => new NewQuestion(q.QuestionNumber, q.Cost, q.Text, q.Answer, q.Comment))
+                        .ToList()))
+                .ToList());
+
+        Result<int> imported = await importTopics.HandleAsync(command, cancellationToken);
+        if (imported.IsFailure)
+            return imported.Failure.ToProblem();
+
+        // The topics have no single location, so the response carries no Location header
+        return TypedResults.Created((string?)null, new ImportTopicsResponse { Count = imported.Value });
     }
 
     private static async Task<IResult> UpdateTopicAsync(
