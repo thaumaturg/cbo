@@ -10,3 +10,8 @@ export const TOPIC_LIMITS = {
   questionsCostMax: 150,
   questionsCostPerTopicMax: 150,
 };
+
+/**
+ * How many topics one import can create. Mirrors `DefaultSettings.TopicsPerImportMax` on the server.
+ */
+export const TOPICS_PER_IMPORT_MAX = 50;
