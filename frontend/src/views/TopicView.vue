@@ -7,6 +7,7 @@ import { toFormErrors, toFormFailure } from "@/utils/error.js";
 import { focusFirstInvalid } from "@/utils/focus.js";
 import { useNotify } from "@/utils/notify.js";
 import { parseClipboardTable } from "@/utils/clipboard-parser.js";
+import { TOPIC_LIMITS } from "@/utils/topic-limits.js";
 import { useUnsavedChangesGuard } from "@/utils/unsaved-changes.js";
 import { byUsername, sameUsername } from "@/utils/username.js";
 import Button from "primevue/button";
@@ -59,14 +60,6 @@ const isLoading = ref(false);
 const isDeleting = ref(false);
 const questionErrors = ref({});
 const formRef = ref(null);
-
-const TOPIC_LIMITS = {
-  questionsPerTopicMin: 1,
-  questionsPerTopicMax: 10,
-  questionsCostMin: 1,
-  questionsCostMax: 150,
-  questionsCostPerTopicMax: 150,
-};
 
 const DEFAULT_QUESTION_COUNT = 5;
 
@@ -549,7 +542,13 @@ const handleDelete = () => {
           <!-- Title -->
           <div class="flex flex-col gap-2">
             <label for="title" class="font-semibold text-gray-700 dark:text-gray-300">Title *</label>
-            <VeeField name="title" label="Title" rules="required|max:100" v-model="formData.title" v-slot="slot">
+            <VeeField
+              name="title"
+              label="Title"
+              :rules="`required|max:${TOPIC_LIMITS.titleMax}`"
+              v-model="formData.title"
+              v-slot="slot"
+            >
               <InputText
                 v-bind="eager(slot)"
                 id="title"
