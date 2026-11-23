@@ -79,6 +79,17 @@ const handleIsAuthorChange = (isAuthor) => {
       <RouterLink :to="{ name: 'topic-new' }" custom v-slot="{ href, navigate }">
         <Button as="a" :href="href" icon="pi pi-plus" label="New" severity="secondary" outlined @click="navigate" />
       </RouterLink>
+      <RouterLink :to="{ name: 'topic-import' }" custom v-slot="{ href, navigate }">
+        <Button
+          as="a"
+          :href="href"
+          icon="pi pi-file-import"
+          label="Import"
+          severity="secondary"
+          outlined
+          @click="navigate"
+        />
+      </RouterLink>
     </div>
 
     <div class="mb-4 flex flex-wrap items-center gap-3">
