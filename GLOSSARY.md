@@ -41,6 +41,10 @@ _Avoid_: Co-owner, contributor
 **Played**:
 Said of a topic once a round has used it; a played topic can no longer be changed or deleted.
 
+**Import**:
+Creating many topics at once from rows copied out of a spreadsheet.
+_Avoid_: Upload, bulk create
+
 **Bring**:
 What a participant does when they add one of their topics to a tournament.
 _Avoid_: Assign, choose
