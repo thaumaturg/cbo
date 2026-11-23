@@ -13,4 +13,10 @@ internal static class TopicRules
     /// </summary>
     public static Task<bool> IsPlayedAsync(CboDbContext dbContext, Guid topicId, CancellationToken cancellationToken) =>
         dbContext.Rounds.AnyAsync(r => r.TopicId == topicId, cancellationToken);
+
+    /// <summary>
+    /// Counts the topics the account owns, the ones it manages rather than only authors.
+    /// </summary>
+    public static Task<int> CountOwnedAsync(CboDbContext dbContext, Guid userId, CancellationToken cancellationToken) =>
+        dbContext.TopicAuthors.CountAsync(ta => ta.ApplicationUserId == userId && ta.IsOwner, cancellationToken);
 }

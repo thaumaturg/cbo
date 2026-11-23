@@ -30,7 +30,8 @@ public static class TopicEndpoints
             .WithName("CreateTopic")
             .Produces<TopicResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem()
-            .ProducesProblem(StatusCodes.Status401Unauthorized);
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status409Conflict);
 
         topics.MapPut("{id:guid}", UpdateTopicAsync)
             .WithName("UpdateTopic")
