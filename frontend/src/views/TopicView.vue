@@ -1,4 +1,5 @@
 <script setup>
+import FriendPicker from "@/components/FriendPicker.vue";
 import { eager } from "@/includes/validation.js";
 import { topicService } from "@/services/topic-service.js";
 import { useAuthStore } from "@/stores/auth.js";
@@ -7,6 +8,7 @@ import { focusFirstInvalid } from "@/utils/focus.js";
 import { useNotify } from "@/utils/notify.js";
 import { parseClipboardTable } from "@/utils/clipboard-parser.js";
 import { useUnsavedChangesGuard } from "@/utils/unsaved-changes.js";
+import { byUsername, sameUsername } from "@/utils/username.js";
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
 import Column from "primevue/column";
@@ -94,9 +96,7 @@ const ownerUsername = computed(
   () => topic.value?.authors.find((author) => author.isOwner)?.username ?? authStore.userName,
 );
 
-// Co-authors listed by username, which is also how the server orders them
-const byUsername = (a, b) => a.username.localeCompare(b.username, undefined, { sensitivity: "base" });
-
+// Co-authors are listed by username, which is also how the server orders them
 const authorRows = computed(() => [
   { username: ownerUsername.value, isOwner: true, isAuthor: formData.value.isAuthor, coAuthorIndex: null },
   ...coAuthors.value
@@ -109,7 +109,22 @@ const authorRows = computed(() => [
     .sort(byUsername),
 ]);
 
-const sameUsername = (a, b) => a?.toLowerCase() === b?.toLowerCase();
+// The owner and the co-authors, whom the friend picker doesn't suggest
+const addedUsernames = computed(() => [ownerUsername.value, ...coAuthors.value.map((coAuthor) => coAuthor.username)]);
+
+const pushCoAuthor = (username) => {
+  coAuthors.value.push({ username });
+  authorErrors.value = {};
+  addAuthorError.value = null;
+};
+
+// The picker already leaves out the owner and the co-authors
+const pickCoAuthor = (friend) => pushCoAuthor(friend.username);
+
+// Enter in the picker's box picks a friend or does nothing; it doesn't save the topic
+const keepPickerFromSubmitting = (event) => {
+  if (event.target.getAttribute("role") === "combobox") event.preventDefault();
+};
 
 // Only local checks; the server checks that the account exists on Save
 const addCoAuthor = () => {
@@ -122,9 +137,8 @@ const addCoAuthor = () => {
   } else if (coAuthors.value.some((coAuthor) => sameUsername(coAuthor.username, username))) {
     addAuthorError.value = "This account is already in the list.";
   } else {
-    coAuthors.value.push({ username });
+    pushCoAuthor(username);
     newAuthorUsername.value = "";
-    authorErrors.value = {};
   }
 };
 
@@ -726,29 +740,39 @@ const handleDelete = () => {
           Authors
         </h2>
 
-        <div v-if="!readOnly" class="flex gap-2 mb-4">
-          <div class="flex-1 flex flex-col gap-1">
-            <label for="newAuthorUsername" class="sr-only">Username</label>
-            <InputText
-              id="newAuthorUsername"
-              v-model="newAuthorUsername"
-              placeholder="Username"
-              class="w-full"
-              :invalid="!!addAuthorError"
-              :disabled="isBusy"
-              @keydown.enter.prevent="addCoAuthor"
-            />
-            <Message v-if="addAuthorError" severity="error" variant="simple">{{ addAuthorError }}</Message>
+        <div v-if="!readOnly" class="flex flex-col gap-3 mb-4">
+          <div @keydown.enter="keepPickerFromSubmitting">
+            <FriendPicker :exclude-usernames="addedUsernames" :disabled="isBusy" @pick="pickCoAuthor" />
           </div>
-          <Button
-            type="button"
-            label="Add"
-            icon="pi pi-plus"
-            outlined
-            class="self-start"
-            :disabled="isBusy"
-            @click="addCoAuthor"
-          />
+
+          <div class="flex flex-col gap-1">
+            <label for="newAuthorUsername" class="text-sm text-gray-600 dark:text-gray-400">
+              Not on your friend list? Add by username
+            </label>
+            <div class="flex gap-2">
+              <div class="flex-1 flex flex-col gap-1">
+                <InputText
+                  id="newAuthorUsername"
+                  v-model="newAuthorUsername"
+                  placeholder="Username"
+                  class="w-full"
+                  :invalid="!!addAuthorError"
+                  :disabled="isBusy"
+                  @keydown.enter.prevent="addCoAuthor"
+                />
+                <Message v-if="addAuthorError" severity="error" variant="simple">{{ addAuthorError }}</Message>
+              </div>
+              <Button
+                type="button"
+                label="Add"
+                icon="pi pi-plus"
+                outlined
+                class="self-start"
+                :disabled="isBusy"
+                @click="addCoAuthor"
+              />
+            </div>
+          </div>
         </div>
 
         <DataTable :value="authorRows" dataKey="username" stripedRows>
