@@ -1,4 +1,5 @@
 <script setup>
+import { LIMITS } from "@/domain/limits.js";
 import { tournamentTopicsService } from "@/services/tournament-topics-service.js";
 import { useNotify } from "@/utils/notify.js";
 import Button from "primevue/button";
@@ -445,8 +446,8 @@ const handleDelete = () => {
                 :modelValue="getOverrideCostValue(data.id, participant.id)"
                 @update:modelValue="(val) => setOverrideCostValue(data.id, participant.id, val)"
                 :disabled="!canEdit"
-                :min="-999"
-                :max="999"
+                :min="LIMITS.rounds.overrideCostMin"
+                :max="LIMITS.rounds.overrideCostMax"
                 inputClass="w-16 text-center"
                 class="p-inputnumber-sm"
                 placeholder="0"

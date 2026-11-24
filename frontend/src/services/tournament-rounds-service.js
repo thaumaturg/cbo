@@ -7,7 +7,7 @@ export const tournamentRoundsService = {
    * @param {string} tournamentId - Tournament ID (GUID)
    * @param {string} matchId - Match ID (GUID)
    * @param {Object} roundData - Round data
-   * @param {number} roundData.numberInMatch - Round number (1-4)
+   * @param {number} roundData.numberInMatch - Round number, from 1 to `LIMITS.matches.roundsPerQualificationMatch`
    * @param {string} roundData.topicId - Topic ID (GUID)
    * @param {Array} roundData.answers - Array of answer objects
    * @returns {Promise} - API response with created round
@@ -25,7 +25,7 @@ export const tournamentRoundsService = {
    * Update an existing round with answers
    * @param {string} tournamentId - Tournament ID (GUID)
    * @param {string} matchId - Match ID (GUID)
-   * @param {number} roundNumber - Round number (1-4)
+   * @param {number} roundNumber - Round number, from 1 to `LIMITS.matches.roundsPerQualificationMatch`
    * @param {Object} roundData - Round data
    * @param {number} roundData.numberInMatch - Round number (must match roundNumber)
    * @param {string} roundData.topicId - Topic ID (GUID)
@@ -48,7 +48,7 @@ export const tournamentRoundsService = {
    * Delete a round
    * @param {string} tournamentId - Tournament ID (GUID)
    * @param {string} matchId - Match ID (GUID)
-   * @param {number} roundNumber - Round number (1-4)
+   * @param {number} roundNumber - Round number, from 1 to `LIMITS.matches.roundsPerQualificationMatch`
    * @returns {Promise} - API response
    */
   async deleteRound(tournamentId, matchId, roundNumber) {

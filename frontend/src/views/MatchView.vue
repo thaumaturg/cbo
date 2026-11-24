@@ -1,5 +1,6 @@
 <script setup>
 import MatchRoundPanel from "@/components/MatchRoundPanel.vue";
+import { LIMITS } from "@/domain/limits.js";
 import { tournamentMatchesService } from "@/services/tournament-matches-service.js";
 import { tournamentRoundsService } from "@/services/tournament-rounds-service.js";
 import { tournamentService } from "@/services/tournament-service.js";
@@ -12,7 +13,7 @@ import Button from "primevue/button";
 import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
-const MAX_ROUNDS = 4;
+const ROUNDS_PER_MATCH = LIMITS.matches.roundsPerQualificationMatch;
 
 const route = useRoute();
 const notify = useNotify();
@@ -40,7 +41,7 @@ const matchTitle = computed(() => {
 const participants = computed(() => match.value?.matchParticipants || []);
 
 const canAddRound = computed(() => {
-  return canEdit.value && roundStates.value.length < MAX_ROUNDS;
+  return canEdit.value && roundStates.value.length < ROUNDS_PER_MATCH;
 });
 
 const expandedPanels = ref([]);
@@ -138,7 +139,7 @@ const getNextRoundNumber = () => {
   if (roundStates.value.length === 0) return 1;
 
   const usedNumbers = new Set(roundStates.value.map((r) => r.numberInMatch));
-  for (let i = 1; i <= MAX_ROUNDS; i++) {
+  for (let i = 1; i <= ROUNDS_PER_MATCH; i++) {
     if (!usedNumbers.has(i)) return i;
   }
   return null;
@@ -420,15 +421,15 @@ onMounted(() => {
           @click="addRound"
         />
         <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
-          {{ roundStates.length }} of {{ MAX_ROUNDS }} rounds
+          {{ roundStates.length }} of {{ ROUNDS_PER_MATCH }} rounds
         </p>
       </div>
 
       <!-- Max rounds reached message -->
-      <div v-else-if="canEdit && roundStates.length >= MAX_ROUNDS" class="mt-6 text-center">
+      <div v-else-if="canEdit && roundStates.length >= ROUNDS_PER_MATCH" class="mt-6 text-center">
         <p class="text-sm text-gray-500 dark:text-gray-400">
           <i class="pi pi-check-circle mr-1 text-green-500"></i>
-          Maximum number of rounds ({{ MAX_ROUNDS }}) reached
+          Maximum number of rounds ({{ ROUNDS_PER_MATCH }}) reached
         </p>
       </div>
     </div>
