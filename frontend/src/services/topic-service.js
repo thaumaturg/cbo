@@ -56,7 +56,7 @@ export const topicService = {
   /**
    * Create many topics at once, all or none of them
    * @param {Object} payload - `{ isAuthor, topics: [{ title, description, questions }] }`, at most
-   *   `TOPICS_PER_IMPORT_MAX` topics
+   *   `LIMITS.topics.importMax` topics
    * @returns {Promise} - API response with `{ count }`, the number of topics created
    */
   async importTopics(payload) {

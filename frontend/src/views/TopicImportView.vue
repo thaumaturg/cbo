@@ -1,9 +1,9 @@
 <script setup>
+import { LIMITS } from "@/domain/limits.js";
 import { topicService } from "@/services/topic-service.js";
 import { parseClipboardTable } from "@/utils/clipboard-parser.js";
 import { useNotify } from "@/utils/notify.js";
 import { parseTopicBlocks } from "@/utils/topic-import-parser.js";
-import { TOPICS_PER_IMPORT_MAX } from "@/utils/topic-limits.js";
 import { useUnsavedChangesGuard } from "@/utils/unsaved-changes.js";
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
@@ -17,7 +17,7 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 const notify = useNotify();
 
-const LIMIT_MESSAGE = `At most ${TOPICS_PER_IMPORT_MAX} topics per import.`;
+const LIMIT_MESSAGE = `At most ${LIMITS.topics.importMax} topics per import.`;
 const TOO_MUCH_DATA_MESSAGE = "Too much data, import fewer topics.";
 
 // The parsed paste: `{ topics, skippedCount }`, each topic with an `id` (its position in the sheet); null before a paste
@@ -34,9 +34,9 @@ const topics = computed(() => preview.value?.topics ?? []);
 const isValid = (topic) => topic.errors.length === 0;
 const validTopics = computed(() => topics.value.filter(isValid));
 const tickedCount = computed(() => tickedIds.value.size);
-const selectableCount = computed(() => Math.min(validTopics.value.length, TOPICS_PER_IMPORT_MAX));
-const isAtLimit = computed(() => tickedCount.value >= TOPICS_PER_IMPORT_MAX);
-const showLimitMessage = computed(() => validTopics.value.length > TOPICS_PER_IMPORT_MAX);
+const selectableCount = computed(() => Math.min(validTopics.value.length, LIMITS.topics.importMax));
+const isAtLimit = computed(() => tickedCount.value >= LIMITS.topics.importMax);
+const showLimitMessage = computed(() => validTopics.value.length > LIMITS.topics.importMax);
 
 const allTicked = computed(() => tickedCount.value > 0 && tickedCount.value === selectableCount.value);
 const someTicked = computed(() => tickedCount.value > 0 && !allTicked.value);
@@ -66,7 +66,7 @@ const summary = computed(() => {
 // Ticks valid topics in sheet order, after the ones already ticked, until the limit
 const tickUpToLimit = (ticked) => {
   for (const topic of validTopics.value) {
-    if (ticked.size >= TOPICS_PER_IMPORT_MAX) break;
+    if (ticked.size >= LIMITS.topics.importMax) break;
     ticked.add(topic.id);
   }
   return ticked;

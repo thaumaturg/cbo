@@ -1,4 +1,4 @@
-import { TOPIC_LIMITS } from "./topic-limits.js";
+import { LIMITS } from "@/domain/limits.js";
 
 /**
  * Topic import parser.
@@ -115,35 +115,35 @@ const parseDescription = (cell) => {
 
 const titleErrors = (title) => {
   if (title === "") return ["Title is missing."];
-  if (title.length > TOPIC_LIMITS.titleMax) {
-    return [`Title can be at most ${TOPIC_LIMITS.titleMax} characters (currently ${title.length}).`];
+  if (title.length > LIMITS.topics.titleLengthMax) {
+    return [`Title can be at most ${LIMITS.topics.titleLengthMax} characters (currently ${title.length}).`];
   }
   return [];
 };
 
 const questionRowErrors = ({ rowNumber, cost, text, answer }) => {
-  const { questionsCostMin, questionsCostMax } = TOPIC_LIMITS;
+  const { questionCostMin, questionCostMax } = LIMITS.topics;
   const errors = [];
 
   if (text === "" || answer === "") {
     errors.push(`Row ${rowNumber}: question and answer are both required.`);
   }
-  if (cost === null || cost < questionsCostMin || cost > questionsCostMax) {
-    errors.push(`Row ${rowNumber}: cost must be a whole number from ${questionsCostMin} to ${questionsCostMax}.`);
+  if (cost === null || cost < questionCostMin || cost > questionCostMax) {
+    errors.push(`Row ${rowNumber}: cost must be a whole number from ${questionCostMin} to ${questionCostMax}.`);
   }
 
   return errors;
 };
 
 const topicErrors = (questionCount, totalCost) => {
-  const { questionsPerTopicMax, questionsCostPerTopicMax } = TOPIC_LIMITS;
+  const { questionsMax, questionsCostTotalMax } = LIMITS.topics;
   const errors = [];
 
-  if (questionCount > questionsPerTopicMax) {
-    errors.push(`A topic can have at most ${questionsPerTopicMax} questions (currently ${questionCount}).`);
+  if (questionCount > questionsMax) {
+    errors.push(`A topic can have at most ${questionsMax} questions (currently ${questionCount}).`);
   }
-  if (totalCost > questionsCostPerTopicMax) {
-    errors.push(`The total cost can be at most ${questionsCostPerTopicMax} (currently ${totalCost}).`);
+  if (totalCost > questionsCostTotalMax) {
+    errors.push(`The total cost can be at most ${questionsCostTotalMax} (currently ${totalCost}).`);
   }
 
   return errors;
