@@ -1,5 +1,6 @@
 <script setup>
 import FriendPicker from "@/components/FriendPicker.vue";
+import { LIMITS } from "@/domain/limits.js";
 import { eager } from "@/includes/validation.js";
 import { topicService } from "@/services/topic-service.js";
 import { useAuthStore } from "@/stores/auth.js";
@@ -7,7 +8,6 @@ import { toFormErrors, toFormFailure } from "@/utils/error.js";
 import { focusFirstInvalid } from "@/utils/focus.js";
 import { useNotify } from "@/utils/notify.js";
 import { parseClipboardTable } from "@/utils/clipboard-parser.js";
-import { TOPIC_LIMITS } from "@/utils/topic-limits.js";
 import { useUnsavedChangesGuard } from "@/utils/unsaved-changes.js";
 import { byUsername, sameUsername } from "@/utils/username.js";
 import Button from "primevue/button";
@@ -62,8 +62,9 @@ const questionErrors = ref({});
 const formRef = ref(null);
 
 const DEFAULT_QUESTION_COUNT = 5;
+const DEFAULT_COST_STEP = 10;
 
-const defaultCost = (questionNumber) => Math.min(questionNumber * 10, TOPIC_LIMITS.questionsCostMax);
+const defaultCost = (questionNumber) => Math.min(questionNumber * DEFAULT_COST_STEP, LIMITS.topics.questionCostMax);
 
 const createEmptyQuestion = (questionNumber) => ({
   id: null,
@@ -157,8 +158,8 @@ const markClean = () => {
 
 useUnsavedChangesGuard(isDirty);
 
-const canAddQuestion = computed(() => questions.value.length < TOPIC_LIMITS.questionsPerTopicMax);
-const canRemoveQuestion = computed(() => questions.value.length > TOPIC_LIMITS.questionsPerTopicMin);
+const canAddQuestion = computed(() => questions.value.length < LIMITS.topics.questionsMax);
+const canRemoveQuestion = computed(() => questions.value.length > LIMITS.topics.questionsMin);
 
 const renumberQuestions = () => {
   questions.value.forEach((question, index) => {
@@ -185,15 +186,15 @@ const isBusy = computed(() => isFormProcessing.value || isDeleting.value);
 const inputsDisabled = computed(() => readOnly.value || isBusy.value);
 
 const validateCostField = (value, fieldName) => {
-  const { questionsCostMin, questionsCostMax } = TOPIC_LIMITS;
+  const { questionCostMin, questionCostMax } = LIMITS.topics;
   if (value === null || value === undefined || value === "") {
     return `${fieldName} is required.`;
   }
-  if (value < questionsCostMin) {
-    return `${fieldName} must be at least ${questionsCostMin}.`;
+  if (value < questionCostMin) {
+    return `${fieldName} must be at least ${questionCostMin}.`;
   }
-  if (value > questionsCostMax) {
-    return `${fieldName} must be at most ${questionsCostMax}.`;
+  if (value > questionCostMax) {
+    return `${fieldName} must be at most ${questionCostMax}.`;
   }
   return null;
 };
@@ -217,8 +218,8 @@ const validateQuestion = (question) => {
 const totalCost = computed(() => questions.value.reduce((sum, q) => sum + (Number(q.cost) || 0), 0));
 
 const totalCostError = computed(() =>
-  totalCost.value > TOPIC_LIMITS.questionsCostPerTopicMax
-    ? `The total cost of the questions cannot be more than ${TOPIC_LIMITS.questionsCostPerTopicMax} (currently ${totalCost.value}).`
+  totalCost.value > LIMITS.topics.questionsCostTotalMax
+    ? `The total cost of the questions cannot be more than ${LIMITS.topics.questionsCostTotalMax} (currently ${totalCost.value}).`
     : null,
 );
 
@@ -382,7 +383,7 @@ const handlePaste = (event) => {
 
   if (firstRowCols !== 4 && firstRowCols !== 3) return;
 
-  const maxQuestions = TOPIC_LIMITS.questionsPerTopicMax;
+  const maxQuestions = LIMITS.topics.questionsMax;
   const rowsToProcess = rows.slice(0, maxQuestions);
 
   questions.value = rowsToProcess.map((row, index) => {
@@ -545,7 +546,7 @@ const handleDelete = () => {
             <VeeField
               name="title"
               label="Title"
-              :rules="`required|max:${TOPIC_LIMITS.titleMax}`"
+              :rules="`required|max:${LIMITS.topics.titleLengthMax}`"
               v-model="formData.title"
               v-slot="slot"
             >
@@ -599,8 +600,7 @@ const handleDelete = () => {
           <p class="text-sm text-blue-700 dark:text-blue-300">
             <strong>Paste Format:</strong> Select cells in Google Sheets containing your questions (4 columns: Cost,
             Question, Answer, Comment) and paste here. Alternatively, use 3 columns: Question, Answer, Comment - costs
-            will be auto-generated. Pasting replaces the whole table (up to
-            {{ TOPIC_LIMITS.questionsPerTopicMax }} rows).
+            will be auto-generated. Pasting replaces the whole table (up to {{ LIMITS.topics.questionsMax }} rows).
           </p>
         </div>
 
@@ -721,9 +721,9 @@ const handleDelete = () => {
             @click="addQuestion"
           />
           <span class="ml-auto text-sm text-gray-500 dark:text-gray-400">
-            {{ questions.length }} / {{ TOPIC_LIMITS.questionsPerTopicMax }} questions ·
+            {{ questions.length }} / {{ LIMITS.topics.questionsMax }} questions ·
             <span :class="{ 'text-red-500 font-medium': totalCostError }">
-              total cost {{ totalCost }} / {{ TOPIC_LIMITS.questionsCostPerTopicMax }}
+              total cost {{ totalCost }} / {{ LIMITS.topics.questionsCostTotalMax }}
             </span>
           </span>
         </div>
