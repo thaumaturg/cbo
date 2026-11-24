@@ -12,28 +12,28 @@ public static class TopicCountRules
 
     /// <summary>
     /// Returns a conflict when owning <paramref name="addedCount"/> more topics would take the account past
-    /// <see cref="DefaultSettings.OwnedTopicsMax"/>, or null when it wouldn't.
+    /// <see cref="Limits.Topics.OwnedMax"/>, or null when it wouldn't.
     /// </summary>
     public static Failure? CheckOwnedTopicsCap(int ownedCount, int addedCount)
     {
         int total = ownedCount + addedCount;
 
-        return total > DefaultSettings.OwnedTopicsMax ? TopicFailures.OwnedTopicsCapReached(total) : null;
+        return total > Limits.Topics.OwnedMax ? TopicFailures.OwnedTopicsCapReached(total) : null;
     }
 
     /// <summary>
     /// Returns an error on <c>topics</c> unless an import holds from 1 to
-    /// <see cref="DefaultSettings.TopicsPerImportMax"/> topics, otherwise none.
+    /// <see cref="Limits.Topics.ImportMax"/> topics, otherwise none.
     /// </summary>
     public static IReadOnlyList<FieldError> CheckImportSize(int topicCount)
     {
         if (topicCount < 1)
             return [new FieldError(TopicsField, "Choose at least 1 topic to import.")];
 
-        if (topicCount > DefaultSettings.TopicsPerImportMax)
+        if (topicCount > Limits.Topics.ImportMax)
         {
             return [new FieldError(
-                TopicsField, $"You can import at most {DefaultSettings.TopicsPerImportMax} topics at once.")];
+                TopicsField, $"You can import at most {Limits.Topics.ImportMax} topics at once.")];
         }
 
         return [];

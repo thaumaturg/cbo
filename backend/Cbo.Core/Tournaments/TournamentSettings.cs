@@ -10,9 +10,9 @@ internal readonly record struct TournamentSettings(int PlayersPerTournament, int
 {
     public static TournamentSettings Resolve(int? playersPerTournament, int? topicsPerParticipantMax, int? topicsPerParticipantMin) =>
         new(
-            playersPerTournament ?? DefaultSettings.PlayersPerTournament,
-            topicsPerParticipantMax ?? DefaultSettings.TopicsPerParticipantMax,
-            topicsPerParticipantMin ?? DefaultSettings.TopicsPerParticipantMin);
+            playersPerTournament ?? TournamentDefaults.PlayersPerTournament,
+            topicsPerParticipantMax ?? TournamentDefaults.TopicsPerParticipantMax,
+            topicsPerParticipantMin ?? TournamentDefaults.TopicsPerParticipantMin);
 
     /// <summary>
     /// The tournament form is form-like input, so every problem is collected.
@@ -21,10 +21,10 @@ internal readonly record struct TournamentSettings(int PlayersPerTournament, int
     {
         List<FieldError> fieldErrors = [];
 
-        if (PlayersPerTournament != DefaultSettings.PlayersPerTournament)
-            fieldErrors.Add(new FieldError("playersPerTournament", $"Only {DefaultSettings.PlayersPerTournament} players per tournament are currently supported."));
+        if (PlayersPerTournament != TournamentDefaults.PlayersPerTournament)
+            fieldErrors.Add(new FieldError("playersPerTournament", $"Only {TournamentDefaults.PlayersPerTournament} players per tournament are currently supported."));
 
-        if (TopicsPerParticipantMin < 0)
+        if (TopicsPerParticipantMin < Limits.Tournaments.TopicsPerParticipantFloor)
             fieldErrors.Add(new FieldError("topicsPerParticipantMin", "The minimum number of topics can't be negative."));
 
         if (TopicsPerParticipantMax < TopicsPerParticipantMin)

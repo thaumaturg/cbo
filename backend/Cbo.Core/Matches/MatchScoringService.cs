@@ -68,7 +68,7 @@ public class MatchScoringService(CboDbContext dbContext) : IMatchScoringService
             participant.ScoreSum = score;
         }
 
-        if (match.Rounds.Count == DefaultSettings.RoundsPerMatch)
+        if (match.Rounds.Count == Limits.Matches.RoundsPerQualificationMatch)
         {
             CalculatePoints(match.MatchParticipants.ToList());
         }
@@ -107,7 +107,7 @@ public class MatchScoringService(CboDbContext dbContext) : IMatchScoringService
     private static void CalculatePoints(List<MatchParticipant> participants)
     {
         int count = participants.Count;
-        if (count < DefaultSettings.ParticipantsPerMatchMin || count > DefaultSettings.ParticipantsPerMatchMax)
+        if (count < Limits.Matches.ParticipantsMin || count > Limits.Matches.ParticipantsMax)
             return;
 
         List<MatchParticipant> sorted = participants.OrderByDescending(p => p.ScoreSum ?? 0).ToList();

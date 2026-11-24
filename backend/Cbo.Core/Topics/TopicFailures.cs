@@ -22,5 +22,5 @@ internal static class TopicFailures
 
     public static Failure OwnedTopicsCapReached(int total) =>
         Failure.Conflict(
-            $"You can own at most {DefaultSettings.OwnedTopicsMax} topics, and this would bring you to {total}.");
+            $"You can own at most {Limits.Topics.OwnedMax} topics, and this would bring you to {total}.");
 }
