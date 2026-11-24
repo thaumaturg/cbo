@@ -5,8 +5,8 @@ export const topicService = {
   /**
    * Get one page of the topics the current user owns
    * @param {Object} [params] - List params, named as in the API (see `useListQuery`)
-   * @param {number} [params.page] - Page number, from 1
-   * @param {number} [params.pageSize] - Rows per page, 1–100
+   * @param {number} [params.page] - Page number, from `PAGING.firstPage`
+   * @param {number} [params.pageSize] - Rows per page, from 1 to `PAGING.maxPageSize`
    * @param {string} [params.sort] - `title`, `questionCount` or `createdAt`, with an optional leading `-` for descending
    * @param {string} [params.search] - Text the title contains
    * @param {boolean} [params.played] - Whether the topic has been played

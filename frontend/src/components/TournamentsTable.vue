@@ -1,5 +1,5 @@
 <script setup>
-import { PAGE_SIZES } from "@/composables/use-list-query.js";
+import { FIRST_PAGE, PAGE_SIZES } from "@/composables/use-list-query.js";
 import { roleTagSeverity, stageTagSeverity } from "@/utils/tournament.js";
 import Button from "primevue/button";
 import Column from "primevue/column";
@@ -53,9 +53,9 @@ const sortOrder = computed(() => {
   return sort.startsWith("-") ? -1 : 1;
 });
 
-// PrimeVue pages are 0-based; the API's start at 1
+// PrimeVue pages are 0-based; the API's start at FIRST_PAGE
 const handlePage = (event) => {
-  emit("page", { page: event.page + 1, pageSize: event.rows });
+  emit("page", { page: event.page + FIRST_PAGE, pageSize: event.rows });
 };
 
 const handleSort = (event) => {
@@ -77,7 +77,7 @@ const handleSort = (event) => {
     :lazy="isPaged"
     :paginator="isPaged"
     :rows="paging?.pageSize"
-    :first="isPaged ? (paging.page - 1) * paging.pageSize : undefined"
+    :first="isPaged ? (paging.page - FIRST_PAGE) * paging.pageSize : undefined"
     :totalRecords="paging?.totalCount"
     :rowsPerPageOptions="isPaged ? PAGE_SIZES : undefined"
     :removableSort="isPaged"
