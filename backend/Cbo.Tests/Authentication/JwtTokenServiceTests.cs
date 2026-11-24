@@ -1,38 +1,52 @@
 using System;
-using System.Collections.Generic;
 using Cbo.Api.Authentication;
 using Cbo.Core.Domain;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace Cbo.Tests.Authentication;
 
 public class JwtTokenServiceTests
 {
-    private static readonly IConfiguration Configuration = new ConfigurationBuilder()
-        .AddInMemoryCollection(new Dictionary<string, string?>
-        {
-            ["Jwt:Key"] = "test-signing-key-that-is-long-enough-for-hmac-sha256",
-            ["Jwt:Issuer"] = "https://cbo.test",
-            ["Jwt:Audience"] = "https://cbo.test",
-        })
-        .Build();
+    private const int LifetimeDays = 3;
+    private const string AliceStamp = "STAMP-1";
+
+    private static readonly Guid AliceId = Guid.Parse("6f9619ff-8b86-d011-b42d-00c04fc964ff");
+    private static readonly TimeSpan ClockTolerance = TimeSpan.FromSeconds(5);
+
+    private static readonly IOptions<JwtOptions> TokenOptions = Options.Create(new JwtOptions
+    {
+        Key = "test-signing-key-that-is-long-enough-for-hmac-sha256",
+        Issuer = "https://cbo.test",
+        Audience = "https://cbo.test",
+        LifetimeDays = LifetimeDays,
+    });
+
+    private static ApplicationUser CreateAlice() => new()
+    {
+        Id = AliceId,
+        UserName = "alice",
+        Email = "alice@example.com",
+        SecurityStamp = AliceStamp,
+    };
 
     [Fact]
     public void An_issued_token_carries_the_users_id_and_security_stamp()
     {
-        var user = new ApplicationUser
-        {
-            Id = Guid.Parse("6f9619ff-8b86-d011-b42d-00c04fc964ff"),
-            UserName = "alice",
-            Email = "alice@example.com",
-            SecurityStamp = "STAMP-1",
-        };
-
-        string token = new JwtTokenService(Configuration).CreateToken(user);
+        string token = new JwtTokenService(TokenOptions).CreateToken(CreateAlice());
 
         JsonWebToken jwt = new JsonWebTokenHandler().ReadJsonWebToken(token);
-        Assert.Equal("6f9619ff-8b86-d011-b42d-00c04fc964ff", jwt.Subject);
-        Assert.Equal("STAMP-1", jwt.GetClaim("stamp").Value);
+        Assert.Equal(AliceId.ToString(), jwt.Subject);
+        Assert.Equal(AliceStamp, jwt.GetClaim(JwtTokenService.SecurityStampClaimType).Value);
+    }
+
+    [Fact]
+    public void An_issued_token_expires_after_the_configured_lifetime()
+    {
+        string token = new JwtTokenService(TokenOptions).CreateToken(CreateAlice());
+
+        JsonWebToken jwt = new JsonWebTokenHandler().ReadJsonWebToken(token);
+        TimeSpan expected = TimeSpan.FromDays(LifetimeDays);
+        Assert.InRange(jwt.ValidTo - jwt.IssuedAt, expected - ClockTolerance, expected + ClockTolerance);
     }
 }

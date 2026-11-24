@@ -3,23 +3,22 @@ using System.Security.Claims;
 using System.Text;
 using Cbo.Core.Accounts;
 using Cbo.Core.Domain;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Cbo.Api.Authentication;
 
-public class JwtTokenService(IConfiguration configuration) : IJwtTokenService
+public class JwtTokenService(IOptions<JwtOptions> options) : IJwtTokenService
 {
     public const string SecurityStampClaimType = "stamp";
 
-    private readonly IConfiguration _configuration = configuration;
+    private readonly JwtOptions _options = options.Value;
 
     public string CreateToken(ApplicationUser user)
     {
         string email = user.Email ?? throw new InvalidOperationException($"User {user.Id} has no email.");
         string userName = user.UserName ?? throw new InvalidOperationException($"User {user.Id} has no username.");
         string securityStamp = user.SecurityStamp ?? throw new InvalidOperationException($"User {user.Id} has no security stamp.");
-
-        string jwtKey = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("Configuration value 'Jwt:Key' is missing.");
 
         long issuedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
@@ -40,14 +39,14 @@ public class JwtTokenService(IConfiguration configuration) : IJwtTokenService
             new(SecurityStampClaimType, securityStamp)
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
-            _configuration["Jwt:Issuer"],
-            _configuration["Jwt:Audience"],
+            _options.Issuer,
+            _options.Audience,
             claims,
-            expires: DateTime.UtcNow.AddDays(14),
+            expires: DateTime.UtcNow.AddDays(_options.LifetimeDays),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

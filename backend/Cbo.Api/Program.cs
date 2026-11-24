@@ -29,7 +29,9 @@ public class Program
             builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:CboDb"] = "Host=localhost",
-                ["Jwt:Key"] = "openapi-document-generation"
+                ["Jwt:Key"] = "openapi-document-generation",
+                ["Jwt:Issuer"] = "openapi-document-generation",
+                ["Jwt:Audience"] = "openapi-document-generation"
             });
         }
 
@@ -39,10 +41,15 @@ public class Program
             throw new InvalidOperationException("Connection string 'CboDb' is missing or empty.");
         }
 
-        string? jwtKey = builder.Configuration["Jwt:Key"];
-        if (string.IsNullOrWhiteSpace(jwtKey))
+        builder.Services.AddOptions<JwtOptions>()
+            .BindConfiguration(JwtOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        JwtOptions jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
+        if (string.IsNullOrWhiteSpace(jwtOptions.Key))
         {
-            throw new InvalidOperationException("Configuration value 'Jwt:Key' is missing or empty.");
+            throw new InvalidOperationException($"Configuration value '{JwtOptions.SectionName}:Key' is missing or empty.");
         }
 
         builder.Services.AddCore(connectionString);
@@ -92,10 +99,10 @@ public class Program
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
-                    ValidAudiences = new[] { builder.Configuration["Jwt:Audience"] },
+                    ValidIssuer = jwtOptions.Issuer,
+                    ValidAudiences = new[] { jwtOptions.Audience },
                     IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(jwtKey))
+                        Encoding.UTF8.GetBytes(jwtOptions.Key))
                 };
                 options.Events = new JwtBearerEvents
                 {
