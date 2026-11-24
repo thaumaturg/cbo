@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Cbo.Core.Domain;
 using Cbo.Core.Topics;
 using Cbo.Results;
 
@@ -9,35 +10,38 @@ public class TopicCountRulesTests
     [Fact]
     public void Adding_a_topic_under_the_cap_is_allowed()
     {
-        Assert.Null(TopicCountRules.CheckOwnedTopicsCap(ownedCount: 998, addedCount: 1));
+        Assert.Null(TopicCountRules.CheckOwnedTopicsCap(ownedCount: Limits.Topics.OwnedMax - 2, addedCount: 1));
     }
 
     [Fact]
     public void Reaching_exactly_the_cap_is_allowed()
     {
-        Assert.Null(TopicCountRules.CheckOwnedTopicsCap(ownedCount: 999, addedCount: 1));
+        Assert.Null(TopicCountRules.CheckOwnedTopicsCap(ownedCount: Limits.Topics.OwnedMax - 1, addedCount: 1));
     }
 
     [Fact]
     public void Going_one_over_the_cap_is_a_conflict_naming_the_total()
     {
-        Failure? failure = TopicCountRules.CheckOwnedTopicsCap(ownedCount: 1000, addedCount: 1);
+        Failure? failure = TopicCountRules.CheckOwnedTopicsCap(ownedCount: Limits.Topics.OwnedMax, addedCount: 1);
 
-        AssertCapConflict(failure, "You can own at most 1000 topics, and this would bring you to 1001.");
+        AssertCapConflict(failure,
+            $"You can own at most {Limits.Topics.OwnedMax} topics, and this would bring you to {Limits.Topics.OwnedMax + 1}.");
     }
 
     [Fact]
     public void An_import_that_would_go_over_the_cap_is_a_conflict_naming_the_total()
     {
-        Failure? failure = TopicCountRules.CheckOwnedTopicsCap(ownedCount: 980, addedCount: 50);
+        const int ownedCount = Limits.Topics.OwnedMax - 20;
+        Failure? failure = TopicCountRules.CheckOwnedTopicsCap(ownedCount, addedCount: Limits.Topics.ImportMax);
 
-        AssertCapConflict(failure, "You can own at most 1000 topics, and this would bring you to 1030.");
+        AssertCapConflict(failure,
+            $"You can own at most {Limits.Topics.OwnedMax} topics, and this would bring you to {ownedCount + Limits.Topics.ImportMax}.");
     }
 
     [Theory]
     [InlineData(1)]
-    [InlineData(50)]
-    public void An_import_of_1_to_50_topics_is_allowed(int topicCount)
+    [InlineData(Limits.Topics.ImportMax)]
+    public void An_import_of_1_up_to_the_import_max_is_allowed(int topicCount)
     {
         Assert.Empty(TopicCountRules.CheckImportSize(topicCount));
     }
@@ -49,9 +53,10 @@ public class TopicCountRulesTests
     }
 
     [Fact]
-    public void An_import_of_more_than_50_topics_is_an_error_on_topics()
+    public void An_import_over_the_import_max_is_an_error_on_topics()
     {
-        AssertTopicsError(TopicCountRules.CheckImportSize(51), "You can import at most 50 topics at once.");
+        AssertTopicsError(TopicCountRules.CheckImportSize(Limits.Topics.ImportMax + 1),
+            $"You can import at most {Limits.Topics.ImportMax} topics at once.");
     }
 
     private static void AssertTopicsError(IReadOnlyList<FieldError> errors, string message)
