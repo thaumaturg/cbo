@@ -4,6 +4,7 @@ import TournamentsTable from "@/components/TournamentsTable.vue";
 import { useListPage } from "@/composables/use-list-page.js";
 import {
   DEFAULT_PAGE_SIZE,
+  FIRST_PAGE,
   MAX_SEARCH_LENGTH,
   parseManyOf,
   parseOneOf,
@@ -27,7 +28,7 @@ const STAGES = ["Preparations", "Started"];
 const ROLES = ["Creator", "Organizer", "Player"];
 
 const defaults = {
-  page: 1,
+  page: FIRST_PAGE,
   pageSize: DEFAULT_PAGE_SIZE,
   sort: "-createdAt",
   search: undefined,

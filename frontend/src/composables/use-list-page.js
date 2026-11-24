@@ -1,4 +1,4 @@
-import { parseText } from "@/composables/use-list-query.js";
+import { FIRST_PAGE, parseText } from "@/composables/use-list-query.js";
 import { useNotify } from "@/utils/notify.js";
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 
@@ -118,7 +118,7 @@ export function useListPage({ listQuery, defaultSort, load }) {
   const handlePage = ({ page, pageSize }) => {
     // Once the total arrives, PrimeVue's paginator moves a page past the end to the last page.
     // That isn't a step the user took, so it replaces the URL instead of adding a history entry.
-    const isPastEnd = (params.value.page - 1) * params.value.pageSize >= totalCount.value;
+    const isPastEnd = (params.value.page - FIRST_PAGE) * params.value.pageSize >= totalCount.value;
     // A new page size starts again from the first page
     update({ page, pageSize }, { resetPage: pageSize !== params.value.pageSize, replace: isPastEnd });
   };

@@ -5,8 +5,8 @@ export const tournamentService = {
   /**
    * Get one page of the tournaments the current user takes part in
    * @param {Object} [params] - List params, named as in the API (see `useListQuery`)
-   * @param {number} [params.page] - Page number, from 1
-   * @param {number} [params.pageSize] - Rows per page, 1–100
+   * @param {number} [params.page] - Page number, from `PAGING.firstPage`
+   * @param {number} [params.pageSize] - Rows per page, from 1 to `PAGING.maxPageSize`
    * @param {string} [params.sort] - `title`, `stage` or `createdAt`, with an optional leading `-` for descending
    * @param {string} [params.search] - Text the title contains
    * @param {"Preparations" | "Started"} [params.stage] - Stage filter

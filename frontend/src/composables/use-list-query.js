@@ -1,13 +1,17 @@
+import { PAGING } from "@/domain/limits.js";
 import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-/** Page sizes the list paginators offer. The server accepts 1–100. */
+/** Page sizes the list paginators offer. The server accepts 1 to `PAGING.maxPageSize`. */
 export const PAGE_SIZES = [10, 25, 50];
 
-export const DEFAULT_PAGE_SIZE = 25;
+export const DEFAULT_PAGE_SIZE = PAGING.defaultPageSize;
+
+/** Number of the first page; the server's pages are numbered from it. */
+export const FIRST_PAGE = PAGING.firstPage;
 
 /** Longest search the server accepts, after trimming. */
-export const MAX_SEARCH_LENGTH = 200;
+export const MAX_SEARCH_LENGTH = PAGING.maxSearchLength;
 
 // The server binds `page` to an int, so a larger number would be a binding 400.
 const MAX_PAGE = 2 ** 31 - 1;
@@ -55,15 +59,15 @@ const toQuery = (params, defaults) => {
 /**
  * Parse `page` from the route query
  * @param {string | string[] | undefined} value - Raw query value
- * @returns {number} - A whole number ≥ 1, else 1
+ * @returns {number} - A whole number ≥ {@link FIRST_PAGE}, else {@link FIRST_PAGE}
  */
 export function parsePage(value) {
   const text = firstValue(value);
-  if (typeof text !== "string" || !/^[1-9]\d*$/.test(text)) {
-    return 1;
+  if (typeof text !== "string" || !/^(0|[1-9]\d*)$/.test(text)) {
+    return FIRST_PAGE;
   }
   const page = Number(text);
-  return page <= MAX_PAGE ? page : 1;
+  return page >= FIRST_PAGE && page <= MAX_PAGE ? page : FIRST_PAGE;
 }
 
 /**
@@ -157,7 +161,7 @@ export function parseBoolean(value) {
  * @example
  * const SORT_KEYS = ["title", "questionCount", "createdAt"];
  * const defaults = {
- *   page: 1,
+ *   page: FIRST_PAGE,
  *   pageSize: DEFAULT_PAGE_SIZE,
  *   sort: "-createdAt",
  *   search: undefined,
@@ -181,7 +185,7 @@ export function parseBoolean(value) {
  * update({ played: false }, { resetPage: true }); // → ?played=false
  * update({ search: "history" }, { resetPage: true, replace: true }); // no new history entry
  * update({ page: 2 }); // → ?page=2&search=history&played=false
- * reset(); // clears search and filters, goes to page 1, keeps pageSize and sort
+ * reset(); // clears search and filters, goes to the first page, keeps pageSize and sort
  *
  * @param {Object} options - How the list reads and writes its query
  * @param {(query: import("vue-router").LocationQuery) => Object} options.parse - Turns the route query into
@@ -195,7 +199,7 @@ export function parseBoolean(value) {
  *   isFiltered: import("vue").ComputedRef<boolean>,
  *   reset: () => Promise<unknown>,
  * }} - `update` merges `patch` into the params and navigates (`router.push`, or `router.replace` with
- *   `replace`); `resetPage` also goes to page 1. A key set to `undefined` goes back to its default.
+ *   `replace`); `resetPage` also goes to the first page. A key set to `undefined` goes back to its default.
  *   `isFiltered` is true when any filter key differs from its default. `reset` clears the filter keys.
  */
 export function useListQuery({ parse, defaults, filterKeys }) {
@@ -211,7 +215,7 @@ export function useListQuery({ parse, defaults, filterKeys }) {
   const update = (patch, { resetPage = false, replace = false } = {}) => {
     const next = { ...params.value, ...patch };
     if (resetPage) {
-      next.page = 1;
+      next.page = FIRST_PAGE;
     }
     const location = { query: toQuery(next, defaults) };
     return replace ? router.replace(location) : router.push(location);

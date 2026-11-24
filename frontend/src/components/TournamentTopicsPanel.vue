@@ -1,5 +1,6 @@
 <script setup>
 import TopicsTable from "@/components/TopicsTable.vue";
+import { PAGING } from "@/domain/limits.js";
 import { topicService } from "@/services/topic-service.js";
 import { tournamentTopicsService } from "@/services/tournament-topics-service.js";
 import { useNotify } from "@/utils/notify.js";
@@ -74,10 +75,10 @@ const load = async () => {
   loadError.value = null;
 
   try {
-    // Loads at most 100 owned topics, the server's maximum page size, and suggests only those (ADR-0008)
+    // Loads one page of owned topics at the server's maximum page size, and suggests only those (ADR-0008)
     const [myResult, ownedResult] = await Promise.all([
       tournamentTopicsService.getMyTopics(props.tournament.id),
-      topicService.getTopics({ pageSize: 100 }),
+      topicService.getTopics({ pageSize: PAGING.maxPageSize }),
     ]);
     const failed = [myResult, ownedResult].find((result) => !result.success);
     if (failed) {
