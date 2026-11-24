@@ -1,3 +1,4 @@
+using Cbo.Core.Domain;
 using Microsoft.AspNetCore.Identity;
 
 namespace Cbo.Core.Accounts;
@@ -10,7 +11,7 @@ public static class AccountIdentityOptions
         options.Password.RequireLowercase = false;
         options.Password.RequireUppercase = false;
         options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequiredLength = 8;
+        options.Password.RequiredLength = Limits.Accounts.PasswordLengthMin;
         options.Password.RequiredUniqueChars = 1;
 
         options.User.RequireUniqueEmail = true;
