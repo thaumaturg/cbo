@@ -26,6 +26,7 @@ public class LimitValuesTests
     [Fact]
     public void Tournament_limits_have_their_agreed_values()
     {
+        Assert.Equal([14], Limits.Tournaments.SupportedSizes);
         Assert.Equal(3, Limits.Tournaments.TitleLengthMin);
         Assert.Equal(100, Limits.Tournaments.TitleLengthMax);
         Assert.Equal(500, Limits.Tournaments.DescriptionLengthMax);

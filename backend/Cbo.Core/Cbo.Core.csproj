@@ -23,4 +23,8 @@
     <ProjectReference Include="..\Cbo.Results\Cbo.Results.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Cbo.Tests" />
+  </ItemGroup>
+
 </Project>
