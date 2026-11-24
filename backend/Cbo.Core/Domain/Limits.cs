@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Cbo.Core.Domain;
 
 /// <summary>
@@ -43,6 +45,12 @@ public static class Limits
 
     public static class Tournaments
     {
+        /// <summary>
+        /// Tournament sizes a Creator may choose. Each size needs a qualification table in
+        /// <see cref="Cbo.Core.Matches.MatchGenerationService"/>.
+        /// </summary>
+        public static readonly ImmutableArray<int> SupportedSizes = [14];
+
         /// <summary>
         /// Fewest characters in a tournament title. Not enforced yet; see docs/specs/0001-shared-domain-limits.md.
         /// </summary>

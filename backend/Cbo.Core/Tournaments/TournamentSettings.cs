@@ -21,8 +21,8 @@ internal readonly record struct TournamentSettings(int PlayersPerTournament, int
     {
         List<FieldError> fieldErrors = [];
 
-        if (PlayersPerTournament != TournamentDefaults.PlayersPerTournament)
-            fieldErrors.Add(new FieldError("playersPerTournament", $"Only {TournamentDefaults.PlayersPerTournament} players per tournament are currently supported."));
+        if (!Limits.Tournaments.SupportedSizes.Contains(PlayersPerTournament))
+            fieldErrors.Add(new FieldError("playersPerTournament", $"Tournament size must be one of: {string.Join(", ", Limits.Tournaments.SupportedSizes)}."));
 
         if (TopicsPerParticipantMin < Limits.Tournaments.TopicsPerParticipantFloor)
             fieldErrors.Add(new FieldError("topicsPerParticipantMin", "The minimum number of topics can't be negative."));
