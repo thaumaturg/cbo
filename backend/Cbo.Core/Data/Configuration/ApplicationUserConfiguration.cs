@@ -13,7 +13,7 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
     public void Configure(EntityTypeBuilder<ApplicationUser> entity)
     {
         entity.Property(au => au.FullName)
-            .HasMaxLength(64);
+            .HasMaxLength(Limits.Accounts.FullNameLengthMax);
 
         // Identity makes only the user name unique. Logging in looks a user up by email, so an email belongs to one account
         // also stops two simultaneous registrations with the same email (RequireUniqueEmail checks it up front)
