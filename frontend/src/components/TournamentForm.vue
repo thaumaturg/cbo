@@ -1,4 +1,5 @@
 <script setup>
+import { LIMITS, TOURNAMENT_DEFAULTS } from "@/domain/limits.js";
 import { eager } from "@/includes/validation.js";
 import { tournamentService } from "@/services/tournament-service.js";
 import { toFormFailure } from "@/utils/error.js";
@@ -7,6 +8,7 @@ import Button from "primevue/button";
 import InputNumber from "primevue/inputnumber";
 import InputText from "primevue/inputtext";
 import Message from "primevue/message";
+import Select from "primevue/select";
 import Textarea from "primevue/textarea";
 import { computed, ref, watch } from "vue";
 
@@ -28,18 +30,27 @@ const props = defineProps({
 
 const emit = defineEmits(["saved", "update:dirty"]);
 
-const DEFAULT_VALUES = {
-  playersPerTournament: 14,
-  topicsPerParticipantMax: 10,
-  topicsPerParticipantMin: 6,
-};
+const {
+  supportedSizes,
+  titleLengthMin,
+  titleLengthMax,
+  descriptionLengthMax,
+  topicsPerParticipantFloor,
+  topicsPerParticipantCeiling,
+} = LIMITS.tournaments;
+
+const TITLE_RULES = `required|min:${titleLengthMin}|max:${titleLengthMax}`;
+const DESCRIPTION_RULES = `max:${descriptionLengthMax}`;
+const TOPICS_RANGE = `min_value:${topicsPerParticipantFloor}|max_value:${topicsPerParticipantCeiling}`;
+const TOPICS_MAX_RULES = `required|${TOPICS_RANGE}`;
+const TOPICS_MIN_RULES = `${TOPICS_MAX_RULES}|lte_field:@topicsPerParticipantMax`;
 
 const toFormValues = (tournament) => ({
   title: tournament?.title || "",
   description: tournament?.description || "",
-  playersPerTournament: tournament?.playersPerTournament ?? DEFAULT_VALUES.playersPerTournament,
-  topicsPerParticipantMax: tournament?.topicsPerParticipantMax ?? DEFAULT_VALUES.topicsPerParticipantMax,
-  topicsPerParticipantMin: tournament?.topicsPerParticipantMin ?? DEFAULT_VALUES.topicsPerParticipantMin,
+  playersPerTournament: tournament?.playersPerTournament ?? TOURNAMENT_DEFAULTS.playersPerTournament,
+  topicsPerParticipantMax: tournament?.topicsPerParticipantMax ?? TOURNAMENT_DEFAULTS.topicsPerParticipantMax,
+  topicsPerParticipantMin: tournament?.topicsPerParticipantMin ?? TOURNAMENT_DEFAULTS.topicsPerParticipantMin,
 });
 
 const initialValues = toFormValues(props.tournament);
@@ -125,7 +136,7 @@ defineExpose({ reset, dirty });
       <div class="flex flex-col gap-1 mb-4">
         <div class="flex items-center gap-4">
           <label for="title" class="font-semibold w-40">Title *</label>
-          <VeeField name="title" label="Title" rules="required|min:3|max:100" v-slot="slot">
+          <VeeField name="title" label="Title" :rules="TITLE_RULES" v-slot="slot">
             <InputText v-bind="eager(slot)" id="title" class="flex-auto" :disabled="readOnly" />
           </VeeField>
         </div>
@@ -138,7 +149,7 @@ defineExpose({ reset, dirty });
       <div class="flex flex-col gap-1 mb-4">
         <div class="flex items-start gap-4">
           <label for="description" class="font-semibold w-40 pt-2">Description</label>
-          <VeeField name="description" label="Description" rules="max:500" v-slot="slot">
+          <VeeField name="description" label="Description" :rules="DESCRIPTION_RULES" v-slot="slot">
             <Textarea v-bind="eager(slot)" id="description" class="flex-auto" rows="3" :disabled="readOnly" />
           </VeeField>
         </div>
@@ -157,7 +168,12 @@ defineExpose({ reset, dirty });
         <div class="flex flex-col gap-1">
           <label for="playersPerTournament" class="font-semibold text-sm">Players Per Tournament</label>
           <VeeField name="playersPerTournament" label="Players per tournament" v-slot="slot">
-            <InputNumber v-bind="eager(slot)" inputId="playersPerTournament" :min="14" :max="14" showButtons disabled />
+            <Select
+              v-bind="eager(slot)"
+              labelId="playersPerTournament"
+              :options="supportedSizes"
+              :disabled="readOnly || supportedSizes.length === 1"
+            />
           </VeeField>
           <ErrorMessage name="playersPerTournament" v-slot="{ message }">
             <Message severity="error" variant="simple">{{ message }}</Message>
@@ -170,14 +186,14 @@ defineExpose({ reset, dirty });
           <VeeField
             name="topicsPerParticipantMin"
             label="Minimum topics per participant"
-            rules="required|min_value:0|max_value:20|lte_field:@topicsPerParticipantMax"
+            :rules="TOPICS_MIN_RULES"
             v-slot="slot"
           >
             <InputNumber
               v-bind="eager(slot)"
               inputId="topicsPerParticipantMin"
-              :min="0"
-              :max="20"
+              :min="topicsPerParticipantFloor"
+              :max="topicsPerParticipantCeiling"
               showButtons
               :disabled="readOnly"
             />
@@ -196,14 +212,14 @@ defineExpose({ reset, dirty });
           <VeeField
             name="topicsPerParticipantMax"
             label="Maximum topics per participant"
-            rules="required|min_value:0|max_value:20"
+            :rules="TOPICS_MAX_RULES"
             v-slot="slot"
           >
             <InputNumber
               v-bind="eager(slot)"
               inputId="topicsPerParticipantMax"
-              :min="0"
-              :max="20"
+              :min="topicsPerParticipantFloor"
+              :max="topicsPerParticipantCeiling"
               showButtons
               :disabled="readOnly"
             />
