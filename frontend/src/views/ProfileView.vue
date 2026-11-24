@@ -1,5 +1,6 @@
 <script setup>
 import PasswordField from "@/components/PasswordField.vue";
+import { LIMITS } from "@/domain/limits.js";
 import { eager } from "@/includes/validation.js";
 import { authService } from "@/services/auth-service.js";
 import { useAuthStore } from "@/stores/auth.js";
@@ -18,6 +19,9 @@ const notify = useNotify();
 const router = useRouter();
 
 const PASSWORD_FIELDS = ["currentPassword", "newPassword"];
+
+const { passwordLengthMin, passwordLengthMax } = LIMITS.accounts;
+const NEW_PASSWORD_RULES = `required|min:${passwordLengthMin}|max:${passwordLengthMax}|different:@currentPassword`;
 
 const isChangingPassword = ref(false);
 const isLoggingOutEverywhere = ref(false);
@@ -110,7 +114,7 @@ const onChangePasswordInvalidSubmit = () => focusFirstInvalid(changePasswordForm
           <div class="flex flex-col gap-1 mb-4">
             <div class="flex items-center gap-4">
               <label for="currentPassword" class="font-semibold w-40">Current password</label>
-              <VeeField name="currentPassword" label="Current password" rules="required|min:8|max:64" v-slot="slot">
+              <VeeField name="currentPassword" label="Current password" rules="required" v-slot="slot">
                 <PasswordField
                   v-bind="eager(slot)"
                   id="currentPassword"
@@ -128,12 +132,7 @@ const onChangePasswordInvalidSubmit = () => focusFirstInvalid(changePasswordForm
           <div class="flex flex-col gap-1 mb-4">
             <div class="flex items-center gap-4">
               <label for="newPassword" class="font-semibold w-40">New password</label>
-              <VeeField
-                name="newPassword"
-                label="New password"
-                rules="required|min:8|max:64|different:@currentPassword"
-                v-slot="slot"
-              >
+              <VeeField name="newPassword" label="New password" :rules="NEW_PASSWORD_RULES" v-slot="slot">
                 <PasswordField v-bind="eager(slot)" id="newPassword" class="flex-auto" autocomplete="new-password" />
               </VeeField>
             </div>

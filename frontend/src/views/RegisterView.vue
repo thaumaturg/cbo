@@ -1,5 +1,6 @@
 <script setup>
 import PasswordField from "@/components/PasswordField.vue";
+import { LIMITS } from "@/domain/limits.js";
 import { eager } from "@/includes/validation.js";
 import { useAuthStore } from "@/stores/auth.js";
 import { toFormFailure } from "@/utils/error.js";
@@ -13,6 +14,19 @@ import { ref } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 
 const FIELDS = ["email", "username", "fullName", "password"];
+
+const {
+  usernameLengthMin,
+  usernameLengthMax,
+  fullNameLengthMin,
+  fullNameLengthMax,
+  passwordLengthMin,
+  passwordLengthMax,
+} = LIMITS.accounts;
+
+const USERNAME_RULES = `required|username_chars|min:${usernameLengthMin}|max:${usernameLengthMax}`;
+const FULL_NAME_RULES = `latin_cyrillic_latvian|min:${fullNameLengthMin}|max:${fullNameLengthMax}`;
+const PASSWORD_RULES = `required|min:${passwordLengthMin}|max:${passwordLengthMax}`;
 
 const authStore = useAuthStore();
 const route = useRoute();
@@ -53,7 +67,7 @@ const onSubmit = async (values, { setErrors }) => {
         <VeeForm @submit="onSubmit" class="flex flex-col gap-4">
           <div class="flex flex-col gap-1">
             <label for="email" class="font-semibold">Email</label>
-            <VeeField name="email" label="Email" rules="required|email|min:6|max:254" v-slot="slot">
+            <VeeField name="email" label="Email" rules="required|email" v-slot="slot">
               <InputText
                 v-bind="eager(slot)"
                 id="email"
@@ -70,7 +84,7 @@ const onSubmit = async (values, { setErrors }) => {
 
           <div class="flex flex-col gap-1">
             <label for="username" class="font-semibold">Username</label>
-            <VeeField name="username" label="Username" rules="required|username_chars|min:3|max:16" v-slot="slot">
+            <VeeField name="username" label="Username" :rules="USERNAME_RULES" v-slot="slot">
               <InputText
                 v-bind="eager(slot)"
                 id="username"
@@ -88,7 +102,7 @@ const onSubmit = async (values, { setErrors }) => {
 
           <div class="flex flex-col gap-1">
             <label for="fullName" class="font-semibold">Full name (optional)</label>
-            <VeeField name="fullName" label="Full name" rules="latin_cyrillic_latvian|min:2|max:64" v-slot="slot">
+            <VeeField name="fullName" label="Full name" :rules="FULL_NAME_RULES" v-slot="slot">
               <InputText v-bind="eager(slot)" id="fullName" autocomplete="name" :disabled="authStore.isLoading" fluid />
             </VeeField>
             <ErrorMessage name="fullName" v-slot="{ message }">
@@ -98,7 +112,7 @@ const onSubmit = async (values, { setErrors }) => {
 
           <div class="flex flex-col gap-1">
             <label for="password" class="font-semibold">Password</label>
-            <VeeField name="password" label="Password" rules="required|min:8|max:64" v-slot="slot">
+            <VeeField name="password" label="Password" :rules="PASSWORD_RULES" v-slot="slot">
               <PasswordField
                 v-bind="eager(slot)"
                 id="password"
@@ -106,7 +120,9 @@ const onSubmit = async (values, { setErrors }) => {
                 :disabled="authStore.isLoading"
               />
               <Message v-if="slot.errorMessage" severity="error" variant="simple">{{ slot.errorMessage }}</Message>
-              <Message v-else severity="secondary" variant="simple" size="small">At least 8 characters.</Message>
+              <Message v-else severity="secondary" variant="simple" size="small">
+                At least {{ passwordLengthMin }} characters.
+              </Message>
             </VeeField>
           </div>
 
