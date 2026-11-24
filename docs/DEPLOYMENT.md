@@ -162,6 +162,7 @@ nano .env
 - `POSTGRES_PASSWORD` (generate one: `openssl rand -base64 24`)
 - `JWT_KEY` (generate one: `openssl rand -hex 64`)
 - `JWT_ISSUER` / `JWT_AUDIENCE` (your public URL, e.g. `https://cbo.example.com`)
+- `JWT_LIFETIME_DAYS` (optional, days an issued token stays valid, 1-365, defaults to 14)
 
 Keep the file private:
 
