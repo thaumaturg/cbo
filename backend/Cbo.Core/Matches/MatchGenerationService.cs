@@ -26,10 +26,10 @@ public class MatchGenerationService : IMatchGenerationService
 
     public List<Match> GenerateQualificationMatches(Tournament tournament, List<TournamentParticipant> players)
     {
-        if (players.Count != DefaultSettings.PlayersPerTournament)
+        if (players.Count != TournamentDefaults.PlayersPerTournament)
         {
             throw new ArgumentException(
-                $"Qualification match generation requires exactly {DefaultSettings.PlayersPerTournament} players. Got {players.Count}.",
+                $"Qualification match generation requires exactly {TournamentDefaults.PlayersPerTournament} players. Got {players.Count}.",
                 nameof(players));
         }
 

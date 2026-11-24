@@ -24,8 +24,8 @@ internal static class RoundRules
         IReadOnlyList<GivenAnswer> answers,
         CancellationToken cancellationToken)
     {
-        if (numberInMatch < 1 || numberInMatch > DefaultSettings.RoundsPerMatch)
-            return RoundFailures.InvalidField("numberInMatch", $"Round number must be between 1 and {DefaultSettings.RoundsPerMatch}.");
+        if (numberInMatch < 1 || numberInMatch > Limits.Matches.RoundsPerQualificationMatch)
+            return RoundFailures.InvalidField("numberInMatch", $"Round number must be between 1 and {Limits.Matches.RoundsPerQualificationMatch}.");
 
         Topic? topic = await dbContext.Topics
             .Include(t => t.Questions)

@@ -25,7 +25,7 @@ public record CoAuthorValidationModel(
 public interface ITopicValidationService
 {
     /// <summary>
-    /// Validates a topic's question collection against the constraints in <see cref="DefaultSettings"/>.
+    /// Validates a topic's question collection against the constraints in <see cref="Limits.Topics"/>.
     /// Returns field errors keyed by camelCase JSON path (for example <c>questions[0].text</c>); empty when valid.
     /// </summary>
     List<FieldError> ValidateQuestions(IReadOnlyList<QuestionValidationModel> questions);
@@ -82,15 +82,15 @@ public class TopicValidationService : ITopicValidationService
         IReadOnlyList<QuestionValidationModel> questions,
         List<FieldError> errors)
     {
-        if (questions.Count < DefaultSettings.QuestionsPerTopicMin)
+        if (questions.Count < Limits.Topics.QuestionsMin)
         {
             errors.Add(new FieldError("questions",
-                $"A topic must have at least {DefaultSettings.QuestionsPerTopicMin} question(s)."));
+                $"A topic must have at least {Limits.Topics.QuestionsMin} question(s)."));
         }
-        else if (questions.Count > DefaultSettings.QuestionsPerTopicMax)
+        else if (questions.Count > Limits.Topics.QuestionsMax)
         {
             errors.Add(new FieldError("questions",
-                $"A topic cannot have more than {DefaultSettings.QuestionsPerTopicMax} questions."));
+                $"A topic cannot have more than {Limits.Topics.QuestionsMax} questions."));
         }
     }
 
@@ -116,10 +116,10 @@ public class TopicValidationService : ITopicValidationService
     {
         long totalCost = questions.Sum(q => (long)q.Cost);
 
-        if (totalCost > DefaultSettings.QuestionsCostPerTopicMax)
+        if (totalCost > Limits.Topics.QuestionsCostTotalMax)
         {
             errors.Add(new FieldError("questions",
-                $"The total cost of a topic's questions cannot be more than {DefaultSettings.QuestionsCostPerTopicMax} (currently {totalCost})."));
+                $"The total cost of a topic's questions cannot be more than {Limits.Topics.QuestionsCostTotalMax} (currently {totalCost})."));
         }
     }
 
@@ -134,10 +134,10 @@ public class TopicValidationService : ITopicValidationService
         if (string.IsNullOrWhiteSpace(question.Answer))
             errors.Add(new FieldError($"questions[{index}].answer", "Answer is required."));
 
-        if (question.Cost is < DefaultSettings.QuestionsCostMin or > DefaultSettings.QuestionsCostMax)
+        if (question.Cost is < Limits.Topics.QuestionCostMin or > Limits.Topics.QuestionCostMax)
         {
             errors.Add(new FieldError($"questions[{index}].cost",
-                $"Cost must be between {DefaultSettings.QuestionsCostMin} and {DefaultSettings.QuestionsCostMax}."));
+                $"Cost must be between {Limits.Topics.QuestionCostMin} and {Limits.Topics.QuestionCostMax}."));
         }
     }
 }
