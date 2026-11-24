@@ -31,6 +31,7 @@ services:
       Jwt__Key: ${JWT_KEY:?set JWT_KEY in .env}
       Jwt__Issuer: ${JWT_ISSUER:?set JWT_ISSUER in .env}
       Jwt__Audience: ${JWT_AUDIENCE:?set JWT_AUDIENCE in .env}
+      Jwt__LifetimeDays: ${JWT_LIFETIME_DAYS:-14}
     depends_on:
       db:
         condition: service_healthy

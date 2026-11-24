@@ -49,6 +49,7 @@ then `wsl --shutdown` again.
 - `POSTGRES_PASSWORD` (any password, can generate one: `openssl rand -base64 24` _it initializes the database volume on first start and must match the backend connection string in step 4_)
 - `JWT_KEY` (any random 64+ character string, can generate one: `openssl rand -hex 64`)
 - `JWT_ISSUER` / `JWT_AUDIENCE` (your URL, for local development e.g. `http://localhost:8080`)
+- `JWT_LIFETIME_DAYS` (optional, days an issued token stays valid, 1-365, defaults to 14)
 
 2. Copy `compose.override.yaml.example` to `compose.override.yaml` (gitignored). It publishes the database and API container ports on localhost for local development. Production servers skip this step, keeping those ports internal.
 
