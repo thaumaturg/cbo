@@ -1,0 +1,53 @@
+{
+  "limits": {
+    "accounts": {
+      "fullNameLengthMax": 64,
+      "fullNameLengthMin": 2,
+      "passwordLengthMax": 64,
+      "passwordLengthMin": 8,
+      "usernameLengthMax": 16,
+      "usernameLengthMin": 3
+    },
+    "matches": {
+      "participantsMax": 4,
+      "participantsMin": 2,
+      "roundsPerQualificationMatch": 4
+    },
+    "rounds": {
+      "overrideCostMax": 999,
+      "overrideCostMin": -999
+    },
+    "topics": {
+      "coAuthorsMax": 10,
+      "importMax": 50,
+      "ownedMax": 1000,
+      "questionCostMax": 150,
+      "questionCostMin": 1,
+      "questionsCostTotalMax": 150,
+      "questionsMax": 10,
+      "questionsMin": 1,
+      "titleLengthMax": 100
+    },
+    "tournaments": {
+      "descriptionLengthMax": 500,
+      "supportedSizes": [
+        14
+      ],
+      "titleLengthMax": 100,
+      "titleLengthMin": 3,
+      "topicsPerParticipantCeiling": 20,
+      "topicsPerParticipantFloor": 0
+    }
+  },
+  "paging": {
+    "defaultPageSize": 25,
+    "firstPage": 1,
+    "maxPageSize": 100,
+    "maxSearchLength": 200
+  },
+  "tournamentDefaults": {
+    "playersPerTournament": 14,
+    "topicsPerParticipantMax": 10,
+    "topicsPerParticipantMin": 6
+  }
+}
