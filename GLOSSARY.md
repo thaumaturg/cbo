@@ -17,7 +17,7 @@ _Avoid_: Contact, buddy, follower, connection
 ### Settings and limits
 
 **Tournament settings**:
-The numbers a Creator picks for one tournament: its tournament size and the minimum and maximum number of topics each participant brings. A new tournament starts from the defaults, and the Creator can change them.
+The numbers a Creator picks for one tournament: its tournament size, the minimum number of topics each participant should bring, and the maximum they may bring. The minimum is only a recommendation; the maximum is enforced. A new tournament starts from the defaults, and the Creator can change them.
 _Avoid_: Default settings (for the whole set), config
 
 **Default**:
@@ -68,6 +68,10 @@ _Avoid_: Creator (that is a tournament role)
 **Author**:
 An account credited with writing a topic's questions. The owner is an author only if they say so.
 _Avoid_: Co-owner, contributor
+
+**Co-author**:
+An author of a topic who isn't its owner. The owner decides who the co-authors are.
+_Avoid_: Contributor
 
 **Played**:
 Said of a topic once a round has used it; a played topic can no longer be changed or deleted.

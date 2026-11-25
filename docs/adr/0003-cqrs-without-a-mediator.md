@@ -7,7 +7,7 @@ The backend splits use cases into commands and queries, each with its own handle
 - **MediatR**: a third-party dependency (recent versions are commercially licensed) whose main value is pipeline behaviors and decoupled dispatch. We need neither.
 - **A hand-written typed sender** (`ISender.SendAsync<TResult>(ICommand<TResult>)`): basically a small MediatR. It's only worth writing if we ever need cross-cutting behaviors that a base class can't express.
 - **Decorators for the commit**: Microsoft DI has no decorator support, so this needs Scrutor or hand-written registration for every handler.
-- **Step hooks in the base class** (`Initialize → Validate → Execute → Finalize`, as in the reference project): cbo's use cases order their checks differently (access, then validation, then state), and the status code depends on that order. Handlers therefore run their checks in their own order inside one `ExecuteAsync`.
+- **Step hooks in the base class** (`Initialize → Validate → Execute → Finalize`, as in the reference project): cbo's use cases order their checks differently (access, then validation, then state), and the status code depends on that order. Handlers therefore run their checks in their own order inside one `ExecuteAsync`. Stateless request validation has since moved in front of the handler, see ADR 0011.
 
 ## Consequences
 
