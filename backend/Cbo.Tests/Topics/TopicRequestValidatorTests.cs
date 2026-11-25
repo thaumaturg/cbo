@@ -47,7 +47,7 @@ public abstract class TopicRequestValidatorTests<TRequest> : TopicContentValidat
         TestValidationResult<TRequest> result = Validate(ValidTopic with { Authors = ["anna", null, "anna"] });
 
         result.ShouldHaveValidationErrorFor("authors[1]").WithErrorMessage("This co-author is missing.");
-        result.ShouldHaveValidationErrorFor("authors[2].username").WithErrorMessage("This author appears more than once.");
+        result.ShouldHaveValidationErrorFor("authors[2].username").WithErrorMessage("This co-author appears more than once.");
         Assert.Equal(2, result.Errors.Count);
     }
 
@@ -56,7 +56,7 @@ public abstract class TopicRequestValidatorTests<TRequest> : TopicContentValidat
     {
         Validate(ValidTopic with { Authors = ["anna", "bob", "ANNA"] })
             .ShouldHaveValidationErrorFor("authors[2].username")
-            .WithErrorMessage("This author appears more than once.")
+            .WithErrorMessage("This co-author appears more than once.")
             .Only();
     }
 
@@ -65,8 +65,8 @@ public abstract class TopicRequestValidatorTests<TRequest> : TopicContentValidat
     {
         TestValidationResult<TRequest> result = Validate(ValidTopic with { Authors = ["bob", "bob", "anna", "Bob"] });
 
-        result.ShouldHaveValidationErrorFor("authors[1].username").WithErrorMessage("This author appears more than once.");
-        result.ShouldHaveValidationErrorFor("authors[3].username").WithErrorMessage("This author appears more than once.");
+        result.ShouldHaveValidationErrorFor("authors[1].username").WithErrorMessage("This co-author appears more than once.");
+        result.ShouldHaveValidationErrorFor("authors[3].username").WithErrorMessage("This co-author appears more than once.");
         Assert.Equal(2, result.Errors.Count);
     }
 
