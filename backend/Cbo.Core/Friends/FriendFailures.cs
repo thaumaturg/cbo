@@ -7,8 +7,9 @@ namespace Cbo.Core.Friends;
 /// </summary>
 internal static class FriendFailures
 {
+    public const string NotAddedMessage = "The friend couldn't be added.";
+
     private const string UsernameField = "username";
-    private const string NotAddedMessage = "The friend couldn't be added.";
 
     public static Failure InvalidUsername(string message) =>
         Failure.Invalid(NotAddedMessage, new FieldError(UsernameField, message));
