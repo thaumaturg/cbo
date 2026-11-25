@@ -113,6 +113,9 @@ public static class Limits
         public const string UsernameAllowedCharacters =
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
 
+        /// <summary>Most characters in an email. Matches the column ASP.NET Core Identity creates.</summary>
+        public const int EmailLengthMax = 256;
+
         /// <summary>Fewest characters in a password.</summary>
         public const int PasswordLengthMin = 8;
 

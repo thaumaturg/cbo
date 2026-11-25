@@ -63,6 +63,22 @@ public class RegisterRequestValidatorTests
             .ShouldHaveValidationErrorFor("email").WithErrorMessage("Email is required.").Only();
     }
 
+    [Fact]
+    public void The_email_can_be_as_long_as_the_maximum()
+    {
+        _validator.TestValidate(ValidRequest with { Email = EmailOfLength(Limits.Accounts.EmailLengthMax) })
+            .ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void An_email_one_over_the_maximum_is_too_long()
+    {
+        _validator.TestValidate(ValidRequest with { Email = EmailOfLength(Limits.Accounts.EmailLengthMax + 1) })
+            .ShouldHaveValidationErrorFor("email")
+            .WithErrorMessage($"The email can be at most {Limits.Accounts.EmailLengthMax} characters.")
+            .Only();
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData(" \t ")]
@@ -219,5 +235,11 @@ public class RegisterRequestValidatorTests
     {
         _validator.TestValidate(ValidRequest with { FullName = new string('1', Limits.Accounts.FullNameLengthMax + 1) })
             .ShouldHaveValidationErrorFor("fullName").WithErrorMessage(FullNameLengthMessage).Only();
+    }
+
+    private static string EmailOfLength(int length)
+    {
+        const string domain = "@example.com";
+        return new string('e', length - domain.Length) + domain;
     }
 }

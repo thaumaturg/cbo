@@ -62,6 +62,7 @@ public class LimitValuesTests
         Assert.Equal(64, Limits.Accounts.PasswordLengthMax);
         Assert.Equal(2, Limits.Accounts.FullNameLengthMin);
         Assert.Equal(64, Limits.Accounts.FullNameLengthMax);
+        Assert.Equal(256, Limits.Accounts.EmailLengthMax);
         Assert.Equal(
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_",
             Limits.Accounts.UsernameAllowedCharacters);

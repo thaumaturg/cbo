@@ -1,6 +1,7 @@
 {
   "limits": {
     "accounts": {
+      "emailLengthMax": 256,
       "fullNameLengthMax": 64,
       "fullNameLengthMin": 2,
       "fullNamePattern": "^[A-Za-z\\u0100-\\u017E\\u0401\\u0410-\\u044F\\u0451 \u0027\\u2019-]\u002B$",
