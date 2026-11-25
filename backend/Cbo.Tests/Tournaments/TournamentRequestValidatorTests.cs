@@ -154,6 +154,23 @@ public abstract class TournamentRequestValidatorTests<TRequest>
     }
 
     [Fact]
+    public void A_minimum_one_over_the_ceiling_fails_only_on_the_maximum_and_names_the_minimum()
+    {
+        const int min = Limits.Tournaments.TopicsPerParticipantCeiling + 1;
+
+        TestValidationResult<TRequest> result = Validate(ValidTournament with
+        {
+            TopicsPerParticipantMin = min,
+            TopicsPerParticipantMax = Limits.Tournaments.TopicsPerParticipantCeiling,
+        });
+
+        result.ShouldNotHaveValidationErrorFor("topicsPerParticipantMin");
+        result.ShouldHaveValidationErrorFor("topicsPerParticipantMax")
+            .WithErrorMessage($"The maximum number of topics can't be less than the minimum ({min}).")
+            .Only();
+    }
+
+    [Fact]
     public void The_maximum_can_be_as_low_as_the_floor_when_the_minimum_is_too()
     {
         Validate(ValidTournament with
