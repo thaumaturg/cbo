@@ -27,9 +27,7 @@ public sealed class UpdateSeedingCommandHandler(
             .ToDictionaryAsync(tp => tp.Id, cancellationToken);
 
         if (command.OrderedParticipantIds.Count != playersById.Count || !playersById.Keys.ToHashSet().SetEquals(command.OrderedParticipantIds))
-            return Failure.Invalid(
-                "Some of the seeding data is invalid.",
-                new FieldError("orderedParticipantIds", "The seeding must list each player of the tournament exactly once."));
+            return ParticipantFailures.SeedingDoesNotListEachPlayerOnce();
 
         if (access.Value.CurrentStage != TournamentStage.Preparations)
             return Failure.Conflict("The seeding can only be changed during the Preparations stage.");

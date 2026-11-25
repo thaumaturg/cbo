@@ -34,9 +34,6 @@ public sealed class UpdateParticipantCommandHandler(
         if (participant.Role == TournamentParticipantRole.Creator)
             return Failure.Invalid("The tournament's creator can't be given another role.");
 
-        if (command.Role == TournamentParticipantRole.Creator)
-            return ParticipantFailures.InvalidField("role", "A participant can't be promoted to creator.");
-
         if (access.Value.CurrentStage != TournamentStage.Preparations)
             return ParticipantFailures.Locked();
 

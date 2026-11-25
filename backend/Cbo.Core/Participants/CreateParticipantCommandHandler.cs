@@ -26,9 +26,6 @@ public sealed class CreateParticipantCommandHandler(
         if (access.IsFailure)
             return access.Failure;
 
-        if (command.Role == TournamentParticipantRole.Creator)
-            return ParticipantFailures.InvalidField("role", "A tournament has only one creator, so nobody can be added as a creator.");
-
         ApplicationUser? user = await _userManager.FindByNameAsync(command.Username);
         if (user is null)
             return ParticipantFailures.InvalidField("username", $"There's no account with the username '{command.Username}'.");
