@@ -9,7 +9,6 @@ import { LIMITS } from "@/domain/limits.js";
  * - row 2, the header row: A = description (or the `Комментарий к теме:` placeholder), B–D = labels, ignored
  * - rows 3 and on, the question rows: A = cost, B = question, C = answer, D = comment
  *
- * See docs/specs/topic-import.md, "Parsing rows into topics".
  */
 
 const COLUMN_COUNT = 4;

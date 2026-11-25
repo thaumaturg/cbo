@@ -10,7 +10,7 @@ namespace Cbo.Tests.Domain;
 
 /// <summary>
 /// Generates frontend/src/generated/domain-limits.json from the backend constants and fails when the committed file is
-/// stale; see docs/specs/0001-shared-domain-limits.md.
+/// stale; see docs/adr/0010-domain-limits-live-in-code-and-ship-to-the-frontend-at-build-time.md.
 /// </summary>
 public class DomainLimitsExportTests
 {

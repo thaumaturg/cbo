@@ -5,7 +5,7 @@ import domainLimits from "@/generated/domain-limits.json";
  *
  * The values come from the backend's `Limits`, `TournamentDefaults` and `PagingDefaults` constants, through
  * `src/generated/domain-limits.json`, which a backend test regenerates. Change them on the server, never here.
- * See docs/specs/0001-shared-domain-limits.md.
+ * See docs/adr/0010-domain-limits-live-in-code-and-ship-to-the-frontend-at-build-time.md.
  */
 
 const deepFreeze = (value) => {

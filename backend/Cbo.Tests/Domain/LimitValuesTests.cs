@@ -5,7 +5,7 @@ namespace Cbo.Tests.Domain;
 
 /// <summary>
 /// Pins every limit and default to its value, so changing one takes a deliberate edit here too. The only tests that may
-/// spell out limit values; see docs/specs/0001-shared-domain-limits.md.
+/// spell out limit values.
 /// </summary>
 public class LimitValuesTests
 {

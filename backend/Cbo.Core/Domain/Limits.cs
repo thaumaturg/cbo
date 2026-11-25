@@ -11,7 +11,7 @@ public static class Limits
     public static class Topics
     {
         /// <summary>
-        /// Most characters in a topic title. Not enforced yet; see docs/specs/0001-shared-domain-limits.md.
+        /// Most characters in a topic title. Not enforced yet.
         /// </summary>
         public const int TitleLengthMax = 100;
 
@@ -32,7 +32,7 @@ public static class Limits
 
         /// <summary>
         /// Most co-authors a topic can credit. The owner is never counted, even when they credit themselves as an
-        /// author. Not enforced yet; see docs/specs/0001-shared-domain-limits.md.
+        /// author. Not enforced yet.
         /// </summary>
         public const int CoAuthorsMax = 10;
 
@@ -52,17 +52,17 @@ public static class Limits
         public static readonly ImmutableArray<int> SupportedSizes = [14];
 
         /// <summary>
-        /// Fewest characters in a tournament title. Not enforced yet; see docs/specs/0001-shared-domain-limits.md.
+        /// Fewest characters in a tournament title. Not enforced yet.
         /// </summary>
         public const int TitleLengthMin = 3;
 
         /// <summary>
-        /// Most characters in a tournament title. Not enforced yet; see docs/specs/0001-shared-domain-limits.md.
+        /// Most characters in a tournament title. Not enforced yet.
         /// </summary>
         public const int TitleLengthMax = 100;
 
         /// <summary>
-        /// Most characters in a tournament description. Not enforced yet; see docs/specs/0001-shared-domain-limits.md.
+        /// Most characters in a tournament description. Not enforced yet.
         /// </summary>
         public const int DescriptionLengthMax = 500;
 
@@ -70,8 +70,7 @@ public static class Limits
         public const int TopicsPerParticipantFloor = 0;
 
         /// <summary>
-        /// Highest minimum or maximum number of topics per participant a Creator may set. Not enforced yet; see
-        /// docs/specs/0001-shared-domain-limits.md.
+        /// Highest minimum or maximum number of topics per participant a Creator may set. Not enforced yet.
         /// </summary>
         public const int TopicsPerParticipantCeiling = 20;
     }
@@ -91,12 +90,12 @@ public static class Limits
     public static class Rounds
     {
         /// <summary>
-        /// Lowest override cost of an answer. Not enforced yet; see docs/specs/0001-shared-domain-limits.md.
+        /// Lowest override cost of an answer. Not enforced yet.
         /// </summary>
         public const int OverrideCostMin = -999;
 
         /// <summary>
-        /// Highest override cost of an answer. Not enforced yet; see docs/specs/0001-shared-domain-limits.md.
+        /// Highest override cost of an answer. Not enforced yet.
         /// </summary>
         public const int OverrideCostMax = 999;
     }
@@ -104,12 +103,12 @@ public static class Limits
     public static class Accounts
     {
         /// <summary>
-        /// Fewest characters in a username. Not enforced yet; see docs/specs/0001-shared-domain-limits.md.
+        /// Fewest characters in a username. Not enforced yet.
         /// </summary>
         public const int UsernameLengthMin = 3;
 
         /// <summary>
-        /// Most characters in a username. Not enforced yet; see docs/specs/0001-shared-domain-limits.md.
+        /// Most characters in a username. Not enforced yet.
         /// </summary>
         public const int UsernameLengthMax = 16;
 
@@ -117,12 +116,12 @@ public static class Limits
         public const int PasswordLengthMin = 8;
 
         /// <summary>
-        /// Most characters in a password. Not enforced yet; see docs/specs/0001-shared-domain-limits.md.
+        /// Most characters in a password. Not enforced yet.
         /// </summary>
         public const int PasswordLengthMax = 64;
 
         /// <summary>
-        /// Fewest characters in a full name. Not enforced yet; see docs/specs/0001-shared-domain-limits.md.
+        /// Fewest characters in a full name. Not enforced yet.
         /// </summary>
         public const int FullNameLengthMin = 2;
 

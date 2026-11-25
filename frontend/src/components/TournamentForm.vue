@@ -164,10 +164,10 @@ defineExpose({ reset, dirty });
       <h3 class="text-lg font-semibold mb-4">Tournament Settings</h3>
 
       <div class="grid grid-cols-2 gap-4">
-        <!-- Players Per Tournament -->
+        <!-- Tournament Size -->
         <div class="flex flex-col gap-1">
-          <label for="playersPerTournament" class="font-semibold text-sm">Players Per Tournament</label>
-          <VeeField name="playersPerTournament" label="Players per tournament" v-slot="slot">
+          <label for="playersPerTournament" class="font-semibold text-sm">Tournament Size</label>
+          <VeeField name="playersPerTournament" label="Tournament size" v-slot="slot">
             <Select
               v-bind="eager(slot)"
               labelId="playersPerTournament"
