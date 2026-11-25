@@ -46,11 +46,11 @@ public class UpdateTopicRequestValidatorTests : TopicRequestValidatorTests<Updat
             IsAuthor = true,
             Questions =
             [
-                .. topic.Questions.Select(q => new UpdateQuestionRequest
+                .. topic.Questions.Select(q => q is null ? null! : new UpdateQuestionRequest
                 {
                     QuestionNumber = q.QuestionNumber, Cost = q.Cost, Text = q.Text, Answer = q.Answer, Comment = q.Comment,
                 }),
             ],
-            Authors = [.. topic.Authors.Select(username => new TopicAuthorRequest { Username = username })],
+            Authors = [.. topic.Authors.Select(a => a is null ? null! : new TopicAuthorRequest { Username = a.Username! })],
         });
 }

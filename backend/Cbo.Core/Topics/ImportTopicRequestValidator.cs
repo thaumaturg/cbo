@@ -13,6 +13,6 @@ public sealed class ImportTopicRequestValidator : ChildValidator<ImportTopicRequ
         RuleFor(t => t.Title).TopicTitle();
         RuleFor(t => t.Description).TopicDescription();
         RuleFor(t => t.Questions).QuestionList();
-        RuleForEach(t => t.Questions).SetValidator(new QuestionRequestValidator());
+        RuleForEach(t => t.Questions).EachQuestion();
     }
 }
