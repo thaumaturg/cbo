@@ -18,7 +18,8 @@ public abstract class RoundRequestValidatorTests<TRequest>
         bool? IsAnswerAccepted = null,
         int? OverrideCost = null);
 
-    protected sealed record RoundData(int NumberInMatch, bool IsOverrideMode, IReadOnlyList<AnswerData> Answers);
+    // A null answer stands for a JSON null in the answers list
+    protected sealed record RoundData(int NumberInMatch, bool IsOverrideMode, IReadOnlyList<AnswerData?> Answers);
 
     protected abstract string InvalidMessage { get; }
 
@@ -32,14 +33,14 @@ public abstract class RoundRequestValidatorTests<TRequest>
     private static readonly Guid Participant1 = Guid.Parse("00000000-0000-0000-0000-0000000000b1");
     private static readonly Guid Participant2 = Guid.Parse("00000000-0000-0000-0000-0000000000b2");
 
-    private static RoundData StandardRound(params AnswerData[] answers) => new(1, IsOverrideMode: false, answers);
+    private static RoundData StandardRound(params AnswerData?[] answers) => new(1, IsOverrideMode: false, answers);
 
     private static RoundData StandardRound() =>
         StandardRound(new AnswerData(Question1, Participant1, true), new AnswerData(Question1, Participant2, false));
 
-    private static RoundData OverrideRound(params AnswerData[] answers) => new(1, IsOverrideMode: true, answers);
+    private static RoundData OverrideRound(params AnswerData?[] answers) => new(1, IsOverrideMode: true, answers);
 
-    private static RoundData Round(bool isOverrideMode, params AnswerData[] answers) => new(1, isOverrideMode, answers);
+    private static RoundData Round(bool isOverrideMode, params AnswerData?[] answers) => new(1, isOverrideMode, answers);
 
     // A valid, unaccepted answer for the mode
     private static AnswerData Answer(bool isOverrideMode, Guid questionId, Guid matchParticipantId) =>
@@ -300,5 +301,22 @@ public abstract class RoundRequestValidatorTests<TRequest>
             .WithErrorMessage(
                 $"Question {Question1} has multiple correct answers. Only one correct answer is allowed per question.");
         Assert.Equal(4, result.Errors.Count);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void A_missing_answer_is_an_error_and_the_others_are_still_checked(bool isOverrideMode)
+    {
+        TestValidationResult<TRequest> result = Validate(Round(
+            isOverrideMode,
+            Answer(isOverrideMode, Question1, Participant1),
+            null,
+            Answer(isOverrideMode, Question1, Participant1)));
+
+        result.ShouldHaveValidationErrorFor("answers[1]").WithErrorMessage("This answer is missing.");
+        result.ShouldHaveValidationErrorFor("answers[2]")
+            .WithErrorMessage($"Participant {Participant1} has more than one answer to question {Question1}.");
+        Assert.Equal(2, result.Errors.Count);
     }
 }

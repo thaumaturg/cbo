@@ -19,7 +19,7 @@ public class CreateRoundRequestValidatorTests : RoundRequestValidatorTests<Creat
             IsOverrideMode = round.IsOverrideMode,
             Answers =
             [
-                .. round.Answers.Select(a => new CreateRoundAnswerRequest
+                .. round.Answers.Select(a => a is null ? null! : new CreateRoundAnswerRequest
                 {
                     QuestionId = a.QuestionId,
                     MatchParticipantId = a.MatchParticipantId,

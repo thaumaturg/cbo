@@ -15,7 +15,7 @@ internal static class RoundRequestRules
             .WithMessage($"Round number must be between 1 and {Limits.Matches.RoundsPerQualificationMatch}.");
 
     /// <summary>
-    /// Checks every answer with the rules of the round's scoring mode.
+    /// Checks every answer with the rules of the round's scoring mode. A null in the list is a missing answer.
     /// </summary>
     public static IRuleBuilderOptions<T, TAnswer> RoundAnswer<T, TAnswer>(
         this IRuleBuilderInitialCollection<T, TAnswer> rule, Func<T, bool> isOverrideMode)
@@ -24,7 +24,10 @@ internal static class RoundRequestRules
         var standardAnswer = new RoundAnswerRequestValidator(isOverrideMode: false);
         var overrideAnswer = new RoundAnswerRequestValidator(isOverrideMode: true);
 
-        return rule.SetValidator((T request) => isOverrideMode(request) ? overrideAnswer : standardAnswer);
+        // A child validator skips a null item, so the null check is the only error for one
+        return rule
+            .NotNull().WithMessage("This answer is missing.")
+            .SetValidator((T request) => isOverrideMode(request) ? overrideAnswer : standardAnswer);
     }
 
     /// <summary>
