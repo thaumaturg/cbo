@@ -31,6 +31,9 @@ const authStore = useAuthStore();
 
 const TOPIC_ROUTE_NAMES = ["topic-new", "topic-edit"];
 const PLAYED_DELETE_HINT = "Played topics can't be deleted.";
+const CO_AUTHORS_MAX_HINT = `A topic can have at most ${LIMITS.topics.coAuthorsMax} co-authors.`;
+// The topic's own VeeFields, which show the server's errors for the same API fields
+const TOPIC_FIELDS = ["title", "description"];
 
 const isEditMode = computed(() => route.params.id && route.params.id !== "new");
 const topicId = computed(() => (isEditMode.value ? route.params.id : null));
@@ -85,6 +88,14 @@ const coAuthors = ref([]);
 const newAuthorUsername = ref("");
 const addAuthorError = ref(null);
 const authorErrors = ref({}); // co-author index -> message
+const authorListError = ref(null); // the server's error about the list as a whole, such as too many co-authors
+
+const clearAuthorErrors = () => {
+  authorErrors.value = {};
+  authorListError.value = null;
+};
+
+const canAddCoAuthor = computed(() => coAuthors.value.length < LIMITS.topics.coAuthorsMax);
 
 const ownerUsername = computed(
   () => topic.value?.authors.find((author) => author.isOwner)?.username ?? authStore.userName,
@@ -108,12 +119,14 @@ const addedUsernames = computed(() => [ownerUsername.value, ...coAuthors.value.m
 
 const pushCoAuthor = (username) => {
   coAuthors.value.push({ username });
-  authorErrors.value = {};
+  clearAuthorErrors();
   addAuthorError.value = null;
 };
 
 // The picker already leaves out the owner and the co-authors
-const pickCoAuthor = (friend) => pushCoAuthor(friend.username);
+const pickCoAuthor = (friend) => {
+  if (canAddCoAuthor.value) pushCoAuthor(friend.username);
+};
 
 // Enter in the picker's box picks a friend or does nothing; it doesn't save the topic
 const keepPickerFromSubmitting = (event) => {
@@ -122,6 +135,7 @@ const keepPickerFromSubmitting = (event) => {
 
 // Only local checks; the server checks that the account exists on Save
 const addCoAuthor = () => {
+  if (!canAddCoAuthor.value) return;
   const username = newAuthorUsername.value.trim();
 
   if (!username) {
@@ -138,7 +152,7 @@ const addCoAuthor = () => {
 
 const removeCoAuthor = (index) => {
   coAuthors.value.splice(index, 1);
-  authorErrors.value = {};
+  clearAuthorErrors();
 };
 
 watch(newAuthorUsername, () => {
@@ -199,20 +213,24 @@ const validateCostField = (value, fieldName) => {
   return null;
 };
 
+// The server trims text before checking its length, so count the trimmed text too
+const lengthError = (fieldName, value, max) => {
+  const length = value?.trim().length ?? 0;
+  return length > max ? `${fieldName} can be at most ${max} characters (currently ${length}).` : null;
+};
+
 const validateQuestion = (question) => {
-  const errors = {};
+  const { questionTextLengthMax, answerLengthMax, commentLengthMax } = LIMITS.topics;
+  const errors = {
+    text: question.text?.trim()
+      ? lengthError("Question", question.text, questionTextLengthMax)
+      : "Question is required.",
+    answer: question.answer?.trim() ? lengthError("Answer", question.answer, answerLengthMax) : "Answer is required.",
+    comment: lengthError("Comment", question.comment, commentLengthMax),
+    cost: validateCostField(question.cost, "Cost"),
+  };
 
-  if (!question.text?.trim()) {
-    errors.text = "Question is required.";
-  }
-  if (!question.answer?.trim()) {
-    errors.answer = "Answer is required.";
-  }
-
-  const costError = validateCostField(question.cost, "Cost");
-  if (costError) errors.cost = costError;
-
-  return errors;
+  return Object.fromEntries(Object.entries(errors).filter(([, message]) => message));
 };
 
 const totalCost = computed(() => questions.value.reduce((sum, q) => sum + (Number(q.cost) || 0), 0));
@@ -267,7 +285,7 @@ const onCellUpdate = (index, field, value) => {
   if (hasFieldError(index, field)) validateCell(index, field);
 };
 
-const SERVER_QUESTION_FIELD = /^questions\[(\d+)\]\.(cost|text|answer)$/;
+const SERVER_QUESTION_FIELD = /^questions\[(\d+)\]\.(cost|text|answer|comment)$/;
 
 // Server errors for the table's cells, in the shape validateAllQuestions produces
 const toQuestionErrors = (errors = {}) => {
@@ -328,7 +346,7 @@ const applyTopic = (savedTopic) => {
   formStatus.value = "idle";
   generalError.value = null;
   questionErrors.value = {};
-  authorErrors.value = {};
+  clearAuthorErrors();
   newAuthorUsername.value = "";
   addAuthorError.value = null;
   markClean();
@@ -475,10 +493,11 @@ const onSubmit = async (values, { setErrors }) => {
         (field) => SERVER_QUESTION_FIELD.test(field) || SERVER_AUTHOR_FIELD.test(field),
       );
       formStatus.value = "error";
-      generalError.value = toFormFailure(result, ["title", ...fieldsShown]).banner;
-      setErrors(toFormErrors(result.errors, ["title"]));
+      generalError.value = toFormFailure(result, [...TOPIC_FIELDS, "authors", ...fieldsShown]).banner;
+      setErrors(toFormErrors(result.errors, TOPIC_FIELDS));
       questionErrors.value = toQuestionErrors(result.errors);
       authorErrors.value = toAuthorErrors(result.errors);
+      authorListError.value = result.errors?.authors?.join(" ") || null;
       await focusFirstInvalid(formRef.value?.$el);
     }
   } catch {
@@ -566,14 +585,25 @@ const handleDelete = () => {
           <!-- Description -->
           <div class="flex flex-col gap-2 md:col-span-2">
             <label for="description" class="font-semibold text-gray-700 dark:text-gray-300">Description</label>
-            <Textarea
-              id="description"
+            <VeeField
+              name="description"
+              label="Description"
+              :rules="`max:${LIMITS.topics.descriptionLengthMax}`"
               v-model="formData.description"
-              rows="3"
-              class="w-full"
-              placeholder="Enter topic description (optional)"
-              :disabled="inputsDisabled"
-            />
+              v-slot="slot"
+            >
+              <Textarea
+                v-bind="eager(slot)"
+                id="description"
+                rows="3"
+                class="w-full"
+                placeholder="Enter topic description (optional)"
+                :disabled="inputsDisabled"
+              />
+            </VeeField>
+            <ErrorMessage name="description" v-slot="{ message }">
+              <Message severity="error" variant="simple">{{ message }}</Message>
+            </ErrorMessage>
           </div>
 
           <!-- Checkbox -->
@@ -682,15 +712,24 @@ const handleDelete = () => {
           </Column>
 
           <Column field="comment" header="Comment" style="min-width: 200px">
-            <template #body="{ data }">
-              <Textarea
-                v-model="data.comment"
-                class="w-full"
-                placeholder="Optional comment"
-                rows="3"
-                autoResize
-                :disabled="inputsDisabled"
-              />
+            <template #body="{ data, index }">
+              <div class="flex flex-col gap-1">
+                <Textarea
+                  :model-value="data.comment"
+                  @update:model-value="(value) => onCellUpdate(index, 'comment', value)"
+                  @blur="onCellBlur(index, 'comment')"
+                  class="w-full"
+                  :class="{ 'p-invalid': hasFieldError(index, 'comment') }"
+                  placeholder="Optional comment"
+                  rows="3"
+                  autoResize
+                  :invalid="hasFieldError(index, 'comment')"
+                  :disabled="inputsDisabled"
+                />
+                <small v-if="hasFieldError(index, 'comment')" class="text-red-500 text-xs">
+                  {{ getFieldError(index, "comment") }}
+                </small>
+              </div>
             </template>
           </Column>
 
@@ -741,7 +780,11 @@ const handleDelete = () => {
 
         <div v-if="!readOnly" class="flex flex-col gap-3 mb-4">
           <div @keydown.enter="keepPickerFromSubmitting">
-            <FriendPicker :exclude-usernames="addedUsernames" :disabled="isBusy" @pick="pickCoAuthor" />
+            <FriendPicker
+              :exclude-usernames="addedUsernames"
+              :disabled="isBusy || !canAddCoAuthor"
+              @pick="pickCoAuthor"
+            />
           </div>
 
           <div class="flex flex-col gap-1">
@@ -756,7 +799,7 @@ const handleDelete = () => {
                   placeholder="Username"
                   class="w-full"
                   :invalid="!!addAuthorError"
-                  :disabled="isBusy"
+                  :disabled="isBusy || !canAddCoAuthor"
                   @keydown.enter.prevent="addCoAuthor"
                 />
                 <Message v-if="addAuthorError" severity="error" variant="simple">{{ addAuthorError }}</Message>
@@ -767,12 +810,20 @@ const handleDelete = () => {
                 icon="pi pi-plus"
                 outlined
                 class="self-start"
-                :disabled="isBusy"
+                :disabled="isBusy || !canAddCoAuthor"
                 @click="addCoAuthor"
               />
             </div>
           </div>
+
+          <Message v-if="!canAddCoAuthor" severity="secondary" variant="simple" size="small">
+            {{ CO_AUTHORS_MAX_HINT }}
+          </Message>
         </div>
+
+        <Message v-if="authorListError" severity="error" variant="simple" class="mb-4">
+          {{ authorListError }}
+        </Message>
 
         <DataTable :value="authorRows" dataKey="username" stripedRows>
           <Column header="Username">
