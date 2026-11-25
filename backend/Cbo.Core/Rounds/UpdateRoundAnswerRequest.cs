@@ -1,6 +1,6 @@
 namespace Cbo.Core.Rounds;
 
-public record UpdateRoundAnswerRequest
+public record UpdateRoundAnswerRequest : IRoundAnswerRequest
 {
     public bool? IsAnswerAccepted { get; set; }
     public int? OverrideCost { get; set; }
