@@ -7,8 +7,15 @@ namespace Cbo.Core.Participants;
 /// </summary>
 internal static class ParticipantFailures
 {
+    public const string InvalidMessage = "Some of the participant data is invalid.";
+    public const string InvalidSeedingMessage = "Some of the seeding data is invalid.";
+    public const string SeedingListsEachPlayerOnceMessage = "The seeding must list each player of the tournament exactly once.";
+
     public static Failure InvalidField(string field, string message) =>
-        Failure.Invalid("Some of the participant data is invalid.", new FieldError(field, message));
+        Failure.Invalid(InvalidMessage, new FieldError(field, message));
+
+    public static Failure SeedingDoesNotListEachPlayerOnce() =>
+        Failure.Invalid(InvalidSeedingMessage, new FieldError("orderedParticipantIds", SeedingListsEachPlayerOnceMessage));
 
     public static Failure NotFound() =>
         Failure.NotFound("Participant not found in this tournament.");
