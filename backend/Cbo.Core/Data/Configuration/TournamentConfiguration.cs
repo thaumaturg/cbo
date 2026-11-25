@@ -11,14 +11,16 @@ public class TournamentConfiguration : IEntityTypeConfiguration<Tournament>
         entity.HasKey(e => e.Id);
 
         entity.Property(e => e.Title)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(Limits.Tournaments.TitleLengthMax);
+
+        entity.Property(e => e.Description)
+            .HasMaxLength(Limits.Tournaments.DescriptionLengthMax);
 
         entity.Property(e => e.CurrentStage)
             .IsRequired()
             .HasConversion<string>()
             .HasDefaultValue(TournamentStage.Preparations);
-
-
 
         entity.Property(e => e.PlayersPerTournament)
             .IsRequired();

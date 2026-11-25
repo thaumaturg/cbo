@@ -17,10 +17,15 @@ public class QuestionConfiguration : IEntityTypeConfiguration<Question>
             .IsRequired();
 
         entity.Property(q => q.Text)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(Limits.Topics.QuestionTextLengthMax);
 
         entity.Property(q => q.Answer)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(Limits.Topics.AnswerLengthMax);
+
+        entity.Property(q => q.Comment)
+            .HasMaxLength(Limits.Topics.CommentLengthMax);
 
         entity.Property(q => q.TopicId)
             .IsRequired();
