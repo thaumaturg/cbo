@@ -16,6 +16,6 @@ public static class AccountIdentityOptions
 
         options.User.RequireUniqueEmail = true;
         // Login tells usernames from emails by '@', see docs/adr/0005-auth-on-dedicated-pages.md
-        options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
+        options.User.AllowedUserNameCharacters = Limits.Accounts.UsernameAllowedCharacters;
     }
 }
