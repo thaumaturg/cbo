@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Cbo.Api.Authentication;
 using Cbo.Api.Endpoints;
 using Cbo.Api.ErrorHandling;
+using Cbo.Api.Validation;
 using Cbo.Core;
 using Cbo.Core.Accounts;
 using Cbo.Core.Data;
@@ -146,7 +147,8 @@ public class Program
 
         app.UseAuthorization();
 
-        RouteGroupBuilder api = app.MapGroup("/api").RequireAuthorization();
+        // Request validators run before every handler, after authentication
+        RouteGroupBuilder api = app.MapGroup("/api").RequireAuthorization().AddEndpointFilter<ValidationFilter>();
         api.MapAuthEndpoints();
         api.MapFriendEndpoints();
         api.MapTopicEndpoints();
