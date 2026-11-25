@@ -5,6 +5,8 @@ using Cbo.Core.Data.Interceptors;
 using Cbo.Core.Matches;
 using Cbo.Core.Topics;
 using Cbo.Core.Tournaments;
+using Cbo.Core.Validation;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,7 +15,8 @@ namespace Cbo.Core;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the database, the authorization handlers, the services and every command and query handler.
+    /// Registers the database, the authorization handlers, the services, every command and query handler and every
+    /// request validator, and applies the FluentValidation options.
     /// The host provides <see cref="ICurrentUserService"/>, <see cref="IJwtTokenService"/> and ASP.NET Core Identity.
     /// </summary>
     public static IServiceCollection AddCore(this IServiceCollection services, string connectionString)
@@ -39,6 +42,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITopicValidationService, TopicValidationService>();
 
         services.AddCqrsHandlers(typeof(ServiceCollectionExtensions).Assembly);
+
+        services.AddValidatorsFromAssembly(typeof(ServiceCollectionExtensions).Assembly);
+        ValidationSetup.ConfigureGlobalOptions();
 
         return services;
     }
