@@ -5,8 +5,14 @@ using Microsoft.EntityFrameworkCore;
 namespace Cbo.Core.Topics;
 
 /// <summary>
+/// A co-author username of a create or update topic request, with the account it belongs to.
+/// <paramref name="UserId"/> is null when no account has the username.
+/// </summary>
+internal sealed record CoAuthorAccount(string Username, Guid? UserId);
+
+/// <summary>
 /// Resolves the co-author usernames of a create or update topic request to accounts, ready for
-/// <see cref="ITopicValidationService.ValidateCoAuthors"/>.
+/// <see cref="CoAuthorRules.CheckAccounts"/>.
 /// </summary>
 internal static class CoAuthorLookup
 {
@@ -14,17 +20,16 @@ internal static class CoAuthorLookup
     /// Looks every username up in one query, keeping the request's order. Usernames compare the way Identity
     /// compares them (normalized), so "Bob" and "bob" are the same account.
     /// </summary>
-    public static async Task<List<CoAuthorValidationModel>> LookUpAsync(
+    public static async Task<List<CoAuthorAccount>> LookUpAsync(
         CboDbContext dbContext,
         ILookupNormalizer lookupNormalizer,
         IReadOnlyList<string> usernames,
         CancellationToken cancellationToken)
     {
-        List<string?> normalizedUsernames = usernames
-            .Select(u => string.IsNullOrWhiteSpace(u) ? null : lookupNormalizer.NormalizeName(u))
-            .ToList();
+        // The request validators make sure every username is given, so none normalizes to null
+        List<string> normalizedUsernames = usernames.Select(u => lookupNormalizer.NormalizeName(u)!).ToList();
 
-        List<string> namesToFind = normalizedUsernames.OfType<string>().Distinct().ToList();
+        List<string> namesToFind = normalizedUsernames.Distinct().ToList();
         Dictionary<string, Guid> userIdsByNormalizedUsername = namesToFind.Count == 0
             ? []
             : await dbContext.ApplicationUsers
@@ -35,12 +40,8 @@ internal static class CoAuthorLookup
         return usernames
             .Select((username, i) =>
             {
-                string? normalizedUsername = normalizedUsernames[i];
-                Guid? userId = normalizedUsername is not null &&
-                    userIdsByNormalizedUsername.TryGetValue(normalizedUsername, out Guid id)
-                        ? id
-                        : null;
-                return new CoAuthorValidationModel(username, normalizedUsername, userId);
+                Guid? userId = userIdsByNormalizedUsername.TryGetValue(normalizedUsernames[i], out Guid id) ? id : null;
+                return new CoAuthorAccount(username, userId);
             })
             .ToList();
     }

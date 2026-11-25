@@ -13,18 +13,18 @@ namespace Cbo.Core.Topics;
 /// Updates the topic's details and syncs its questions and co-authors. Questions with an id are changed, questions
 /// without one are added, and the topic's other questions are removed. Co-authors still listed are kept, new ones are
 /// added and the rest are removed; the owner's row only gets its <see cref="TopicAuthor.IsAuthor"/> flag updated.
+/// <see cref="UpdateTopicRequestValidator"/> has already checked the request; this handler checks what needs the
+/// database: the question ids and the co-authors' accounts.
 /// </summary>
 public sealed class UpdateTopicCommandHandler(
     CboDbContext dbContext,
     ITopicAccessService topicAccessService,
-    ITopicValidationService topicValidationService,
     ICurrentUserService currentUserService,
     ILookupNormalizer lookupNormalizer) : CommandHandler<UpdateTopicCommand>(dbContext)
 {
     private const string UpdateForbiddenMessage = "You don't have permission to edit this topic.";
 
     private readonly ITopicAccessService _topicAccessService = topicAccessService;
-    private readonly ITopicValidationService _topicValidationService = topicValidationService;
     private readonly ICurrentUserService _currentUserService = currentUserService;
     private readonly ILookupNormalizer _lookupNormalizer = lookupNormalizer;
 
@@ -44,15 +44,11 @@ public sealed class UpdateTopicCommandHandler(
             .Where(q => q.TopicId == command.TopicId)
             .ToListAsync(cancellationToken);
 
-        List<CoAuthorValidationModel> coAuthors = await CoAuthorLookup.LookUpAsync(
+        List<CoAuthorAccount> coAuthors = await CoAuthorLookup.LookUpAsync(
             DbContext, _lookupNormalizer, command.CoAuthorUsernames, cancellationToken);
 
-        List<FieldError> fieldErrors = _topicValidationService.ValidateQuestions(
-            command.Questions
-                .Select(q => new QuestionValidationModel(q.QuestionNumber, q.Cost, q.Text, q.Answer))
-                .ToList());
-        fieldErrors.AddRange(ValidateQuestionIds(existingQuestions, command.Questions));
-        fieldErrors.AddRange(_topicValidationService.ValidateCoAuthors(coAuthors, currentUserId));
+        List<FieldError> fieldErrors = [.. ValidateQuestionIds(existingQuestions, command.Questions)];
+        fieldErrors.AddRange(CoAuthorRules.CheckAccounts(coAuthors, currentUserId));
         if (fieldErrors.Count > 0)
             return TopicFailures.Invalid(fieldErrors);
 
@@ -72,7 +68,7 @@ public sealed class UpdateTopicCommandHandler(
         if (owner is not null)
             owner.IsAuthor = command.IsAuthor;
 
-        // Validation guarantees every co-author resolved to an account
+        // The checks above guarantee every co-author resolved to an account
         SyncCoAuthors(
             command.TopicId,
             existingAuthors.Where(ta => !ta.IsOwner).ToList(),

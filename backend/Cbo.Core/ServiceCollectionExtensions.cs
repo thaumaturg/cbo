@@ -39,7 +39,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITopicAccessService, TopicAccessService>();
         services.AddScoped<IMatchGenerationService, MatchGenerationService>();
         services.AddScoped<IMatchScoringService, MatchScoringService>();
-        services.AddScoped<ITopicValidationService, TopicValidationService>();
 
         services.AddCqrsHandlers(typeof(ServiceCollectionExtensions).Assembly);
 

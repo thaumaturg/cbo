@@ -9,15 +9,14 @@ namespace Cbo.Core.Topics;
 
 /// <summary>
 /// Creates the topic with its questions, the current user as its owner, and its co-authors, unless the account
-/// already owns as many topics as allowed.
+/// already owns as many topics as allowed. <see cref="CreateTopicRequestValidator"/> has already checked the request;
+/// this handler checks the co-authors' accounts.
 /// </summary>
 public sealed class CreateTopicCommandHandler(
     CboDbContext dbContext,
-    ITopicValidationService topicValidationService,
     ICurrentUserService currentUserService,
     ILookupNormalizer lookupNormalizer) : CommandHandler<CreateTopicCommand, Guid>(dbContext)
 {
-    private readonly ITopicValidationService _topicValidationService = topicValidationService;
     private readonly ICurrentUserService _currentUserService = currentUserService;
     private readonly ILookupNormalizer _lookupNormalizer = lookupNormalizer;
 
@@ -25,14 +24,10 @@ public sealed class CreateTopicCommandHandler(
     {
         Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
 
-        List<CoAuthorValidationModel> coAuthors = await CoAuthorLookup.LookUpAsync(
+        List<CoAuthorAccount> coAuthors = await CoAuthorLookup.LookUpAsync(
             DbContext, _lookupNormalizer, command.CoAuthorUsernames, cancellationToken);
 
-        List<FieldError> fieldErrors = _topicValidationService.ValidateQuestions(
-            command.Questions
-                .Select(q => new QuestionValidationModel(q.QuestionNumber, q.Cost, q.Text, q.Answer))
-                .ToList());
-        fieldErrors.AddRange(_topicValidationService.ValidateCoAuthors(coAuthors, currentUserId));
+        IReadOnlyList<FieldError> fieldErrors = CoAuthorRules.CheckAccounts(coAuthors, currentUserId);
         if (fieldErrors.Count > 0)
             return TopicFailures.Invalid(fieldErrors);
 
@@ -44,8 +39,8 @@ public sealed class CreateTopicCommandHandler(
         Topic topic = TopicFactory.Create(
             command.Title, command.Description, command.Questions, currentUserId, command.IsAuthor);
 
-        // Validation guarantees every co-author resolved to an account
-        foreach (CoAuthorValidationModel coAuthor in coAuthors)
+        // The checks above guarantee every co-author resolved to an account
+        foreach (CoAuthorAccount coAuthor in coAuthors)
         {
             topic.TopicAuthors.Add(new TopicAuthor
             {
