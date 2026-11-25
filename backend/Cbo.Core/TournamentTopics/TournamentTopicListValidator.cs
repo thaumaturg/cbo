@@ -4,9 +4,9 @@ using FluentValidation;
 namespace Cbo.Core.TournamentTopics;
 
 /// <summary>
-/// Checks the topics a participant brings, as far as the list itself shows: no negative priority position, and no
-/// position or topic taken twice. <see cref="SetMyTournamentTopicsCommandHandler"/> checks the rest against the
-/// tournament's maximum and the topics themselves.
+/// Checks the topics a participant brings, as far as the list itself shows: no missing entry, no negative priority
+/// position, and no position or topic taken twice. <see cref="SetMyTournamentTopicsCommandHandler"/> checks the rest
+/// against the tournament's maximum and the topics themselves.
 /// </summary>
 public sealed class TournamentTopicListValidator : RequestValidator<List<TournamentTopicRequest>>
 {
@@ -23,7 +23,10 @@ public sealed class TournamentTopicListValidator : RequestValidator<List<Tournam
             {
                 TournamentTopicRequest? topic = topics[i];
                 if (topic is null)
+                {
+                    context.AddFailure($"[{i}]", "This topic is missing.");
                     continue;
+                }
 
                 if (topic.PriorityIndex < 0)
                     context.AddFailure($"[{i}].priorityIndex", "The priority position must be 1 or greater.");

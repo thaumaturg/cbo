@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cbo.Core.TournamentTopics;
+using Cbo.Tests.Validation;
 using FluentValidation.TestHelper;
 
 namespace Cbo.Tests.TournamentTopics;
@@ -88,6 +89,32 @@ public class TournamentTopicListValidatorTests
             error => AssertError("[1].priorityIndex", "This priority position appears more than once.", error),
             error => AssertError("[1].topicId", "This topic appears more than once.", error),
             error => AssertError("[2].priorityIndex", "The priority position must be 1 or greater.", error));
+    }
+
+    [Fact]
+    public void A_missing_topic_is_an_error_and_the_others_are_still_checked()
+    {
+        List<TournamentTopicRequest> topics = Topics((TopicA, 0), (TopicB, -1));
+        topics.Insert(1, null!);
+
+        TestValidationResult<List<TournamentTopicRequest>> result = _validator.TestValidate(topics);
+
+        Assert.Collection(
+            result.Errors,
+            error => AssertError("[1]", "This topic is missing.", error),
+            error => AssertError("[2].priorityIndex", "The priority position must be 1 or greater.", error));
+    }
+
+    // The API's JSON settings reject a null property but not a null list item, so the validator has to
+    [Fact]
+    public void A_null_in_the_body_is_a_missing_topic()
+    {
+        List<TournamentTopicRequest> topics = ApiJson.Read<List<TournamentTopicRequest>>("[null]");
+
+        _validator.TestValidate(topics)
+            .ShouldHaveValidationErrorFor("[0]")
+            .WithErrorMessage("This topic is missing.")
+            .Only();
     }
 
     private static List<TournamentTopicRequest> Topics(params (Guid TopicId, int PriorityIndex)[] topics) =>
