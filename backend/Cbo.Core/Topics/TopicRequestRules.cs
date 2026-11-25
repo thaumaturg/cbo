@@ -80,7 +80,7 @@ internal static class TopicRequestRules
                 else if (string.IsNullOrEmpty(author.Username))
                     context.AddFailure(new ValidationFailure(field, "Username is required."));
                 else if (!seenNormalizedUsernames.Add(lookupNormalizer.NormalizeName(author.Username)))
-                    context.AddFailure(new ValidationFailure(field, "This author appears more than once."));
+                    context.AddFailure(new ValidationFailure(field, "This co-author appears more than once."));
 
                 index++;
             }
