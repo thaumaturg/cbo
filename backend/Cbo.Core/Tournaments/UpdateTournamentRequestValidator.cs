@@ -14,5 +14,5 @@ public sealed class UpdateTournamentRequestValidator : RequestValidator<UpdateTo
         RuleFor(t => t.TopicsPerParticipantMax).TopicsPerParticipantMax(t => t.TopicsPerParticipantMin);
     }
 
-    public override string InvalidMessage => TournamentRequestRules.InvalidMessage;
+    public override string InvalidMessage => TournamentFailures.InvalidMessage;
 }

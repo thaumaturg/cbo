@@ -9,8 +9,6 @@ namespace Cbo.Core.Tournaments;
 /// </summary>
 internal static class TournamentRequestRules
 {
-    public const string InvalidMessage = "Some of the tournament data is invalid.";
-
     public static IRuleBuilderOptions<T, string> TournamentTitle<T>(this IRuleBuilder<T, string> rule) =>
         rule
             .NotEmpty().WithMessage("The title is required.")
