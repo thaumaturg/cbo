@@ -17,10 +17,6 @@ public sealed class GetTopicsQueryHandler(
     {
         Guid currentUserId = _currentUserService.GetRequiredCurrentUserId();
 
-        List<FieldError> errors = PagingRules.Validate(query.Page, query.PageSize, query.Sort, query.Search, TopicListFilter.SortKeys);
-        if (errors.Count > 0)
-            return Failure.Invalid(PagingRules.InvalidMessage, errors);
-
         return await TopicListFilter.Apply(_dbContext.Topics, query, currentUserId)
             .ToPageAsync(
                 TopicListFilter.SortKeys,
