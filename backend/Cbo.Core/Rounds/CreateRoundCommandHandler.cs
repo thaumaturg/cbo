@@ -34,7 +34,7 @@ public sealed class CreateRoundCommandHandler(
             return RoundFailures.MatchNotFound();
 
         Result<Dictionary<Guid, Question>> validation = await RoundRules.ValidateAsync(
-            DbContext, match, command.NumberInMatch, command.TopicId, command.IsOverrideMode, command.Answers, cancellationToken);
+            DbContext, match, command.TopicId, command.Answers, cancellationToken);
         if (validation.IsFailure)
             return validation.Failure;
 

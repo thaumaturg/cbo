@@ -11,22 +11,18 @@ namespace Cbo.Core.Rounds;
 internal static class RoundRules
 {
     /// <summary>
-    /// Checks everything that can be wrong with the round in the request body itself. All of it is
-    /// <see cref="FailureKind.Invalid"/>. On success returns the round topic's questions by id, tracked, for
+    /// Checks the parts of the round that need the database: the topic, and whose questions and participants the
+    /// answers are about. All of it is <see cref="FailureKind.Invalid"/>. The request validators have already checked
+    /// what the body shows on its own. On success returns the round topic's questions by id, tracked, for
     /// <see cref="ToRoundAnswers"/>.
     /// </summary>
     public static async Task<Result<Dictionary<Guid, Question>>> ValidateAsync(
         CboDbContext dbContext,
         Match match,
-        int numberInMatch,
         Guid topicId,
-        bool isOverrideMode,
         IReadOnlyList<GivenAnswer> answers,
         CancellationToken cancellationToken)
     {
-        if (numberInMatch < 1 || numberInMatch > Limits.Matches.RoundsPerQualificationMatch)
-            return RoundFailures.InvalidField("numberInMatch", $"Round number must be between 1 and {Limits.Matches.RoundsPerQualificationMatch}.");
-
         Topic? topic = await dbContext.Topics
             .Include(t => t.Questions)
             .FirstOrDefaultAsync(t => t.Id == topicId, cancellationToken);
@@ -38,10 +34,6 @@ internal static class RoundRules
         if (!isTournamentTopic)
             return RoundFailures.InvalidField("topicId", "This topic is not part of this tournament.");
 
-        Result answersValidation = ValidateAnswerModes(answers, isOverrideMode);
-        if (answersValidation.IsFailure)
-            return answersValidation.Failure;
-
         Dictionary<Guid, Question> questionsById = topic.Questions.ToDictionary(q => q.Id);
         GivenAnswer? foreignQuestionAnswer = answers.FirstOrDefault(a => !questionsById.ContainsKey(a.QuestionId));
         if (foreignQuestionAnswer is not null)
@@ -51,12 +43,6 @@ internal static class RoundRules
         GivenAnswer? foreignParticipantAnswer = answers.FirstOrDefault(a => !matchParticipantIds.Contains(a.MatchParticipantId));
         if (foreignParticipantAnswer is not null)
             return RoundFailures.InvalidField("answers", $"Participant {foreignParticipantAnswer.MatchParticipantId} is not part of this match.");
-
-        var duplicateAnswer = answers
-            .GroupBy(a => new { a.QuestionId, a.MatchParticipantId })
-            .FirstOrDefault(g => g.Count() > 1);
-        if (duplicateAnswer is not null)
-            return RoundFailures.InvalidField("answers", $"Participant {duplicateAnswer.Key.MatchParticipantId} has more than one answer to question {duplicateAnswer.Key.QuestionId}.");
 
         return questionsById;
     }
@@ -80,44 +66,4 @@ internal static class RoundRules
                 MatchParticipantId = a.MatchParticipantId,
             })
             .ToList();
-
-    private static Result ValidateAnswerModes(IReadOnlyList<GivenAnswer> answers, bool isOverrideMode)
-    {
-        if (isOverrideMode)
-        {
-            foreach (GivenAnswer answer in answers)
-            {
-                if (answer.IsAnswerAccepted.HasValue)
-                    return RoundFailures.InvalidField("answers", "In override mode, IsAnswerAccepted must be null for all answers.");
-
-                if (!answer.OverrideCost.HasValue)
-                    return RoundFailures.InvalidField("answers", "In override mode, OverrideCost must be provided for all answers.");
-            }
-        }
-        else
-        {
-            foreach (GivenAnswer answer in answers)
-            {
-                if (!answer.IsAnswerAccepted.HasValue)
-                    return RoundFailures.InvalidField("answers", "In standard mode, IsAnswerAccepted must be provided for all answers.");
-
-                if (answer.OverrideCost.HasValue)
-                    return RoundFailures.InvalidField("answers", "In standard mode, OverrideCost must be null for all answers.");
-            }
-
-            List<IGrouping<Guid, GivenAnswer>> positiveAnswersByQuestion = answers
-                .Where(a => a.IsAnswerAccepted == true)
-                .GroupBy(a => a.QuestionId)
-                .Where(g => g.Count() > 1)
-                .ToList();
-
-            if (positiveAnswersByQuestion.Count > 0)
-            {
-                Guid questionId = positiveAnswersByQuestion.First().Key;
-                return RoundFailures.InvalidField("answers", $"Question {questionId} has multiple correct answers. Only one correct answer is allowed per question.");
-            }
-        }
-
-        return Result.Success();
-    }
 }
