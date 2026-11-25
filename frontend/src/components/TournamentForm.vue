@@ -41,9 +41,9 @@ const {
 
 const TITLE_RULES = `required|min:${titleLengthMin}|max:${titleLengthMax}`;
 const DESCRIPTION_RULES = `max:${descriptionLengthMax}`;
-const TOPICS_RANGE = `min_value:${topicsPerParticipantFloor}|max_value:${topicsPerParticipantCeiling}`;
-const TOPICS_MAX_RULES = `required|${TOPICS_RANGE}`;
-const TOPICS_MIN_RULES = `${TOPICS_MAX_RULES}|lte_field:@topicsPerParticipantMax`;
+const TOPICS_MAX_RULES = `required|min_value:${topicsPerParticipantFloor}|max_value:${topicsPerParticipantCeiling}`;
+// The minimum is only a recommendation (ADR 0007), so the maximum is its only upper bound
+const TOPICS_MIN_RULES = `required|min_value:${topicsPerParticipantFloor}|lte_field:@topicsPerParticipantMax`;
 
 const toFormValues = (tournament) => ({
   title: tournament?.title || "",
