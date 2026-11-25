@@ -3,12 +3,14 @@ using Cbo.Results;
 namespace Cbo.Core.Rounds;
 
 /// <summary>
-/// Failures shared by the round command handlers.
+/// Failures shared by the round command handlers and request validators.
 /// </summary>
 internal static class RoundFailures
 {
+    public const string InvalidMessage = "Some of the round data is invalid.";
+
     public static Failure InvalidField(string field, string message) =>
-        Failure.Invalid("Some of the round data is invalid.", new FieldError(field, message));
+        Failure.Invalid(InvalidMessage, new FieldError(field, message));
 
     public static Failure MatchNotFound() =>
         Failure.NotFound("Match not found in this tournament.");
