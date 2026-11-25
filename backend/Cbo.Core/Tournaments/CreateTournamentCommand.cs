@@ -5,6 +5,6 @@ namespace Cbo.Core.Tournaments;
 public sealed record CreateTournamentCommand(
     string Title,
     string? Description,
-    int? PlayersPerTournament,
+    int? TournamentSize,
     int? TopicsPerParticipantMax,
     int? TopicsPerParticipantMin) : ICommand<Guid>;

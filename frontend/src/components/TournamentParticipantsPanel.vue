@@ -333,7 +333,7 @@ watch([pickedFriend, newUsername, newRole], () => {
       <template v-if="loadError || (isLoading && participants.length === 0)">Participants</template>
       <template v-else>
         Participants: {{ organizerCount }} Organizers, {{ players.length }} of
-        {{ tournament.playersPerTournament }} Players
+        {{ tournament.tournamentSize }} Players
       </template>
     </h3>
 

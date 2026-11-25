@@ -6,6 +6,6 @@ public sealed record UpdateTournamentCommand(
     Guid TournamentId,
     string Title,
     string? Description,
-    int? PlayersPerTournament,
+    int? TournamentSize,
     int? TopicsPerParticipantMax,
     int? TopicsPerParticipantMin) : ICommand;

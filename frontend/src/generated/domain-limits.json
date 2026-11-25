@@ -52,8 +52,8 @@
     "maxSearchLength": 200
   },
   "tournamentDefaults": {
-    "playersPerTournament": 14,
     "topicsPerParticipantMax": 10,
-    "topicsPerParticipantMin": 6
+    "topicsPerParticipantMin": 6,
+    "tournamentSize": 14
   }
 }

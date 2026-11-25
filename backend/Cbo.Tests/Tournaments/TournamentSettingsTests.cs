@@ -12,7 +12,7 @@ public class TournamentSettingsTests
 
         Assert.Equal(
             new TournamentSettings(
-                TournamentDefaults.PlayersPerTournament,
+                TournamentDefaults.TournamentSize,
                 TournamentDefaults.TopicsPerParticipantMax,
                 TournamentDefaults.TopicsPerParticipantMin),
             settings);

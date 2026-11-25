@@ -21,9 +21,9 @@ internal static class TournamentRequestRules
             .MaximumLength(Limits.Tournaments.DescriptionLengthMax)
             .WithMessage($"The description can be at most {Limits.Tournaments.DescriptionLengthMax} characters.");
 
-    public static IRuleBuilderOptions<T, int?> PlayersPerTournament<T>(this IRuleBuilder<T, int?> rule) =>
+    public static IRuleBuilderOptions<T, int?> TournamentSize<T>(this IRuleBuilder<T, int?> rule) =>
         rule
-            .Must(size => Limits.Tournaments.SupportedSizes.Contains(size ?? TournamentDefaults.PlayersPerTournament))
+            .Must(size => Limits.Tournaments.SupportedSizes.Contains(size ?? TournamentDefaults.TournamentSize))
             .WithMessage($"Tournament size must be one of: {string.Join(", ", Limits.Tournaments.SupportedSizes)}.");
 
     /// <summary>

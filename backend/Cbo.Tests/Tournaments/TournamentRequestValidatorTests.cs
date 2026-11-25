@@ -13,7 +13,7 @@ public abstract class TournamentRequestValidatorTests<TRequest>
     protected sealed record TournamentData(
         string Title,
         string? Description = null,
-        int? PlayersPerTournament = null,
+        int? TournamentSize = null,
         int? TopicsPerParticipantMax = null,
         int? TopicsPerParticipantMin = null);
 
@@ -110,16 +110,16 @@ public abstract class TournamentRequestValidatorTests<TRequest>
     [MemberData(nameof(SupportedSizes))]
     public void A_supported_tournament_size_is_valid(int size)
     {
-        Validate(ValidTournament with { PlayersPerTournament = size }).ShouldNotHaveAnyValidationErrors();
+        Validate(ValidTournament with { TournamentSize = size }).ShouldNotHaveAnyValidationErrors();
     }
 
     [Fact]
-    public void An_unsupported_tournament_size_fails_on_players_per_tournament_and_lists_the_supported_sizes()
+    public void An_unsupported_tournament_size_fails_on_tournament_size_and_lists_the_supported_sizes()
     {
         int unsupportedSize = Limits.Tournaments.SupportedSizes.Max() + 1;
 
-        Validate(ValidTournament with { PlayersPerTournament = unsupportedSize })
-            .ShouldHaveValidationErrorFor("playersPerTournament")
+        Validate(ValidTournament with { TournamentSize = unsupportedSize })
+            .ShouldHaveValidationErrorFor("tournamentSize")
             .WithErrorMessage(
                 $"Tournament size must be one of: {string.Join(", ", Limits.Tournaments.SupportedSizes)}.")
             .Only();
@@ -254,13 +254,13 @@ public abstract class TournamentRequestValidatorTests<TRequest>
         TestValidationResult<TRequest> result = Validate(new TournamentData(
             Title: "",
             Description: new string('d', Limits.Tournaments.DescriptionLengthMax + 1),
-            PlayersPerTournament: 0,
+            TournamentSize: 0,
             TopicsPerParticipantMax: 3,
             TopicsPerParticipantMin: -1));
 
         result.ShouldHaveValidationErrorFor("title");
         result.ShouldHaveValidationErrorFor("description");
-        result.ShouldHaveValidationErrorFor("playersPerTournament");
+        result.ShouldHaveValidationErrorFor("tournamentSize");
         result.ShouldHaveValidationErrorFor("topicsPerParticipantMin");
         Assert.Equal(4, result.Errors.Count);
     }
