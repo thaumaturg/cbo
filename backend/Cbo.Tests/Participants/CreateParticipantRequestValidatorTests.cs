@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Cbo.Core.Domain;
 using Cbo.Core.Participants;
+using Cbo.Tests.Validation;
 using FluentValidation.TestHelper;
 
 namespace Cbo.Tests.Participants;
@@ -71,5 +72,25 @@ public class CreateParticipantRequestValidatorTests
             """{ "username": "  bob\t", "role": 0 }""", JsonSerializerOptions.Web)!;
 
         Assert.Equal("bob", request.Username);
+    }
+
+    // The API reads enums by name, so an unknown name must reach the validator instead of failing as the body is read
+    [Fact]
+    public void An_unknown_role_name_is_unknown()
+    {
+        CreateParticipantRequest request = ApiJson.Read<CreateParticipantRequest>("""{ "username": "bob", "role": "Admin" }""");
+
+        _validator.TestValidate(request)
+            .ShouldHaveValidationErrorFor("role")
+            .WithErrorMessage("Unknown role. Allowed: Player, Organizer, Creator.")
+            .Only();
+    }
+
+    [Fact]
+    public void A_role_name_is_read_in_any_case()
+    {
+        CreateParticipantRequest request = ApiJson.Read<CreateParticipantRequest>("""{ "username": "bob", "role": "organizer" }""");
+
+        Assert.Equal(TournamentParticipantRole.Organizer, request.Role);
     }
 }

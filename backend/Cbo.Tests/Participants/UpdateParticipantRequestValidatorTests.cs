@@ -1,5 +1,6 @@
 using Cbo.Core.Domain;
 using Cbo.Core.Participants;
+using Cbo.Tests.Validation;
 using FluentValidation.TestHelper;
 
 namespace Cbo.Tests.Participants;
@@ -37,6 +38,17 @@ public class UpdateParticipantRequestValidatorTests
         _validator.TestValidate(new UpdateParticipantRequest { Role = TournamentParticipantRole.Creator })
             .ShouldHaveValidationErrorFor("role")
             .WithErrorMessage("A participant can't be promoted to creator.")
+            .Only();
+    }
+
+    [Fact]
+    public void An_unknown_role_name_is_unknown()
+    {
+        UpdateParticipantRequest request = ApiJson.Read<UpdateParticipantRequest>("""{ "role": "Admin" }""");
+
+        _validator.TestValidate(request)
+            .ShouldHaveValidationErrorFor("role")
+            .WithErrorMessage("Unknown role. Allowed: Player, Organizer, Creator.")
             .Only();
     }
 }
