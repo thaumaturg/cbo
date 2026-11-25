@@ -16,6 +16,7 @@ import { RouterLink, useRoute, useRouter } from "vue-router";
 const FIELDS = ["email", "username", "fullName", "password"];
 
 const {
+  emailLengthMax,
   usernameLengthMin,
   usernameLengthMax,
   fullNameLengthMin,
@@ -24,6 +25,7 @@ const {
   passwordLengthMax,
 } = LIMITS.accounts;
 
+const EMAIL_RULES = `required|email|max:${emailLengthMax}`;
 const USERNAME_RULES = `required|username_chars|min:${usernameLengthMin}|max:${usernameLengthMax}`;
 const FULL_NAME_RULES = `latin_cyrillic_latvian|min:${fullNameLengthMin}|max:${fullNameLengthMax}`;
 const PASSWORD_RULES = `required|min:${passwordLengthMin}|max:${passwordLengthMax}`;
@@ -67,7 +69,7 @@ const onSubmit = async (values, { setErrors }) => {
         <VeeForm @submit="onSubmit" class="flex flex-col gap-4">
           <div class="flex flex-col gap-1">
             <label for="email" class="font-semibold">Email</label>
-            <VeeField name="email" label="Email" rules="required|email" v-slot="slot">
+            <VeeField name="email" label="Email" :rules="EMAIL_RULES" v-slot="slot">
               <InputText
                 v-bind="eager(slot)"
                 id="email"

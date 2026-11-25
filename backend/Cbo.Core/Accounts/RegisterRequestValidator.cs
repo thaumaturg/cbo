@@ -11,7 +11,10 @@ public sealed class RegisterRequestValidator : RequestValidator<RegisterRequest>
 {
     public RegisterRequestValidator()
     {
-        RuleFor(r => r.Email).NotEmpty().WithMessage("Email is required.");
+        RuleFor(r => r.Email)
+            .NotEmpty().WithMessage("Email is required.")
+            .MaximumLength(Limits.Accounts.EmailLengthMax)
+            .WithMessage($"The email can be at most {Limits.Accounts.EmailLengthMax} characters.");
 
         RuleFor(r => r.Username)
             .NotEmpty().WithMessage("Username is required.")
