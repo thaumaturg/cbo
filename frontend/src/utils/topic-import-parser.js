@@ -88,13 +88,15 @@ const parseBlock = ([titleRow, headerRow, ...questionRows]) => {
     comment,
   }));
   const totalCost = questions.reduce((sum, question) => sum + (question.cost ?? 0), 0);
+  const description = parseDescription(headerRow[0]);
   const errors = [
     ...titleErrors(title),
+    ...descriptionErrors(description),
     ...filledRows.flatMap(questionRowErrors),
     ...topicErrors(questions.length, totalCost),
   ];
 
-  return { title, description: parseDescription(headerRow[0]), questions, totalCost, errors };
+  return { title, description, questions, totalCost, errors };
 };
 
 const toQuestionRow = ([cost, text, answer, comment], rowNumber) => ({
@@ -114,14 +116,17 @@ const parseDescription = (cell) => {
 
 const titleErrors = (title) => {
   if (title === "") return ["Title is missing."];
-  if (title.length > LIMITS.topics.titleLengthMax) {
-    return [`Title can be at most ${LIMITS.topics.titleLengthMax} characters (currently ${title.length}).`];
-  }
-  return [];
+  return lengthErrors("Title", title, LIMITS.topics.titleLengthMax);
 };
 
-const questionRowErrors = ({ rowNumber, cost, text, answer }) => {
-  const { questionCostMin, questionCostMax } = LIMITS.topics;
+const descriptionErrors = (description) => lengthErrors("Description", description, LIMITS.topics.descriptionLengthMax);
+
+// One error when `value` is longer than `max`; none for a missing value
+const lengthErrors = (label, value, max) =>
+  value && value.length > max ? [`${label} can be at most ${max} characters (currently ${value.length}).`] : [];
+
+const questionRowErrors = ({ rowNumber, cost, text, answer, comment }) => {
+  const { questionCostMin, questionCostMax, questionTextLengthMax, answerLengthMax, commentLengthMax } = LIMITS.topics;
   const errors = [];
 
   if (text === "" || answer === "") {
@@ -130,8 +135,13 @@ const questionRowErrors = ({ rowNumber, cost, text, answer }) => {
   if (cost === null || cost < questionCostMin || cost > questionCostMax) {
     errors.push(`Row ${rowNumber}: cost must be a whole number from ${questionCostMin} to ${questionCostMax}.`);
   }
+  const tooLong = [
+    ...lengthErrors("question", text, questionTextLengthMax),
+    ...lengthErrors("answer", answer, answerLengthMax),
+    ...lengthErrors("comment", comment, commentLengthMax),
+  ];
 
-  return errors;
+  return [...errors, ...tooLong.map((error) => `Row ${rowNumber}: ${error}`)];
 };
 
 const topicErrors = (questionCount, totalCost) => {
