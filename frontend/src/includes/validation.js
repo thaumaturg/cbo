@@ -1,5 +1,9 @@
-import { Form as VeeForm, Field as VeeField, ErrorMessage, defineRule, configure } from "vee-validate";
+import { LIMITS } from "@/domain/limits.js";
 import { required, email, min, max, regex, confirmed, min_value, max_value } from "@vee-validate/rules";
+import { Form as VeeForm, Field as VeeField, ErrorMessage, defineRule, configure } from "vee-validate";
+
+const USERNAME_CHARACTERS = new Set(LIMITS.accounts.usernameAllowedCharacters);
+const FULL_NAME_PATTERN = new RegExp(LIMITS.accounts.fullNamePattern, "u");
 
 /**
  * Bind a `VeeField` to a PrimeVue input with eager validation: the field is first validated when
@@ -47,12 +51,13 @@ export default {
     });
     defineRule("username_chars", (value) => {
       if (!value) return true;
-      return /^[A-Za-z0-9_]+$/.test(value);
+      return [...value].every((character) => USERNAME_CHARACTERS.has(character));
     });
+    // The server trims the full name first and treats a blank one as not given
     defineRule("latin_cyrillic_latvian", (value) => {
-      if (!value) return true;
-      const pattern = /^[A-Za-zĀ-žЁёА-Яа-я\s]+$/u;
-      return pattern.test(value);
+      const fullName = value?.trim();
+      if (!fullName) return true;
+      return FULL_NAME_PATTERN.test(fullName);
     });
 
     configure({
@@ -67,7 +72,7 @@ export default {
           min_value: `${label} must be at least ${param}.`,
           max_value: `${label} must be at most ${param}.`,
           username_chars: "Username can only contain Latin letters, numbers and underscores.",
-          latin_cyrillic_latvian: `${label} can only contain Latin, Cyrillic and Latvian letters and spaces.`,
+          latin_cyrillic_latvian: `${label} can only contain Latin, Cyrillic and Latvian letters, spaces, hyphens and apostrophes.`,
           confirmed: "Passwords don't match.",
           different: "New password must be different from the current password.",
           lte_field: `${label} can't be greater than the maximum (${param}).`,
