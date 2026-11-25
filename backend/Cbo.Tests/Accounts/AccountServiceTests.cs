@@ -99,48 +99,6 @@ public class AccountServiceTests
         Assert.Empty(result.Failure.FieldErrors);
     }
 
-    [Theory]
-    [InlineData("", AlicePassword, "usernameOrEmail", "Enter your username or email.")]
-    [InlineData("  ", AlicePassword, "usernameOrEmail", "Enter your username or email.")]
-    [InlineData("alice", "", "password", "Enter your password.")]
-    [InlineData("alice", " \t", "password", "Enter your password.")]
-    public async Task An_empty_login_field_is_invalid(
-        string usernameOrEmail, string password, string expectedField, string expectedMessage)
-    {
-        await CreateAliceAsync();
-
-        Result<LoginResponse> result = await _service.LoginAsync(
-            new LoginRequest { UsernameOrEmail = usernameOrEmail, Password = password });
-
-        Assert.True(result.IsFailure);
-        Assert.Equal(FailureKind.Invalid, result.Failure.Kind);
-        FieldError error = Assert.Single(result.Failure.FieldErrors);
-        Assert.Equal(expectedField, error.Field);
-        Assert.Equal(expectedMessage, error.Message);
-    }
-
-    [Fact]
-    public async Task Both_empty_login_fields_are_reported_together()
-    {
-        Result<LoginResponse> result = await _service.LoginAsync(
-            new LoginRequest { UsernameOrEmail = "", Password = "" });
-
-        Assert.True(result.IsFailure);
-        Assert.Equal(FailureKind.Invalid, result.Failure.Kind);
-        Assert.Collection(
-            result.Failure.FieldErrors,
-            error =>
-            {
-                Assert.Equal("usernameOrEmail", error.Field);
-                Assert.Equal("Enter your username or email.", error.Message);
-            },
-            error =>
-            {
-                Assert.Equal("password", error.Field);
-                Assert.Equal("Enter your password.", error.Message);
-            });
-    }
-
     [Fact]
     public async Task Registering_returns_a_token_for_the_new_account()
     {

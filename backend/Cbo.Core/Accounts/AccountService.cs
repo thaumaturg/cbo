@@ -51,11 +51,11 @@ public class AccountService(
         // Lost a race with a simultaneous registration of the same username or email
         catch (DbUpdateException exception) when (PostgresConstraint.IsUniqueViolation(exception, ApplicationUserConfiguration.UserNameIndexName))
         {
-            return AlreadyRegistered([new FieldError("username", _userManager.ErrorDescriber.DuplicateUserName(registerRequest.Username).Description)]);
+            return AccountFailures.AlreadyRegistered([new FieldError("username", _userManager.ErrorDescriber.DuplicateUserName(registerRequest.Username).Description)]);
         }
         catch (DbUpdateException exception) when (PostgresConstraint.IsUniqueViolation(exception, ApplicationUserConfiguration.EmailIndexName))
         {
-            return AlreadyRegistered([new FieldError("email", _userManager.ErrorDescriber.DuplicateEmail(registerRequest.Email).Description)]);
+            return AccountFailures.AlreadyRegistered([new FieldError("email", _userManager.ErrorDescriber.DuplicateEmail(registerRequest.Email).Description)]);
         }
 
         if (identityResult.Succeeded)
@@ -88,22 +88,13 @@ public class AccountService(
         }
 
         if (invalid.Count > 0)
-            return Failure.Invalid("Some of the registration data is invalid.", invalid);
+            return AccountFailures.InvalidRegistration(invalid);
 
-        return AlreadyRegistered(duplicates);
+        return AccountFailures.AlreadyRegistered(duplicates);
     }
 
     public async Task<Result<LoginResponse>> LoginAsync(LoginRequest loginRequest)
     {
-        // Until request validation moves to FluentValidation
-        List<FieldError> emptyFields = [];
-        if (string.IsNullOrWhiteSpace(loginRequest.UsernameOrEmail))
-            emptyFields.Add(new FieldError("usernameOrEmail", "Enter your username or email."));
-        if (string.IsNullOrWhiteSpace(loginRequest.Password))
-            emptyFields.Add(new FieldError("password", "Enter your password."));
-        if (emptyFields.Count > 0)
-            return Failure.Invalid("Some of the login data is invalid.", emptyFields);
-
         // Usernames can't contain '@' (AccountIdentityOptions), so an identifier with '@' is always an email
         ApplicationUser? user = loginRequest.UsernameOrEmail.Contains('@')
             ? await _userManager.FindByEmailAsync(loginRequest.UsernameOrEmail)
@@ -117,9 +108,6 @@ public class AccountService(
     public async Task<Result<ChangePasswordResponse>> ChangePasswordAsync(ChangePasswordRequest changePasswordRequest)
     {
         ApplicationUser user = await GetCurrentUserAsync();
-
-        if (changePasswordRequest.NewPassword == changePasswordRequest.CurrentPassword)
-            return InvalidPasswordChange([new FieldError("newPassword", "New password must be different from the current password.")]);
 
         // Also rotates the security stamp, which revokes every token of the user, including the current one
         IdentityResult identityResult = await _userManager.ChangePasswordAsync(
@@ -140,7 +128,7 @@ public class AccountService(
             })
             .ToList();
 
-        return InvalidPasswordChange(fieldErrors);
+        return AccountFailures.InvalidPasswordChange(fieldErrors);
     }
 
     public async Task LogoutEverywhereAsync()
@@ -159,10 +147,4 @@ public class AccountService(
         return await _userManager.FindByIdAsync(currentUserId.ToString())
             ?? throw new InvalidOperationException($"Authenticated user {currentUserId} does not exist.");
     }
-
-    private static Failure AlreadyRegistered(IEnumerable<FieldError> duplicates) =>
-        Failure.Conflict("An account with this username or email already exists.", duplicates);
-
-    private static Failure InvalidPasswordChange(IEnumerable<FieldError> fieldErrors) =>
-        Failure.Invalid("Some of the password data is invalid.", fieldErrors);
 }
