@@ -11,7 +11,11 @@ public class TopicConfiguration : IEntityTypeConfiguration<Topic>
         entity.HasKey(t => t.Id);
 
         entity.Property(t => t.Title)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(Limits.Topics.TitleLengthMax);
+
+        entity.Property(t => t.Description)
+            .HasMaxLength(Limits.Topics.DescriptionLengthMax);
 
         // One-to-many: Topic -> Questions
         entity.HasMany(t => t.Questions)
