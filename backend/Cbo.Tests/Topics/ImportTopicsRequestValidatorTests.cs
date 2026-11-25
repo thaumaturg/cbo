@@ -69,6 +69,20 @@ public class ImportTopicsRequestValidatorTests : TopicContentValidatorTests<Impo
         Assert.Equal(2, result.Errors.Count);
     }
 
+    [Fact]
+    public void A_missing_topic_is_an_error_and_the_others_are_still_checked()
+    {
+        ImportTopicsRequest import = Import(2);
+        import.Topics.ElementAt(1).Title = "";
+        import.Topics = [import.Topics.ElementAt(0), null!, import.Topics.ElementAt(1)];
+
+        TestValidationResult<ImportTopicsRequest> result = _validator.TestValidate(import);
+
+        result.ShouldHaveValidationErrorFor("topics[1]").WithErrorMessage("This topic is missing.");
+        result.ShouldHaveValidationErrorFor("topics[2].title").WithErrorMessage("The title is required.");
+        Assert.Equal(2, result.Errors.Count);
+    }
+
     protected override TestValidationResult<ImportTopicsRequest> Validate(TopicData topic) =>
         _validator.TestValidate(new ImportTopicsRequest { IsAuthor = true, Topics = [ToRequest(topic)] });
 
@@ -86,7 +100,7 @@ public class ImportTopicsRequestValidatorTests : TopicContentValidatorTests<Impo
             Description = topic.Description,
             Questions =
             [
-                .. topic.Questions.Select(q => new CreateQuestionRequest
+                .. topic.Questions.Select(q => q is null ? null! : new CreateQuestionRequest
                 {
                     QuestionNumber = q.QuestionNumber, Cost = q.Cost, Text = q.Text, Answer = q.Answer, Comment = q.Comment,
                 }),

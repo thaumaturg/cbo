@@ -18,7 +18,9 @@ public sealed class ImportTopicsRequestValidator : RequestValidator<ImportTopics
             .Must(topics => topics.Count <= Limits.Topics.ImportMax)
             .WithMessage($"You can import at most {Limits.Topics.ImportMax} topics at once.")
             .DependentRules(() =>
-                RuleForEach(import => import.Topics).SetValidator(new ImportTopicRequestValidator()));
+                RuleForEach(import => import.Topics)
+                    .NotNull().WithMessage("This topic is missing.")
+                    .SetValidator(new ImportTopicRequestValidator()));
     }
 
     public override string InvalidMessage => TopicFailures.InvalidImportMessage;

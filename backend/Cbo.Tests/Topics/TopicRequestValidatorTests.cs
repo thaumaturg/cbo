@@ -37,8 +37,18 @@ public abstract class TopicRequestValidatorTests<TRequest> : TopicContentValidat
     [Fact]
     public void A_null_co_author_username_is_required()
     {
-        Validate(ValidTopic with { Authors = [null!] })
+        Validate(ValidTopic with { Authors = [new AuthorData(null)] })
             .ShouldHaveValidationErrorFor("authors[0].username").WithErrorMessage("Username is required.").Only();
+    }
+
+    [Fact]
+    public void A_missing_co_author_is_an_error_and_the_others_are_still_checked()
+    {
+        TestValidationResult<TRequest> result = Validate(ValidTopic with { Authors = ["anna", null, "anna"] });
+
+        result.ShouldHaveValidationErrorFor("authors[1]").WithErrorMessage("This co-author is missing.");
+        result.ShouldHaveValidationErrorFor("authors[2].username").WithErrorMessage("This author appears more than once.");
+        Assert.Equal(2, result.Errors.Count);
     }
 
     [Fact]
@@ -81,6 +91,6 @@ public abstract class TopicRequestValidatorTests<TRequest> : TopicContentValidat
         Assert.Equal(3, result.Errors.Count);
     }
 
-    private static string[] Usernames(int count) =>
-        [.. Enumerable.Range(1, count).Select(i => $"author{i}")];
+    private static AuthorData[] Usernames(int count) =>
+        [.. Enumerable.Range(1, count).Select(i => new AuthorData($"author{i}"))];
 }

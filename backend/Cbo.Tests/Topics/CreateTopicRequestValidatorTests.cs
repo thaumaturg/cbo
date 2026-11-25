@@ -24,11 +24,11 @@ public class CreateTopicRequestValidatorTests : TopicRequestValidatorTests<Creat
             IsAuthor = true,
             Questions =
             [
-                .. topic.Questions.Select(q => new CreateQuestionRequest
+                .. topic.Questions.Select(q => q is null ? null! : new CreateQuestionRequest
                 {
                     QuestionNumber = q.QuestionNumber, Cost = q.Cost, Text = q.Text, Answer = q.Answer, Comment = q.Comment,
                 }),
             ],
-            Authors = [.. topic.Authors.Select(username => new TopicAuthorRequest { Username = username })],
+            Authors = [.. topic.Authors.Select(a => a is null ? null! : new TopicAuthorRequest { Username = a.Username! })],
         });
 }

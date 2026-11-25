@@ -14,8 +14,14 @@ public abstract class TopicContentValidatorTests<TRequest>
     protected sealed record QuestionData(
         int QuestionNumber, int Cost = 10, string Text = "Capital of France?", string Answer = "Paris", string? Comment = null);
 
+    protected sealed record AuthorData(string? Username)
+    {
+        public static implicit operator AuthorData(string? username) => new(username);
+    }
+
+    // A null question or author stands for a JSON null in that list
     protected sealed record TopicData(
-        string Title, string? Description, IReadOnlyList<QuestionData> Questions, IReadOnlyList<string> Authors);
+        string Title, string? Description, IReadOnlyList<QuestionData?> Questions, IReadOnlyList<AuthorData?> Authors);
 
     /// <summary>The path in front of the topic's own fields, such as <c>topics[0].</c>.</summary>
     protected abstract string Prefix { get; }
@@ -24,7 +30,7 @@ public abstract class TopicContentValidatorTests<TRequest>
 
     protected static TopicData ValidTopic => new TopicData("Geography", "Capitals of Europe", Questions(2), []);
 
-    protected static IReadOnlyList<QuestionData> Questions(int count, int cost = 10) =>
+    protected static IReadOnlyList<QuestionData?> Questions(int count, int cost = 10) =>
         [.. Enumerable.Range(1, count).Select(number => new QuestionData(number, cost))];
 
     [Fact]
@@ -162,6 +168,20 @@ public abstract class TopicContentValidatorTests<TRequest>
             .ShouldHaveValidationErrorFor(Prefix + "questions")
             .WithErrorMessage($"A topic cannot have more than {Limits.Topics.QuestionsMax} questions.")
             .Only();
+    }
+
+    // The numbering and the total cost are checked once the list is whole
+    [Fact]
+    public void A_missing_question_is_an_error_and_the_others_are_still_checked()
+    {
+        TestValidationResult<TRequest> result = Validate(ValidTopic with
+        {
+            Questions = [new QuestionData(1), null, new QuestionData(3, Text: "")],
+        });
+
+        result.ShouldHaveValidationErrorFor(Prefix + "questions[1]").WithErrorMessage("This question is missing.");
+        result.ShouldHaveValidationErrorFor(Prefix + "questions[2].text").WithErrorMessage("Question text is required.");
+        Assert.Equal(2, result.Errors.Count);
     }
 
     [Fact]
