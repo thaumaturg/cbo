@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using Cbo.Core.Paging;
+using Cbo.Core.Validation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cbo.Core.Topics;
@@ -11,7 +12,7 @@ namespace Cbo.Core.Topics;
 /// </summary>
 /// <remarks>
 /// <c>[DefaultValue]</c>, <c>[Range]</c>, <c>[MaxLength]</c> and <c>[Description]</c> only document the parameters in OpenAPI.
-/// The handler validates them.
+/// The validator checks them.
 /// </remarks>
 public record GetTopicsRequest
 {
@@ -32,7 +33,7 @@ public record GetTopicsRequest
 
     [FromQuery(Name = "search")]
     [MaxLength(PagingDefaults.MaxSearchLength)]
-    public string? Search { get; set; }
+    public string? Search { get; set => field = RequestText.TrimToNull(value); }
 
     [FromQuery(Name = "played")]
     public bool? Played { get; set; }
