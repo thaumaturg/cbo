@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using Cbo.Core.Domain;
 using Cbo.Core.Paging;
+using Cbo.Core.Validation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cbo.Core.Tournaments;
@@ -12,7 +13,7 @@ namespace Cbo.Core.Tournaments;
 /// </summary>
 /// <remarks>
 /// <c>[DefaultValue]</c>, <c>[Range]</c>, <c>[MaxLength]</c> and <c>[Description]</c> only document the parameters in OpenAPI.
-/// The handler validates them.
+/// The validator checks them.
 /// </remarks>
 public record GetTournamentsRequest
 {
@@ -33,7 +34,7 @@ public record GetTournamentsRequest
 
     [FromQuery(Name = "search")]
     [MaxLength(PagingDefaults.MaxSearchLength)]
-    public string? Search { get; set; }
+    public string? Search { get; set => field = RequestText.TrimToNull(value); }
 
     [FromQuery(Name = "stage")]
     public TournamentStageFilter? Stage { get; set; }
