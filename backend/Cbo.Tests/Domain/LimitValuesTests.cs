@@ -73,7 +73,7 @@ public class LimitValuesTests
     [Fact]
     public void Tournament_defaults_have_their_agreed_values()
     {
-        Assert.Equal(14, TournamentDefaults.PlayersPerTournament);
+        Assert.Equal(14, TournamentDefaults.TournamentSize);
         Assert.Equal(6, TournamentDefaults.TopicsPerParticipantMin);
         Assert.Equal(10, TournamentDefaults.TopicsPerParticipantMax);
     }

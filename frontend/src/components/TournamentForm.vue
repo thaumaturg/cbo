@@ -48,7 +48,7 @@ const TOPICS_MIN_RULES = `required|min_value:${topicsPerParticipantFloor}|lte_fi
 const toFormValues = (tournament) => ({
   title: tournament?.title || "",
   description: tournament?.description || "",
-  playersPerTournament: tournament?.playersPerTournament ?? TOURNAMENT_DEFAULTS.playersPerTournament,
+  tournamentSize: tournament?.tournamentSize ?? TOURNAMENT_DEFAULTS.tournamentSize,
   topicsPerParticipantMax: tournament?.topicsPerParticipantMax ?? TOURNAMENT_DEFAULTS.topicsPerParticipantMax,
   topicsPerParticipantMin: tournament?.topicsPerParticipantMin ?? TOURNAMENT_DEFAULTS.topicsPerParticipantMin,
 });
@@ -92,7 +92,7 @@ const onSubmit = async (values, { setErrors }) => {
     const tournamentData = {
       title: values.title,
       description: values.description || null,
-      playersPerTournament: values.playersPerTournament,
+      tournamentSize: values.tournamentSize,
       topicsPerParticipantMax: values.topicsPerParticipantMax,
       topicsPerParticipantMin: values.topicsPerParticipantMin,
     };
@@ -166,16 +166,16 @@ defineExpose({ reset, dirty });
       <div class="grid grid-cols-2 gap-4">
         <!-- Tournament Size -->
         <div class="flex flex-col gap-1">
-          <label for="playersPerTournament" class="font-semibold text-sm">Tournament Size</label>
-          <VeeField name="playersPerTournament" label="Tournament size" v-slot="slot">
+          <label for="tournamentSize" class="font-semibold text-sm">Tournament Size</label>
+          <VeeField name="tournamentSize" label="Tournament size" v-slot="slot">
             <Select
               v-bind="eager(slot)"
-              labelId="playersPerTournament"
+              labelId="tournamentSize"
               :options="supportedSizes"
               :disabled="readOnly || supportedSizes.length === 1"
             />
           </VeeField>
-          <ErrorMessage name="playersPerTournament" v-slot="{ message }">
+          <ErrorMessage name="tournamentSize" v-slot="{ message }">
             <Message severity="error" variant="simple">{{ message }}</Message>
           </ErrorMessage>
         </div>

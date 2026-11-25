@@ -2988,7 +2988,7 @@
               "string"
             ]
           },
-          "playersPerTournament": {
+          "tournamentSize": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "null",
@@ -3859,7 +3859,7 @@
           "title",
           "currentStage",
           "createdAt",
-          "playersPerTournament",
+          "tournamentSize",
           "topicsPerParticipantMax",
           "topicsPerParticipantMin"
         ],
@@ -3899,7 +3899,7 @@
             ],
             "format": "date-time"
           },
-          "playersPerTournament": {
+          "tournamentSize": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "integer",
@@ -4197,7 +4197,7 @@
               "string"
             ]
           },
-          "playersPerTournament": {
+          "tournamentSize": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "null",

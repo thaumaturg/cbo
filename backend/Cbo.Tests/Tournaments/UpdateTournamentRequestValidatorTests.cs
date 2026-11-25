@@ -14,7 +14,7 @@ public class UpdateTournamentRequestValidatorTests : TournamentRequestValidatorT
         {
             Title = tournament.Title,
             Description = tournament.Description,
-            PlayersPerTournament = tournament.PlayersPerTournament,
+            TournamentSize = tournament.TournamentSize,
             TopicsPerParticipantMax = tournament.TopicsPerParticipantMax,
             TopicsPerParticipantMin = tournament.TopicsPerParticipantMin,
         });
