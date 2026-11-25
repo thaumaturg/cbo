@@ -41,7 +41,7 @@ public sealed class SetMyTournamentTopicsCommandHandler(
 
         List<FieldError> fieldErrors = await ValidateTopicsAsync(command.Topics, tournament.TopicsPerParticipantMax, cancellationToken);
         if (fieldErrors.Count > 0)
-            return Failure.Invalid("Some of the tournament topics are invalid.", fieldErrors);
+            return Failure.Invalid(TournamentTopicFailures.InvalidMessage, fieldErrors);
 
         if (tournament.CurrentStage != TournamentStage.Preparations)
             return Failure.Conflict("Topics can only be changed during the Preparations stage.");
@@ -72,8 +72,9 @@ public sealed class SetMyTournamentTopicsCommandHandler(
     }
 
     /// <summary>
-    /// Every priority index must be a position below the maximum, taken at most once; empty slots between topics take
-    /// positions too. Every topic id must exist, appear at most once, and be a topic the current user owns.
+    /// Every priority index must be a position below the maximum; empty slots between topics take positions too. Every
+    /// topic must exist and be one the current user owns. <see cref="TournamentTopicListValidator"/> has already ruled out
+    /// negative positions and anything listed twice.
     /// </summary>
     private async Task<List<FieldError>> ValidateTopicsAsync(
         IReadOnlyList<BroughtTopic> topics, int topicsPerParticipantMax, CancellationToken cancellationToken)
@@ -85,35 +86,19 @@ public sealed class SetMyTournamentTopicsCommandHandler(
             .ToDictionaryAsync(t => t.Id, cancellationToken);
 
         List<FieldError> fieldErrors = [];
-        HashSet<int> seenPriorityIndexes = [];
-        HashSet<Guid> seenTopicIds = [];
         ClaimsPrincipal user = _currentUserService.GetRequiredCurrentUser();
 
         for (int i = 0; i < topics.Count; i++)
         {
-            int priorityIndex = topics[i].PriorityIndex;
-            string priorityField = $"[{i}].priorityIndex";
-
-            if (priorityIndex < 0 || priorityIndex >= topicsPerParticipantMax)
+            if (topics[i].PriorityIndex >= topicsPerParticipantMax)
             {
                 fieldErrors.Add(new FieldError(
-                    priorityField, $"The priority position must be between 1 and {topicsPerParticipantMax}."));
-            }
-            else if (!seenPriorityIndexes.Add(priorityIndex))
-            {
-                fieldErrors.Add(new FieldError(priorityField, "This priority position appears more than once."));
+                    $"[{i}].priorityIndex", $"The priority position must be between 1 and {topicsPerParticipantMax}."));
             }
 
-            Guid topicId = topics[i].TopicId;
             string topicField = $"[{i}].topicId";
 
-            if (!seenTopicIds.Add(topicId))
-            {
-                fieldErrors.Add(new FieldError(topicField, "This topic appears more than once."));
-                continue;
-            }
-
-            if (!topicsById.TryGetValue(topicId, out Topic? topic))
+            if (!topicsById.TryGetValue(topics[i].TopicId, out Topic? topic))
             {
                 fieldErrors.Add(new FieldError(topicField, "This topic doesn't exist."));
                 continue;
