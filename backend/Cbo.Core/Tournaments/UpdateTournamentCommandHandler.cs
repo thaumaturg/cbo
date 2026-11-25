@@ -10,7 +10,6 @@ public sealed class UpdateTournamentCommandHandler(
     ITournamentAccessService tournamentAccessService) : CommandHandler<UpdateTournamentCommand>(dbContext)
 {
     private const string UpdateForbiddenMessage = "You don't have permission to edit this tournament.";
-    private const string InvalidTournamentMessage = "Some of the tournament data is invalid.";
 
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
 
@@ -21,19 +20,15 @@ public sealed class UpdateTournamentCommandHandler(
         if (access.IsFailure)
             return access.Failure;
 
-        TournamentSettings settings = TournamentSettings.Resolve(
-            command.PlayersPerTournament,
-            command.TopicsPerParticipantMax,
-            command.TopicsPerParticipantMin);
-
-        List<FieldError> fieldErrors = settings.Validate();
-        if (fieldErrors.Count > 0)
-            return Failure.Invalid(InvalidTournamentMessage, fieldErrors);
-
         Tournament tournament = access.Value;
 
         if (tournament.CurrentStage != TournamentStage.Preparations)
             return Failure.Conflict("A tournament can only be edited during the Preparations stage.");
+
+        TournamentSettings settings = TournamentSettings.Resolve(
+            command.PlayersPerTournament,
+            command.TopicsPerParticipantMax,
+            command.TopicsPerParticipantMin);
 
         tournament.Title = command.Title;
         tournament.Description = command.Description;

@@ -10,8 +10,6 @@ public sealed class CreateTournamentCommandHandler(
     CboDbContext dbContext,
     ICurrentUserService currentUserService) : CommandHandler<CreateTournamentCommand, Guid>(dbContext)
 {
-    private const string InvalidTournamentMessage = "Some of the tournament data is invalid.";
-
     private readonly ICurrentUserService _currentUserService = currentUserService;
 
     protected override Task<Result<Guid>> ExecuteAsync(CreateTournamentCommand command, CancellationToken cancellationToken) =>
@@ -23,10 +21,6 @@ public sealed class CreateTournamentCommandHandler(
             command.PlayersPerTournament,
             command.TopicsPerParticipantMax,
             command.TopicsPerParticipantMin);
-
-        List<FieldError> fieldErrors = settings.Validate();
-        if (fieldErrors.Count > 0)
-            return Failure.Invalid(InvalidTournamentMessage, fieldErrors);
 
         Guid creatorId = _currentUserService.GetRequiredCurrentUserId();
 
