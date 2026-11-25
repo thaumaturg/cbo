@@ -15,17 +15,6 @@ public class FriendRulesTests
         Assert.Null(FriendRules.CheckNewFriend("bob", BobId, CurrentUserId, isAlreadyAFriend: false));
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void A_blank_username_is_required(string? username)
-    {
-        Failure? failure = FriendRules.CheckNewFriend(username, null, CurrentUserId, isAlreadyAFriend: false);
-
-        AssertUsernameError(failure, FailureKind.Invalid, "Username is required.");
-    }
-
     [Fact]
     public void A_username_without_an_account_is_an_error_naming_it()
     {

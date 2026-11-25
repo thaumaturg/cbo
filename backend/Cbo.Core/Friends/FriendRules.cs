@@ -10,12 +10,10 @@ public static class FriendRules
     /// <summary>
     /// Returns the first reason <paramref name="username"/> can't go on <paramref name="currentUserId"/>'s friend list, or
     /// null when it can. <paramref name="friendId"/> is the account the username resolved to, null when none has it.
+    /// A blank username never gets here: <see cref="AddFriendRequestValidator"/> rejects it.
     /// </summary>
-    public static Failure? CheckNewFriend(string? username, Guid? friendId, Guid currentUserId, bool isAlreadyAFriend)
+    public static Failure? CheckNewFriend(string username, Guid? friendId, Guid currentUserId, bool isAlreadyAFriend)
     {
-        if (string.IsNullOrWhiteSpace(username))
-            return FriendFailures.InvalidUsername("Username is required.");
-
         if (friendId is null)
             return FriendFailures.InvalidUsername($"There's no account with the username '{username}'.");
 
