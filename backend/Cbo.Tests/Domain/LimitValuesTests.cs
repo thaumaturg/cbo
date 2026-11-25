@@ -13,6 +13,10 @@ public class LimitValuesTests
     public void Topic_limits_have_their_agreed_values()
     {
         Assert.Equal(100, Limits.Topics.TitleLengthMax);
+        Assert.Equal(500, Limits.Topics.DescriptionLengthMax);
+        Assert.Equal(4000, Limits.Topics.QuestionTextLengthMax);
+        Assert.Equal(4000, Limits.Topics.AnswerLengthMax);
+        Assert.Equal(4000, Limits.Topics.CommentLengthMax);
         Assert.Equal(1, Limits.Topics.QuestionsMin);
         Assert.Equal(10, Limits.Topics.QuestionsMax);
         Assert.Equal(1, Limits.Topics.QuestionCostMin);
@@ -31,7 +35,7 @@ public class LimitValuesTests
         Assert.Equal(100, Limits.Tournaments.TitleLengthMax);
         Assert.Equal(500, Limits.Tournaments.DescriptionLengthMax);
         Assert.Equal(0, Limits.Tournaments.TopicsPerParticipantFloor);
-        Assert.Equal(20, Limits.Tournaments.TopicsPerParticipantCeiling);
+        Assert.Equal(50, Limits.Tournaments.TopicsPerParticipantCeiling);
     }
 
     [Fact]
@@ -45,8 +49,8 @@ public class LimitValuesTests
     [Fact]
     public void Round_limits_have_their_agreed_values()
     {
-        Assert.Equal(-999, Limits.Rounds.OverrideCostMin);
-        Assert.Equal(999, Limits.Rounds.OverrideCostMax);
+        Assert.Equal(-9999, Limits.Rounds.OverrideCostMin);
+        Assert.Equal(9999, Limits.Rounds.OverrideCostMax);
     }
 
     [Fact]
@@ -58,6 +62,12 @@ public class LimitValuesTests
         Assert.Equal(64, Limits.Accounts.PasswordLengthMax);
         Assert.Equal(2, Limits.Accounts.FullNameLengthMin);
         Assert.Equal(64, Limits.Accounts.FullNameLengthMax);
+        Assert.Equal(
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_",
+            Limits.Accounts.UsernameAllowedCharacters);
+        Assert.Equal(
+            @"^[A-Za-z\u0100-\u017E\u0401\u0410-\u044F\u0451 '\u2019-]+$",
+            Limits.Accounts.FullNamePattern);
     }
 
     [Fact]

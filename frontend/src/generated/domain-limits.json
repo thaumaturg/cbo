@@ -3,8 +3,10 @@
     "accounts": {
       "fullNameLengthMax": 64,
       "fullNameLengthMin": 2,
+      "fullNamePattern": "^[A-Za-z\\u0100-\\u017E\\u0401\\u0410-\\u044F\\u0451 \u0027\\u2019-]\u002B$",
       "passwordLengthMax": 64,
       "passwordLengthMin": 8,
+      "usernameAllowedCharacters": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_",
       "usernameLengthMax": 16,
       "usernameLengthMin": 3
     },
@@ -14,15 +16,19 @@
       "roundsPerQualificationMatch": 4
     },
     "rounds": {
-      "overrideCostMax": 999,
-      "overrideCostMin": -999
+      "overrideCostMax": 9999,
+      "overrideCostMin": -9999
     },
     "topics": {
+      "answerLengthMax": 4000,
       "coAuthorsMax": 10,
+      "commentLengthMax": 4000,
+      "descriptionLengthMax": 500,
       "importMax": 50,
       "ownedMax": 1000,
       "questionCostMax": 150,
       "questionCostMin": 1,
+      "questionTextLengthMax": 4000,
       "questionsCostTotalMax": 150,
       "questionsMax": 10,
       "questionsMin": 1,
@@ -35,7 +41,7 @@
       ],
       "titleLengthMax": 100,
       "titleLengthMin": 3,
-      "topicsPerParticipantCeiling": 20,
+      "topicsPerParticipantCeiling": 50,
       "topicsPerParticipantFloor": 0
     }
   },
