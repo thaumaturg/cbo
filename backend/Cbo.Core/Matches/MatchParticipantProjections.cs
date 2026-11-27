@@ -13,6 +13,7 @@ public static class MatchParticipantProjections
             Id = mp.Id,
             Username = mp.TournamentParticipant!.ApplicationUser!.UserName ?? string.Empty,
             ScoreSum = mp.ScoreSum,
+            PositiveScoreSum = mp.PositiveScoreSum,
             PointsSum = mp.PointsSum,
         };
 }

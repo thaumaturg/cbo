@@ -3250,6 +3250,15 @@
             ],
             "format": "int32"
           },
+          "positiveScoreSum": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
           "pointsSum": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
             "type": [
@@ -3441,6 +3450,15 @@
             "format": "int32"
           },
           "scoreSum": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "positiveScoreSum": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "null",

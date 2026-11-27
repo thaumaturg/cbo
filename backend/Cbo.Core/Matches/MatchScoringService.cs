@@ -13,10 +13,11 @@ public interface IMatchScoringService
     Task<Match?> LoadMatchAsync(Guid tournamentId, Guid matchId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Recomputes the score and points of the match's participants from <see cref="Match.Rounds"/>, then the totals
-    /// of every participant of the tournament. Reads the tracked graph rather than the database, so it sees round
-    /// changes that are only staged: apply them to the graph from <see cref="LoadMatchAsync"/> first. Every answer
-    /// in the graph needs its <see cref="RoundAnswer.Question"/>. Stages changes only.
+    /// Recomputes the score, positive score and points of the match's participants from <see cref="Match.Rounds"/>,
+    /// then the totals of every participant of the tournament, which count qualification matches only. Reads the
+    /// tracked graph rather than the database, so it sees round changes that are only staged: apply them to the graph
+    /// from <see cref="LoadMatchAsync"/> first. Every answer in the graph needs its <see cref="RoundAnswer.Question"/>.
+    /// Stages changes only.
     /// </summary>
     Task RecalculateScoresAsync(Match match, CancellationToken cancellationToken);
 }
@@ -47,25 +48,9 @@ public class MatchScoringService(CboDbContext dbContext) : IMatchScoringService
 
         foreach (MatchParticipant participant in match.MatchParticipants)
         {
-            int score = 0;
-            foreach (RoundAnswer answer in answersByParticipant[participant.Id])
-            {
-                if (answer.OverrideCost.HasValue)
-                {
-                    score += answer.OverrideCost.Value;
-                }
-                else if (answer.IsAnswerAccepted.HasValue)
-                {
-                    Question question = answer.Question
-                        ?? throw new InvalidOperationException($"The question of answer {answer.Id} isn't loaded.");
-
-                    if (answer.IsAnswerAccepted.Value)
-                        score += question.Cost;
-                    else
-                        score -= question.Cost;
-                }
-            }
-            participant.ScoreSum = score;
+            AnswerScores scores = AnswerScoring.Sum(answersByParticipant[participant.Id]);
+            participant.ScoreSum = scores.Score;
+            participant.PositiveScoreSum = scores.PositiveScore;
         }
 
         if (match.Rounds.Count == Limits.Matches.RoundsPerQualificationMatch)
@@ -86,21 +71,17 @@ public class MatchScoringService(CboDbContext dbContext) : IMatchScoringService
         // The match's participants are already tracked, so the query returns those instances with their new scores
         List<TournamentParticipant> participants = await _dbContext.TournamentParticipants
             .Include(tp => tp.MatchParticipants)
+                .ThenInclude(mp => mp.Match)
             .Where(tp => tp.TournamentId == tournamentId)
             .ToListAsync(cancellationToken);
 
         foreach (TournamentParticipant participant in participants)
         {
-            int scoreSum = participant.MatchParticipants
-                .Where(mp => mp.ScoreSum.HasValue)
-                .Sum(mp => mp.ScoreSum!.Value);
+            QualificationTotals totals = QualificationTotals.Of(participant.MatchParticipants);
 
-            decimal pointsSum = participant.MatchParticipants
-                .Where(mp => mp.PointsSum.HasValue)
-                .Sum(mp => mp.PointsSum!.Value);
-
-            participant.ScoreSum = scoreSum;
-            participant.PointsSum = pointsSum;
+            participant.ScoreSum = totals.Score;
+            participant.PositiveScoreSum = totals.PositiveScore;
+            participant.PointsSum = totals.Points;
         }
     }
 

@@ -5,5 +5,6 @@ public record MatchParticipantResponse
     public required Guid Id { get; set; }
     public required string Username { get; set; }
     public int? ScoreSum { get; set; }
+    public int? PositiveScoreSum { get; set; }
     public decimal? PointsSum { get; set; }
 }
