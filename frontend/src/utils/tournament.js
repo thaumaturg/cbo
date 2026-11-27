@@ -6,6 +6,13 @@
  */
 export const isPreparationsStage = (stage) => stage === "Preparations";
 
+/**
+ * Whether a tournament's Playoff has started: it is in the Playoff or has ended.
+ * @param {string|null|undefined} stage - Tournament stage name
+ * @returns {boolean}
+ */
+export const hasPlayoffStarted = (stage) => stage === "Playoff" || stage === "Ended";
+
 /** The tournament stages in the order a tournament moves through them. */
 export const TOURNAMENT_STAGES = ["Preparations", "Qualifications", "Playoff", "Ended"];
 

@@ -121,6 +121,34 @@ export const tournamentService = {
   },
 
   /**
+   * Start Playoff: move a tournament from Qualifications to the Playoff, fixing the qualification places
+   * @param {string} tournamentId - Tournament ID (GUID)
+   * @returns {Promise} - API response with updated tournament
+   */
+  async startPlayoff(tournamentId) {
+    try {
+      const response = await api.patch(`/Tournaments/${tournamentId}`, { stage: "Playoff" });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return apiFailure(error, "Failed to start the Playoff. Please try again.");
+    }
+  },
+
+  /**
+   * End Tournament: move a tournament from the Playoff to Ended, once its Final is decided
+   * @param {string} tournamentId - Tournament ID (GUID)
+   * @returns {Promise} - API response with updated tournament
+   */
+  async endTournament(tournamentId) {
+    try {
+      const response = await api.patch(`/Tournaments/${tournamentId}`, { stage: "Ended" });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return apiFailure(error, "Failed to end the tournament. Please try again.");
+    }
+  },
+
+  /**
    * Roll back: move a tournament to an earlier stage, wiping everything played after it
    * @param {string} tournamentId - Tournament ID (GUID)
    * @param {string} stage - The earlier stage to go back to

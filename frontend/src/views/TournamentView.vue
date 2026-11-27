@@ -8,10 +8,18 @@ import TournamentTopicsPanel from "@/components/TournamentTopicsPanel.vue";
 import { tournamentMatchesService } from "@/services/tournament-matches-service.js";
 import { tournamentParticipantsService } from "@/services/tournament-participants-service.js";
 import { tournamentService } from "@/services/tournament-service.js";
+import {
+  isFinalDecided,
+  isMatchFinished,
+  isQualificationMatch,
+  matchTitle,
+  playoffMatchesInBracketOrder,
+} from "@/utils/match.js";
 import { useNotify } from "@/utils/notify.js";
-import { isPreparationsStage, stageTagSeverity } from "@/utils/tournament.js";
+import { hasPlayoffStarted, isPreparationsStage, stageTagSeverity } from "@/utils/tournament.js";
 import { useUnsavedChangesGuard } from "@/utils/unsaved-changes.js";
 import Button from "primevue/button";
+import ConfirmDialog from "primevue/confirmdialog";
 import Tab from "primevue/tab";
 import TabList from "primevue/tablist";
 import TabPanel from "primevue/tabpanel";
@@ -19,7 +27,7 @@ import TabPanels from "primevue/tabpanels";
 import Tabs from "primevue/tabs";
 import Tag from "primevue/tag";
 import { useConfirm } from "primevue/useconfirm";
-import { computed, nextTick, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
@@ -36,9 +44,19 @@ const isLoadingParticipants = ref(false);
 const loadError = ref(null);
 
 const isStartingQualifications = ref(false);
-const activeTab = ref("participants");
+const isStartingPlayoff = ref(false);
+const isEndingTournament = ref(false);
+const stageTab = ref("qualifications");
+const managementTab = ref("participants");
 
-const isInPreparations = computed(() => isPreparationsStage(tournament.value?.currentStage));
+const START_PLAYOFF_CONFIRM_GROUP = "start-playoff";
+const START_PLAYOFF_HINT = "Every qualification match must be finished first.";
+
+const stage = computed(() => tournament.value?.currentStage);
+const isInPreparations = computed(() => isPreparationsStage(stage.value));
+const isInQualifications = computed(() => stage.value === "Qualifications");
+const isInPlayoff = computed(() => stage.value === "Playoff");
+const isPlayoffStarted = computed(() => hasPlayoffStarted(stage.value));
 const isCreator = computed(() => tournament.value?.currentUserRole === "Creator");
 // Only the Creator can change the tournament, and only before Start Qualifications
 const canManage = computed(() => isCreator.value && isInPreparations.value);
@@ -47,27 +65,49 @@ const participantsReadOnly = computed(() => !canManage.value);
 const topicsReadOnly = computed(() => !isInPreparations.value);
 const settingsReadOnly = computed(() => !canManage.value);
 
-const stageSeverity = computed(() => stageTagSeverity(tournament.value?.currentStage));
+const stageSeverity = computed(() => stageTagSeverity(stage.value));
+
+const isLoadingStageData = computed(() => isLoadingMatches.value || isLoadingParticipants.value);
+const qualificationMatches = computed(() => matches.value.filter(isQualificationMatch));
+const playoffMatches = computed(() => playoffMatchesInBracketOrder(matches.value));
+
+const canStartPlayoff = computed(
+  () =>
+    !isLoadingStageData.value &&
+    qualificationMatches.value.length > 0 &&
+    qualificationMatches.value.every(isMatchFinished),
+);
+const canEndTournament = computed(() => isInPlayoff.value && isFinalDecided(matches.value));
+const endTournamentHint = computed(() => {
+  if (stage.value === "Ended") return "The tournament has already ended.";
+  if (!isInPlayoff.value) return "The tournament can end once the Playoff has started and its Final is decided.";
+  return "The tournament can end once its Final is decided.";
+});
+
+// The top tab follows the stage: Playoff once it has started, Qualifications before
+watch(stage, () => {
+  stageTab.value = isPlayoffStarted.value ? "playoff" : "qualifications";
+});
 
 const settingsPanel = ref(null);
 const settingsDirty = ref(false);
 const { confirmDiscard } = useUnsavedChangesGuard(settingsDirty);
 
 const handleTabChange = async (nextTab) => {
-  if (activeTab.value !== "settings" || !settingsDirty.value) {
-    activeTab.value = nextTab;
+  if (managementTab.value !== "settings" || !settingsDirty.value) {
+    managementTab.value = nextTab;
     return;
   }
 
   // Tabs has already switched itself and only follows `value` when it changes, so send it to the
   // new tab and back to keep Settings on screen while the user decides
-  activeTab.value = nextTab;
+  managementTab.value = nextTab;
   await nextTick();
-  activeTab.value = "settings";
+  managementTab.value = "settings";
 
   if (await confirmDiscard()) {
     settingsPanel.value?.reset();
-    activeTab.value = nextTab;
+    managementTab.value = nextTab;
   }
 };
 
@@ -158,6 +198,70 @@ const refreshTournament = async () => {
   }
 };
 
+const handleStartPlayoff = () => {
+  const { id, title } = tournament.value;
+
+  confirm.require({
+    group: START_PLAYOFF_CONFIRM_GROUP,
+    message: `Are you sure you want to start the Playoff in "${title}"? These qualification places will be fixed, and qualification matches can no longer be edited.`,
+    header: "Start Playoff",
+    icon: "pi pi-exclamation-triangle",
+    rejectProps: { label: "Cancel", severity: "secondary", outlined: true },
+    acceptProps: { label: "Start Playoff" },
+    accept: async () => {
+      isStartingPlayoff.value = true;
+      try {
+        const result = await tournamentService.startPlayoff(id);
+
+        if (result.success) {
+          notify.success("Playoff started", `"${title}" is in the Playoff.`);
+          tournament.value = result.data;
+          await Promise.all([fetchMatches(), fetchParticipants()]);
+        } else {
+          notify.error("Start Playoff Failed", result.message);
+        }
+      } catch (error) {
+        console.error("Error starting the Playoff:", error);
+        notify.error("Start Playoff Failed", "An unexpected error occurred. Please try again.");
+      } finally {
+        isStartingPlayoff.value = false;
+      }
+    },
+  });
+};
+
+const handleEndTournament = () => {
+  const { id, title } = tournament.value;
+
+  confirm.require({
+    message: `Are you sure you want to end "${title}"? Nothing can change until it is rolled back to the Playoff.`,
+    header: "End Tournament",
+    icon: "pi pi-exclamation-triangle",
+    rejectProps: { label: "Cancel", severity: "secondary", outlined: true },
+    acceptProps: { label: "End Tournament" },
+    accept: async () => {
+      isEndingTournament.value = true;
+      try {
+        const result = await tournamentService.endTournament(id);
+
+        if (result.success) {
+          notify.success("Tournament ended", `"${title}" has ended.`);
+          tournament.value = result.data;
+          // Every match locks once the tournament has ended
+          await fetchMatches();
+        } else {
+          notify.error("End Tournament Failed", result.message);
+        }
+      } catch (error) {
+        console.error("Error ending the tournament:", error);
+        notify.error("End Tournament Failed", "An unexpected error occurred. Please try again.");
+      } finally {
+        isEndingTournament.value = false;
+      }
+    },
+  });
+};
+
 const handleStartQualifications = () => {
   const { id, title } = tournament.value;
 
@@ -232,52 +336,119 @@ onMounted(async () => {
             :loading="isStartingQualifications"
             @click="handleStartQualifications"
           />
+          <!-- The spans show the tooltips, since a disabled button gets no mouse events -->
+          <span
+            v-if="isCreator && isInQualifications"
+            v-tooltip.top="{ value: START_PLAYOFF_HINT, disabled: canStartPlayoff }"
+            class="inline-flex"
+          >
+            <Button
+              label="Start Playoff"
+              icon="pi pi-play"
+              severity="success"
+              :disabled="!canStartPlayoff"
+              :loading="isStartingPlayoff"
+              @click="handleStartPlayoff"
+            />
+          </span>
+          <span
+            v-if="isCreator && !isInPreparations"
+            v-tooltip.top="{ value: endTournamentHint, disabled: canEndTournament }"
+            class="inline-flex"
+          >
+            <Button
+              label="End Tournament"
+              icon="pi pi-flag"
+              severity="success"
+              :disabled="!canEndTournament"
+              :loading="isEndingTournament"
+              @click="handleEndTournament"
+            />
+          </span>
         </div>
         <p v-if="tournament.description" class="text-gray-600 dark:text-gray-400 ml-14">
           {{ tournament.description }}
         </p>
       </div>
 
-      <!-- Preparations Stage Message -->
-      <div v-if="isInPreparations" class="text-center py-16">
-        <div class="text-gray-500 dark:text-gray-400">
-          <i class="pi pi-clock text-5xl mb-4 block"></i>
-          <p class="text-xl mb-2">Tournament is in Preparations</p>
-          <p class="text-sm">Matches will be generated when Qualifications start.</p>
-        </div>
-      </div>
-
-      <!-- Matches Section -->
-      <div v-else>
-        <!-- Loading State -->
-        <div v-if="isLoadingMatches || isLoadingParticipants" class="text-center py-12">
-          <div class="text-gray-500 dark:text-gray-400">
-            <i class="pi pi-spin pi-spinner text-4xl mb-4 block"></i>
-            <p class="text-lg">Loading tournament data...</p>
-          </div>
-        </div>
-
-        <!-- Tournament Content -->
-        <div v-else>
-          <!-- Standings -->
-          <TournamentStandingsCard v-if="participants.length > 0" :participants="participants" />
-
-          <!-- Matches Grid -->
-          <div v-if="matches.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <MatchCard v-for="match in matches" :key="match.id" :match="match" :tournamentId="tournamentId" />
-          </div>
-
-          <div v-else class="text-center py-12">
-            <div class="text-gray-500 dark:text-gray-400">
-              <i class="pi pi-inbox text-4xl mb-4 block"></i>
-              <p class="text-lg">No matches found</p>
+      <!-- Stage Tabs -->
+      <Tabs v-model:value="stageTab">
+        <TabList>
+          <Tab value="qualifications">Qualifications</Tab>
+          <Tab value="playoff" :disabled="!isPlayoffStarted">Playoff</Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel value="qualifications">
+            <!-- Preparations Stage Message -->
+            <div v-if="isInPreparations" class="text-center py-16">
+              <div class="text-gray-500 dark:text-gray-400">
+                <i class="pi pi-clock text-5xl mb-4 block"></i>
+                <p class="text-xl mb-2">Tournament is in Preparations</p>
+                <p class="text-sm">Matches will be generated when Qualifications start.</p>
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
+
+            <div v-else-if="isLoadingStageData" class="text-center py-12">
+              <div class="text-gray-500 dark:text-gray-400">
+                <i class="pi pi-spin pi-spinner text-4xl mb-4 block"></i>
+                <p class="text-lg">Loading tournament data...</p>
+              </div>
+            </div>
+
+            <div v-else>
+              <!-- Standings -->
+              <TournamentStandingsCard v-if="participants.length > 0" :participants="participants" />
+
+              <!-- Qualification Matches Grid -->
+              <div v-if="qualificationMatches.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <MatchCard
+                  v-for="match in qualificationMatches"
+                  :key="match.id"
+                  :match="match"
+                  :title="matchTitle(match)"
+                  :tournamentId="tournamentId"
+                />
+              </div>
+
+              <div v-else class="text-center py-12">
+                <div class="text-gray-500 dark:text-gray-400">
+                  <i class="pi pi-inbox text-4xl mb-4 block"></i>
+                  <p class="text-lg">No matches found</p>
+                </div>
+              </div>
+            </div>
+          </TabPanel>
+          <TabPanel value="playoff">
+            <div v-if="isLoadingStageData" class="text-center py-12">
+              <div class="text-gray-500 dark:text-gray-400">
+                <i class="pi pi-spin pi-spinner text-4xl mb-4 block"></i>
+                <p class="text-lg">Loading tournament data...</p>
+              </div>
+            </div>
+
+            <!-- Playoff Matches Grid -->
+            <div v-else-if="playoffMatches.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <MatchCard
+                v-for="{ match, title } in playoffMatches"
+                :key="match.id"
+                :match="match"
+                :title="title"
+                :tournamentId="tournamentId"
+              />
+            </div>
+
+            <div v-else class="text-center py-12">
+              <div class="text-gray-500 dark:text-gray-400">
+                <i class="pi pi-inbox text-4xl mb-4 block"></i>
+                <p class="text-lg">No playoff matches found</p>
+              </div>
+            </div>
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
 
       <!-- Management Tabs -->
-      <Tabs :value="activeTab" class="mt-8" @update:value="handleTabChange">
+      <Tabs :value="managementTab" class="mt-8" @update:value="handleTabChange">
         <TabList>
           <Tab value="participants">Participants</Tab>
           <Tab value="my-topics">My Topics</Tab>
@@ -302,6 +473,18 @@ onMounted(async () => {
           </TabPanel>
         </TabPanels>
       </Tabs>
+
+      <!-- Start Playoff confirmation, listing the qualification places it fixes -->
+      <ConfirmDialog :group="START_PLAYOFF_CONFIRM_GROUP">
+        <template #message="{ message }">
+          <div class="flex flex-col gap-3">
+            <p>{{ message.message }}</p>
+            <ol class="list-decimal pl-6 text-sm">
+              <li v-for="player in participants" :key="player.id">{{ player.username }}</li>
+            </ol>
+          </div>
+        </template>
+      </ConfirmDialog>
     </div>
   </main>
 </template>
