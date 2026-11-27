@@ -13,14 +13,13 @@ import Button from "primevue/button";
 import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
-const ROUNDS_PER_MATCH = LIMITS.matches.roundsPerQualificationMatch;
-
 const route = useRoute();
 const notify = useNotify();
 
 const tournamentId = computed(() => route.params.tournamentId);
 const matchId = computed(() => route.params.matchId);
-const canEdit = computed(() => currentUserRole.value === "Creator");
+const isCreator = computed(() => currentUserRole.value === "Creator");
+const canEdit = computed(() => isCreator.value && match.value?.isLocked === false);
 
 const match = ref(null);
 const currentUserRole = ref(null);
@@ -40,8 +39,10 @@ const matchTitle = computed(() => {
 
 const participants = computed(() => match.value?.matchParticipants || []);
 
+const roundsPerMatch = computed(() => LIMITS.matches.roundsPerMatch[match.value?.type] ?? 0);
+
 const canAddRound = computed(() => {
-  return canEdit.value && roundStates.value.length < ROUNDS_PER_MATCH;
+  return canEdit.value && roundStates.value.length < roundsPerMatch.value;
 });
 
 const expandedPanels = ref([]);
@@ -70,7 +71,7 @@ const fetchData = async () => {
     }
     match.value = matchResult.data;
 
-    if (currentUserRole.value === "Creator") {
+    if (canEdit.value) {
       const topicsResult = await tournamentMatchesService.getAvailableTopics(tournamentId.value, matchId.value);
       if (topicsResult.success) {
         availableTopics.value = topicsResult.data;
@@ -139,7 +140,7 @@ const getNextRoundNumber = () => {
   if (roundStates.value.length === 0) return 1;
 
   const usedNumbers = new Set(roundStates.value.map((r) => r.numberInMatch));
-  for (let i = 1; i <= ROUNDS_PER_MATCH; i++) {
+  for (let i = 1; i <= roundsPerMatch.value; i++) {
     if (!usedNumbers.has(i)) return i;
   }
   return null;
@@ -326,6 +327,9 @@ onMounted(() => {
           <Button icon="pi pi-arrow-left" severity="secondary" text rounded @click="navigate" />
         </RouterLink>
         <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ matchTitle }}</h1>
+        <span v-if="match?.isLocked" class="text-sm text-gray-500 dark:text-gray-400">
+          <i class="pi pi-lock mr-1"></i>Locked
+        </span>
       </div>
     </div>
 
@@ -421,15 +425,15 @@ onMounted(() => {
           @click="addRound"
         />
         <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
-          {{ roundStates.length }} of {{ ROUNDS_PER_MATCH }} rounds
+          {{ roundStates.length }} of {{ roundsPerMatch }} rounds
         </p>
       </div>
 
       <!-- Max rounds reached message -->
-      <div v-else-if="canEdit && roundStates.length >= ROUNDS_PER_MATCH" class="mt-6 text-center">
+      <div v-else-if="canEdit && roundStates.length >= roundsPerMatch" class="mt-6 text-center">
         <p class="text-sm text-gray-500 dark:text-gray-400">
           <i class="pi pi-check-circle mr-1 text-green-500"></i>
-          Maximum number of rounds ({{ ROUNDS_PER_MATCH }}) reached
+          Maximum number of rounds ({{ roundsPerMatch }}) reached
         </p>
       </div>
     </div>
