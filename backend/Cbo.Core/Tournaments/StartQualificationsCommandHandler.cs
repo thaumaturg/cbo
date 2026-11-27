@@ -24,7 +24,7 @@ public sealed class StartQualificationsCommandHandler(
 
     protected override async Task<Result> ExecuteAsync(StartQualificationsCommand command, CancellationToken cancellationToken)
     {
-        Result<Tournament> access = await _tournamentAccessService.LoadTournamentWithAccessAsync(
+        Result<Tournament> access = await _tournamentAccessService.LockTournamentWithAccessAsync(
             command.TournamentId, TournamentOperations.ChangeStage, StartForbiddenMessage, cancellationToken);
         if (access.IsFailure)
             return access.Failure;
