@@ -155,17 +155,28 @@ public static class TournamentEndpoints
         [FromServices] ICommandHandler<StartQualificationsCommand> startQualifications,
         [FromServices] ICommandHandler<StartPlayoffCommand> startPlayoff,
         [FromServices] ICommandHandler<EndTournamentCommand> endTournament,
+        [FromServices] ICommandHandler<RollBackCommand> rollBack,
         [FromServices] IQueryHandler<GetTournamentQuery, TournamentResponse> getTournament,
         CancellationToken cancellationToken)
     {
-        // One stage-move endpoint: the stage asked for picks the move. ChangeStageRequestValidator lets only these through
-        Task<Result> move = changeStageRequest.Stage switch
-        {
-            TournamentStage.Qualifications => startQualifications.HandleAsync(new StartQualificationsCommand(id), cancellationToken),
-            TournamentStage.Playoff => startPlayoff.HandleAsync(new StartPlayoffCommand(id), cancellationToken),
-            TournamentStage.Ended => endTournament.HandleAsync(new EndTournamentCommand(id), cancellationToken),
-            _ => throw new ArgumentOutOfRangeException(nameof(changeStageRequest), changeStageRequest.Stage, "No move to this stage."),
-        };
+        Result<TournamentResponse> current = await getTournament.HandleAsync(new GetTournamentQuery(id), cancellationToken);
+        if (current.IsFailure)
+            return current.Failure.ToProblem();
+
+        // One stage-move endpoint: Preparations, or any stage before the current one, is a roll back; any other stage
+        // picks its forward move. Each handler checks the stage again under the tournament's lock, so a move that
+        // raced this read is rejected
+        TournamentStage stage = changeStageRequest.Stage;
+        bool rollsBack = stage == TournamentStage.Preparations || stage < Enum.Parse<TournamentStage>(current.Value.CurrentStage);
+        Task<Result> move = rollsBack
+            ? rollBack.HandleAsync(new RollBackCommand(id, stage), cancellationToken)
+            : stage switch
+            {
+                TournamentStage.Qualifications => startQualifications.HandleAsync(new StartQualificationsCommand(id), cancellationToken),
+                TournamentStage.Playoff => startPlayoff.HandleAsync(new StartPlayoffCommand(id), cancellationToken),
+                TournamentStage.Ended => endTournament.HandleAsync(new EndTournamentCommand(id), cancellationToken),
+                _ => throw new ArgumentOutOfRangeException(nameof(changeStageRequest), stage, "No move to this stage."),
+            };
 
         Result moved = await move;
         if (moved.IsFailure)

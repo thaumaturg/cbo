@@ -125,6 +125,14 @@ internal sealed class TestTournament
 
     public async Task StartQualificationsAsync() => await Succeeded(await ChangeStageAsync(TournamentStage.Qualifications));
 
+    /// <summary>Rolls the tournament back to this earlier stage and returns it as the response gives it.</summary>
+    public async Task<TournamentResponse> RolledBackAsync(TournamentStage stage)
+    {
+        HttpResponseMessage rolledBack = await ChangeStageAsync(stage);
+        await Succeeded(rolledBack);
+        return (await rolledBack.Content.ReadFromJsonAsync<TournamentResponse>(JsonOptions))!;
+    }
+
     /// <summary>Plays every qualification match. Each player scores the same in every match: 0 unless given.</summary>
     public async Task PlayQualificationsAsync(IReadOnlyDictionary<string, int>? scoreOf = null)
     {
@@ -177,6 +185,27 @@ internal sealed class TestTournament
 
             await Succeeded(await Creator.PostAsJsonAsync($"/api/Tournaments/{Id}/matches/{match.Id}/rounds", request, JsonOptions));
         }
+    }
+
+    /// <summary>Changes the scores of a played match's first round, which <see cref="PlayAsync"/> scores in.</summary>
+    public async Task<HttpResponseMessage> RescoreAsync(Guid matchId, IReadOnlyDictionary<string, int> scores)
+    {
+        MatchDetailResponse match = await MatchAsync(matchId);
+        RoundResponse round = match.Rounds.Single(r => r.NumberInMatch == 1);
+        var request = new UpdateRoundRequest
+        {
+            NumberInMatch = 1,
+            TopicId = round.TopicId,
+            IsOverrideMode = true,
+            Answers = [.. match.MatchParticipants.Select(p => new UpdateRoundAnswerRequest
+            {
+                QuestionId = round.Questions[0].Id,
+                MatchParticipantId = p.Id,
+                OverrideCost = scores.GetValueOrDefault(NameOf(p)),
+            })],
+        };
+
+        return await Creator.PutAsJsonAsync($"/api/Tournaments/{Id}/matches/{matchId}/rounds/1", request, JsonOptions);
     }
 
     public Task<HttpResponseMessage> ConfirmAsync(Guid matchId, HttpClient? client = null) =>

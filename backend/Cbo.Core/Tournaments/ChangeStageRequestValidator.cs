@@ -9,8 +9,8 @@ public sealed class ChangeStageRequestValidator : RequestValidator<ChangeStageRe
     public ChangeStageRequestValidator()
     {
         RuleFor(r => r.Stage)
-            .Must(stage => stage is TournamentStage.Qualifications or TournamentStage.Playoff or TournamentStage.Ended)
-            .WithMessage("The stage can only be set to Qualifications, Playoff or Ended.");
+            .IsInEnum()
+            .WithMessage($"Unknown stage. Allowed: {string.Join(", ", Enum.GetNames<TournamentStage>())}.");
     }
 
     public override string InvalidMessage => "Some of the stage data is invalid.";
