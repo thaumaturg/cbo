@@ -1,4 +1,5 @@
 <script setup>
+import { isQualificationMatch } from "@/utils/match.js";
 import Button from "primevue/button";
 import Card from "primevue/card";
 import Column from "primevue/column";
@@ -15,13 +16,14 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  title: {
+    type: String,
+    required: true,
+  },
 });
 
-const matchTitle = computed(() => {
-  const stage = props.match.createdOnStage || "Match";
-  const number = props.match.numberInStage || props.match.numberInTournament;
-  return `${stage} #${number}`;
-});
+// Only qualification matches get points
+const showsPoints = computed(() => isQualificationMatch(props.match));
 
 const roundsCount = computed(() => props.match.roundsCount ?? 0);
 
@@ -41,7 +43,7 @@ const matchRoute = computed(() => ({
         <div class="mb-4">
           <div class="flex items-center justify-between gap-2 mb-2">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {{ matchTitle }}
+              {{ title }}
             </h3>
             <span class="text-sm text-gray-500 dark:text-gray-400">
               <i class="pi pi-list mr-1"></i>
@@ -57,7 +59,7 @@ const matchRoute = computed(() => ({
             </template>
           </Column>
 
-          <Column field="pointsSum" header="Points" sortable style="width: 80px" class="text-center">
+          <Column v-if="showsPoints" field="pointsSum" header="Points" sortable style="width: 80px" class="text-center">
             <template #body="{ data }">
               <span class="text-gray-600 dark:text-gray-400">
                 {{ data.pointsSum ?? "-" }}
