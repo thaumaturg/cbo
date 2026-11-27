@@ -2061,6 +2061,91 @@
         ]
       }
     },
+    "/api/Tournaments/{tournamentId}/matches/{matchId}/confirm": {
+      "post": {
+        "tags": [
+          "Tournaments"
+        ],
+        "operationId": "ConfirmTournamentMatch",
+        "parameters": [
+          {
+            "name": "tournamentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "matchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchDetailResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/Tournaments/{tournamentId}/matches/{matchId}/rounds/{roundNumber}": {
       "get": {
         "tags": [
@@ -2806,6 +2891,21 @@
           }
         }
       },
+      "BracketPosition": {
+        "enum": [
+          "Playoff1",
+          "Playoff2",
+          "Playoff3",
+          "Playoff4",
+          "Playoff5",
+          "Playoff6",
+          "Playoff7",
+          "Playoff8",
+          "Playoff9",
+          "Final",
+          null
+        ]
+      },
       "ChangePasswordRequest": {
         "required": [
           "currentPassword",
@@ -3245,6 +3345,32 @@
           "isLocked": {
             "type": "boolean"
           },
+          "bracketPosition": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BracketPosition"
+              }
+            ]
+          },
+          "settledMatchId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "shootoutNumber": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
           "matchParticipants": {
             "type": "array",
             "items": {
@@ -3262,11 +3388,16 @@
       "MatchParticipantResponse": {
         "required": [
           "id",
+          "tournamentParticipantId",
           "username"
         ],
         "type": "object",
         "properties": {
           "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tournamentParticipantId": {
             "type": "string",
             "format": "uuid"
           },
@@ -3299,6 +3430,25 @@
               "string"
             ],
             "format": "double"
+          },
+          "sourceLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "outcome": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Outcome"
+              }
+            ]
+          },
+          "isEliminated": {
+            "type": "boolean"
           }
         }
       },
@@ -3356,6 +3506,32 @@
           "isLocked": {
             "type": "boolean"
           },
+          "bracketPosition": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BracketPosition"
+              }
+            ]
+          },
+          "settledMatchId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "shootoutNumber": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
           "matchParticipants": {
             "type": "array",
             "items": {
@@ -3378,6 +3554,18 @@
           "Playoff",
           "Shootout",
           "Final"
+        ]
+      },
+      "Outcome": {
+        "enum": [
+          "FirstWinner",
+          "SecondWinner",
+          "Loser",
+          "FirstPlace",
+          "SecondPlace",
+          "ThirdPlace",
+          "FourthPlace",
+          null
         ]
       },
       "PageResponseOfTopicListItemResponse": {

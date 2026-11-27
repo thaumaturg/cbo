@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
 using Cbo.Core.Domain;
+using Cbo.Core.Playoffs;
 using Cbo.Core.Rounds;
 using Cbo.Core.Tournaments;
 using Cbo.Results;
@@ -43,6 +44,9 @@ public sealed class GetMatchQueryHandler(
                 TournamentId = m.TournamentId,
                 ConfirmedAt = m.ConfirmedAt,
                 IsLocked = MatchLock.IsLocked(m.Type, m.ConfirmedAt, stage),
+                BracketPosition = m.BracketPosition,
+                SettledMatchId = m.SettledMatchId,
+                ShootoutNumber = m.ShootoutNumber,
                 MatchParticipants = m.MatchParticipants
                     .AsQueryable()
                     .OrderBy(mp => mp.Id)
@@ -57,6 +61,9 @@ public sealed class GetMatchQueryHandler(
             .FirstOrDefaultAsync(cancellationToken);
         if (match is null)
             return Failure.NotFound(NotFoundMessage);
+
+        PlayoffSeating seating = await PlayoffSeating.LoadAsync(_dbContext, access.Value, cancellationToken);
+        seating.Describe(match.Id, match.SettledMatchId, match.MatchParticipants);
 
         return match;
     }

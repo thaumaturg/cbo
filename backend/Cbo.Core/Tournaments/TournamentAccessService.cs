@@ -18,6 +18,17 @@ public interface ITournamentAccessService
         OperationAuthorizationRequirement operation,
         string forbiddenMessage,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Like <see cref="LoadTournamentWithAccessAsync"/>, but also locks the tournament's row until the command's
+    /// transaction ends. Commands that change the Playoff, or the rounds it is settled from, take this lock, so they
+    /// run one at a time per tournament and each sees what the one before it saved.
+    /// </summary>
+    Task<Result<Tournament>> LockTournamentWithAccessAsync(
+        Guid tournamentId,
+        OperationAuthorizationRequirement operation,
+        string forbiddenMessage,
+        CancellationToken cancellationToken = default);
 }
 
 public class TournamentAccessService(
@@ -37,6 +48,29 @@ public class TournamentAccessService(
     {
         Tournament? tournament = await _dbContext.Tournaments
             .FirstOrDefaultAsync(t => t.Id == tournamentId, cancellationToken);
+
+        return await AuthorizeAsync(tournament, operation, forbiddenMessage);
+    }
+
+    public async Task<Result<Tournament>> LockTournamentWithAccessAsync(
+        Guid tournamentId,
+        OperationAuthorizationRequirement operation,
+        string forbiddenMessage,
+        CancellationToken cancellationToken = default)
+    {
+        // Not composed further, so the locking clause stays at the top level of the query
+        List<Tournament> tournaments = await _dbContext.Tournaments
+            .FromSql($"SELECT * FROM tournaments WHERE id = {tournamentId} FOR UPDATE")
+            .ToListAsync(cancellationToken);
+
+        return await AuthorizeAsync(tournaments.SingleOrDefault(), operation, forbiddenMessage);
+    }
+
+    private async Task<Result<Tournament>> AuthorizeAsync(
+        Tournament? tournament,
+        OperationAuthorizationRequirement operation,
+        string forbiddenMessage)
+    {
         if (tournament is null)
             return Failure.NotFound("Tournament not found.");
 

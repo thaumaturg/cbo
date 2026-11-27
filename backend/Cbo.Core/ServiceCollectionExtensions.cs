@@ -3,6 +3,7 @@ using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
 using Cbo.Core.Data.Interceptors;
 using Cbo.Core.Matches;
+using Cbo.Core.Playoffs;
 using Cbo.Core.Topics;
 using Cbo.Core.Tournaments;
 using Cbo.Core.Validation;
@@ -39,6 +40,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITopicAccessService, TopicAccessService>();
         services.AddScoped<IMatchGenerationService, MatchGenerationService>();
         services.AddScoped<IMatchScoringService, MatchScoringService>();
+        services.AddScoped<IPlayoffProgressionService, PlayoffProgressionService>();
 
         services.AddCqrsHandlers(typeof(ServiceCollectionExtensions).Assembly);
 

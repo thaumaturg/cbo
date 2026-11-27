@@ -18,4 +18,6 @@ public static class TournamentOperations
         new() { Name = nameof(ChangeStage) };
     public static readonly OperationAuthorizationRequirement ManageRounds =
         new() { Name = nameof(ManageRounds) };
+    public static readonly OperationAuthorizationRequirement ConfirmMatches =
+        new() { Name = nameof(ConfirmMatches) };
 }

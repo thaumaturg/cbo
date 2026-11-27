@@ -29,7 +29,7 @@ public class DomainLimitsExportTests
     [Fact]
     public void Committed_domain_limits_match_the_backend_constants()
     {
-        string path = Path.Combine(FindRepoRoot(), ExportPath);
+        string path = Path.Combine(RepoRoot.Path, ExportPath);
         string expected = JsonSerializer.Serialize(BuildDocument(), s_jsonOptions) + "\n";
         string? actual = File.Exists(path) ? File.ReadAllText(path) : null;
 
@@ -80,18 +80,4 @@ public class DomainLimitsExportTests
     }
 
     private static string ToCamelCase(string name) => JsonNamingPolicy.CamelCase.ConvertName(name);
-
-    private static string FindRepoRoot()
-    {
-        for (DirectoryInfo? dir = new DirectoryInfo(AppContext.BaseDirectory); dir != null; dir = dir.Parent)
-        {
-            if (File.Exists(Path.Combine(dir.FullName, "backend", "backend.slnx")))
-            {
-                return dir.FullName;
-            }
-        }
-
-        throw new InvalidOperationException(
-            $"No directory above {AppContext.BaseDirectory} contains backend/backend.slnx.");
-    }
 }

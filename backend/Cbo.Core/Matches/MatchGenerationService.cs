@@ -59,6 +59,12 @@ public class MatchGenerationService : IMatchGenerationService
         ],
     }.ToFrozenDictionary();
 
+    /// <summary>How many qualification matches a tournament of this format plays.</summary>
+    public static int QualificationMatchCount(TournamentFormat format) =>
+        s_qualificationTables.TryGetValue(format, out int[][]? table)
+            ? table.Length
+            : throw new ArgumentOutOfRangeException(nameof(format), format, "No qualification table for this format.");
+
     public List<Match> GenerateQualificationMatches(Tournament tournament, List<TournamentParticipant> players)
     {
         if (!s_qualificationTables.TryGetValue(tournament.Format, out int[][]? table))

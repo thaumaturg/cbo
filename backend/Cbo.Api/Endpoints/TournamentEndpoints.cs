@@ -153,18 +153,23 @@ public static class TournamentEndpoints
         Guid id,
         ChangeStageRequest changeStageRequest,
         [FromServices] ICommandHandler<StartQualificationsCommand> startQualifications,
+        [FromServices] ICommandHandler<StartPlayoffCommand> startPlayoff,
+        [FromServices] ICommandHandler<EndTournamentCommand> endTournament,
         [FromServices] IQueryHandler<GetTournamentQuery, TournamentResponse> getTournament,
         CancellationToken cancellationToken)
     {
-        // Keeps the PATCH { stage } shape: starting is the only supported stage change
-        if (changeStageRequest.Stage != TournamentStage.Qualifications)
-            return Failure.Invalid(
-                "Some of the stage data is invalid.",
-                new FieldError("stage", "The stage can only be set to Qualifications, which starts the tournament.")).ToProblem();
+        // One stage-move endpoint: the stage asked for picks the move. ChangeStageRequestValidator lets only these through
+        Task<Result> move = changeStageRequest.Stage switch
+        {
+            TournamentStage.Qualifications => startQualifications.HandleAsync(new StartQualificationsCommand(id), cancellationToken),
+            TournamentStage.Playoff => startPlayoff.HandleAsync(new StartPlayoffCommand(id), cancellationToken),
+            TournamentStage.Ended => endTournament.HandleAsync(new EndTournamentCommand(id), cancellationToken),
+            _ => throw new ArgumentOutOfRangeException(nameof(changeStageRequest), changeStageRequest.Stage, "No move to this stage."),
+        };
 
-        Result started = await startQualifications.HandleAsync(new StartQualificationsCommand(id), cancellationToken);
-        if (started.IsFailure)
-            return started.Failure.ToProblem();
+        Result moved = await move;
+        if (moved.IsFailure)
+            return moved.Failure.ToProblem();
 
         Result<TournamentResponse> tournament = await getTournament.HandleAsync(new GetTournamentQuery(id), cancellationToken);
         if (tournament.IsFailure)

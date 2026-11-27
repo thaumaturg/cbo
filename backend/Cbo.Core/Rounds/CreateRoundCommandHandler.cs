@@ -24,7 +24,7 @@ public sealed class CreateRoundCommandHandler(
 
     protected override async Task<Result> ExecuteAsync(CreateRoundCommand command, CancellationToken cancellationToken)
     {
-        Result<Tournament> access = await _tournamentAccessService.LoadTournamentWithAccessAsync(
+        Result<Tournament> access = await _tournamentAccessService.LockTournamentWithAccessAsync(
             command.TournamentId, TournamentOperations.ManageRounds, ManageRoundsForbiddenMessage, cancellationToken);
         if (access.IsFailure)
             return access.Failure;
