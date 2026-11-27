@@ -38,7 +38,8 @@ public class TournamentAuthorizationHandler(
             requirement.Name == TournamentOperations.ManageParticipants.Name ||
             requirement.Name == TournamentOperations.ChangeStage.Name ||
             requirement.Name == TournamentOperations.ManageRounds.Name ||
-            requirement.Name == TournamentOperations.ConfirmMatches.Name)
+            requirement.Name == TournamentOperations.ConfirmMatches.Name ||
+            requirement.Name == TournamentOperations.ReopenMatches.Name)
         {
             if (participant.Role == TournamentParticipantRole.Creator)
             {

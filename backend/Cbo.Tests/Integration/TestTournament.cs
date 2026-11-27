@@ -194,6 +194,28 @@ internal sealed class TestTournament
         return (await confirmed.Content.ReadFromJsonAsync<MatchDetailResponse>(JsonOptions))!;
     }
 
+    public Task<HttpResponseMessage> ReopenAsync(Guid matchId, HttpClient? client = null) =>
+        (client ?? Creator).PostAsync($"/api/Tournaments/{Id}/matches/{matchId}/reopen", content: null);
+
+    /// <summary>Reopens the match and returns it as the response gives it.</summary>
+    public async Task<MatchDetailResponse> ReopenedAsync(Guid matchId)
+    {
+        HttpResponseMessage reopened = await ReopenAsync(matchId);
+        await Succeeded(reopened);
+        return (await reopened.Content.ReadFromJsonAsync<MatchDetailResponse>(JsonOptions))!;
+    }
+
+    /// <summary>
+    /// Plays and confirms every playoff match and the Final as they are created, each with no ties, until the Final
+    /// is decided.
+    /// </summary>
+    public async Task PlayOutPlayoffAsync()
+    {
+        int[] untied = [40, 30, 20, 10];
+        while ((await MatchesAsync()).FirstOrDefault(m => m.BracketPosition is not null && m.ConfirmedAt is null) is MatchResponse match)
+            await PlayAndConfirmAsync(match, match.MatchParticipants.Select((p, seat) => (Name: NameOf(p), Score: untied[seat])).ToDictionary());
+    }
+
     /// <summary>Fails with the response body unless the request succeeded.</summary>
     public static async Task Succeeded(HttpResponseMessage response)
     {
