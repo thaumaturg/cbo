@@ -4,6 +4,7 @@ import { eager } from "@/includes/validation.js";
 import { tournamentService } from "@/services/tournament-service.js";
 import { toFormFailure } from "@/utils/error.js";
 import { focusFirstInvalid } from "@/utils/focus.js";
+import { formatLabel } from "@/utils/tournament.js";
 import Button from "primevue/button";
 import InputNumber from "primevue/inputnumber";
 import InputText from "primevue/inputtext";
@@ -31,7 +32,7 @@ const props = defineProps({
 const emit = defineEmits(["saved", "update:dirty"]);
 
 const {
-  supportedSizes,
+  selectableFormats,
   titleLengthMin,
   titleLengthMax,
   descriptionLengthMax,
@@ -48,7 +49,7 @@ const TOPICS_MIN_RULES = `required|min_value:${topicsPerParticipantFloor}|lte_fi
 const toFormValues = (tournament) => ({
   title: tournament?.title || "",
   description: tournament?.description || "",
-  tournamentSize: tournament?.tournamentSize ?? TOURNAMENT_DEFAULTS.tournamentSize,
+  format: tournament?.format ?? TOURNAMENT_DEFAULTS.format,
   topicsPerParticipantMax: tournament?.topicsPerParticipantMax ?? TOURNAMENT_DEFAULTS.topicsPerParticipantMax,
   topicsPerParticipantMin: tournament?.topicsPerParticipantMin ?? TOURNAMENT_DEFAULTS.topicsPerParticipantMin,
 });
@@ -58,6 +59,17 @@ const initialValues = toFormValues(props.tournament);
 const FORM_FIELDS = Object.keys(initialValues);
 
 const isCreate = computed(() => !props.tournament);
+
+// A tournament keeps a format that can no longer be chosen (Format 14) until the Creator picks another, so show it too.
+const formatOptions = computed(() => {
+  const options = selectableFormats.map((format) => ({ value: format, label: formatLabel(format) }));
+  const current = props.tournament?.format;
+  if (current && !selectableFormats.includes(current)) {
+    const label = props.readOnly ? formatLabel(current) : `${formatLabel(current)} (can't be chosen)`;
+    options.unshift({ value: current, label, disabled: true });
+  }
+  return options;
+});
 const resolvedSubmitLabel = computed(
   () => props.submitLabel ?? (isCreate.value ? "Create Tournament" : "Save Changes"),
 );
@@ -92,7 +104,7 @@ const onSubmit = async (values, { setErrors }) => {
     const tournamentData = {
       title: values.title,
       description: values.description || null,
-      tournamentSize: values.tournamentSize,
+      format: values.format,
       topicsPerParticipantMax: values.topicsPerParticipantMax,
       topicsPerParticipantMin: values.topicsPerParticipantMin,
     };
@@ -164,18 +176,21 @@ defineExpose({ reset, dirty });
       <h3 class="text-lg font-semibold mb-4">Tournament Settings</h3>
 
       <div class="grid grid-cols-2 gap-4">
-        <!-- Tournament Size -->
+        <!-- Format -->
         <div class="flex flex-col gap-1">
-          <label for="tournamentSize" class="font-semibold text-sm">Tournament Size</label>
-          <VeeField name="tournamentSize" label="Tournament size" v-slot="slot">
+          <label for="format" class="font-semibold text-sm">Format</label>
+          <VeeField name="format" label="Format" v-slot="slot">
             <Select
               v-bind="eager(slot)"
-              labelId="tournamentSize"
-              :options="supportedSizes"
-              :disabled="readOnly || supportedSizes.length === 1"
+              labelId="format"
+              :options="formatOptions"
+              optionLabel="label"
+              optionValue="value"
+              optionDisabled="disabled"
+              :disabled="readOnly || formatOptions.length === 1"
             />
           </VeeField>
-          <ErrorMessage name="tournamentSize" v-slot="{ message }">
+          <ErrorMessage name="format" v-slot="{ message }">
             <Message severity="error" variant="simple">{{ message }}</Message>
           </ErrorMessage>
         </div>

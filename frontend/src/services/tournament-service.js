@@ -44,7 +44,7 @@ export const tournamentService = {
    * @param {Object} tournamentData - Tournament data
    * @param {string} tournamentData.title - Tournament title
    * @param {string} [tournamentData.description] - Tournament description (optional)
-   * @param {number} [tournamentData.tournamentSize] - Tournament size (optional)
+   * @param {string} [tournamentData.format] - Tournament format, one of `LIMITS.tournaments.selectableFormats` (optional)
    * @param {number} [tournamentData.topicsPerParticipantMax] - Maximum topics per participant (optional)
    * @param {number} [tournamentData.topicsPerParticipantMin] - Minimum topics per participant (optional)
    * @returns {Promise} - API response with created tournament
@@ -54,7 +54,7 @@ export const tournamentService = {
       const response = await api.post("/Tournaments", {
         title: tournamentData.title,
         description: tournamentData.description,
-        tournamentSize: tournamentData.tournamentSize,
+        format: tournamentData.format,
         topicsPerParticipantMax: tournamentData.topicsPerParticipantMax,
         topicsPerParticipantMin: tournamentData.topicsPerParticipantMin,
       });
@@ -70,7 +70,7 @@ export const tournamentService = {
    * @param {Object} tournamentData - Updated tournament data
    * @param {string} tournamentData.title - Tournament title
    * @param {string} [tournamentData.description] - Tournament description (optional)
-   * @param {number} [tournamentData.tournamentSize] - Tournament size (optional)
+   * @param {string} [tournamentData.format] - Tournament format, one of `LIMITS.tournaments.selectableFormats` (optional)
    * @param {number} [tournamentData.topicsPerParticipantMax] - Maximum topics per participant (optional)
    * @param {number} [tournamentData.topicsPerParticipantMin] - Minimum topics per participant (optional)
    * @returns {Promise} - API response with updated tournament
@@ -80,7 +80,7 @@ export const tournamentService = {
       const response = await api.put(`/Tournaments/${tournamentId}`, {
         title: tournamentData.title,
         description: tournamentData.description,
-        tournamentSize: tournamentData.tournamentSize,
+        format: tournamentData.format,
         topicsPerParticipantMax: tournamentData.topicsPerParticipantMax,
         topicsPerParticipantMin: tournamentData.topicsPerParticipantMin,
       });

@@ -6,6 +6,19 @@
  */
 export const isPreparationsStage = (stage) => stage === "Preparations";
 
+const FORMAT_LABELS = {
+  TwelveShort: "12 players · Short",
+  TwelveLong: "12 players · Long",
+  Fourteen: "14 players",
+};
+
+/**
+ * The label shown for a tournament format.
+ * @param {string|null|undefined} format - Tournament format name, as the API sends it
+ * @returns {string}
+ */
+export const formatLabel = (format) => FORMAT_LABELS[format] ?? format ?? "";
+
 /**
  * Map a tournament stage to the PrimeVue Tag severity used to display it.
  * @param {string|null|undefined} stage - Tournament stage name
