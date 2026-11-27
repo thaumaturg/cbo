@@ -47,8 +47,9 @@ public sealed class StartTournamentCommandHandler(
             .ThenBy(p => p.Id)
             .ToList();
 
-        if (players.Count != tournament.TournamentSize)
-            return Failure.Conflict($"The tournament needs exactly {tournament.TournamentSize} players to start. It has {players.Count}.");
+        int tournamentSize = tournament.Format.TournamentSize();
+        if (players.Count != tournamentSize)
+            return Failure.Conflict($"The tournament needs exactly {tournamentSize} players to start. It has {players.Count}.");
 
         Result topicCountCheck = CheckTopicCounts(tournament, participants);
         if (topicCountCheck.IsFailure)

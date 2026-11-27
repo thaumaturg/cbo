@@ -1,4 +1,5 @@
 using Cbo.Core.Tournaments;
+using Cbo.Tests.Validation;
 using FluentValidation.TestHelper;
 
 namespace Cbo.Tests.Tournaments;
@@ -14,8 +15,11 @@ public class UpdateTournamentRequestValidatorTests : TournamentRequestValidatorT
         {
             Title = tournament.Title,
             Description = tournament.Description,
-            TournamentSize = tournament.TournamentSize,
+            Format = tournament.Format,
             TopicsPerParticipantMax = tournament.TopicsPerParticipantMax,
             TopicsPerParticipantMin = tournament.TopicsPerParticipantMin,
         });
+
+    protected override TestValidationResult<UpdateTournamentRequest> ValidateJson(string json) =>
+        _validator.TestValidate(ApiJson.Read<UpdateTournamentRequest>(json));
 }

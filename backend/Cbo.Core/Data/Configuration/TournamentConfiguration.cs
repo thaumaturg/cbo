@@ -22,8 +22,9 @@ public class TournamentConfiguration : IEntityTypeConfiguration<Tournament>
             .HasConversion<string>()
             .HasDefaultValue(TournamentStage.Preparations);
 
-        entity.Property(e => e.TournamentSize)
-            .IsRequired();
+        entity.Property(e => e.Format)
+            .IsRequired()
+            .HasConversion<string>();
 
         entity.Property(e => e.TopicsPerParticipantMax)
             .IsRequired();

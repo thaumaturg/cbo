@@ -1,4 +1,3 @@
-using System.Linq;
 using Cbo.Core.Domain;
 using FluentValidation.TestHelper;
 
@@ -13,17 +12,20 @@ public abstract class TournamentRequestValidatorTests<TRequest>
     protected sealed record TournamentData(
         string Title,
         string? Description = null,
-        int? TournamentSize = null,
+        TournamentFormat? Format = null,
         int? TopicsPerParticipantMax = null,
         int? TopicsPerParticipantMin = null);
 
-    public static TheoryData<int> SupportedSizes => new(Limits.Tournaments.SupportedSizes);
+    public static TheoryData<TournamentFormat> SelectableFormats => new(Limits.Tournaments.SelectableFormats);
 
     protected static TournamentData ValidTournament => new("Spring cup", "Played every April");
 
     protected abstract string InvalidMessage { get; }
 
     protected abstract TestValidationResult<TRequest> Validate(TournamentData tournament);
+
+    /// <summary>Reads the request body with the API's JSON settings, then validates it.</summary>
+    protected abstract TestValidationResult<TRequest> ValidateJson(string json);
 
     [Fact]
     public void Invalid_message_is_about_the_tournament()
@@ -107,21 +109,53 @@ public abstract class TournamentRequestValidatorTests<TRequest>
     }
 
     [Theory]
-    [MemberData(nameof(SupportedSizes))]
-    public void A_supported_tournament_size_is_valid(int size)
+    [MemberData(nameof(SelectableFormats))]
+    public void A_selectable_format_is_valid(TournamentFormat format)
     {
-        Validate(ValidTournament with { TournamentSize = size }).ShouldNotHaveAnyValidationErrors();
+        Validate(ValidTournament with { Format = format }).ShouldNotHaveAnyValidationErrors();
+    }
+
+    // Format 14 has a qualification table but no playoff bracket yet
+    [Fact]
+    public void Format_14_fails_on_format_and_lists_the_selectable_formats()
+    {
+        Validate(ValidTournament with { Format = TournamentFormat.Fourteen })
+            .ShouldHaveValidationErrorFor("format")
+            .WithErrorMessage(FormatMessage)
+            .Only();
     }
 
     [Fact]
-    public void An_unsupported_tournament_size_fails_on_tournament_size_and_lists_the_supported_sizes()
+    public void An_undefined_format_fails_on_format_and_lists_the_selectable_formats()
     {
-        int unsupportedSize = Limits.Tournaments.SupportedSizes.Max() + 1;
+        Validate(ValidTournament with { Format = (TournamentFormat)99 })
+            .ShouldHaveValidationErrorFor("format")
+            .WithErrorMessage(FormatMessage)
+            .Only();
+    }
 
-        Validate(ValidTournament with { TournamentSize = unsupportedSize })
-            .ShouldHaveValidationErrorFor("tournamentSize")
-            .WithErrorMessage(
-                $"Tournament size must be one of: {string.Join(", ", Limits.Tournaments.SupportedSizes)}.")
+    [Theory]
+    [MemberData(nameof(SelectableFormats))]
+    public void A_selectable_format_is_read_by_name_in_any_case(TournamentFormat format)
+    {
+        string name = format.ToString().ToLowerInvariant();
+
+        ValidateJson($$"""{ "title": "Spring cup", "format": "{{name}}" }""").ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void A_null_format_is_left_out()
+    {
+        ValidateJson("""{ "title": "Spring cup", "format": null }""").ShouldNotHaveAnyValidationErrors();
+    }
+
+    // The API reads enums by name, so an unknown name must reach the validator instead of failing as the body is read
+    [Fact]
+    public void An_unknown_format_name_fails_on_format_and_lists_the_selectable_formats()
+    {
+        ValidateJson("""{ "title": "Spring cup", "format": "Sixteen" }""")
+            .ShouldHaveValidationErrorFor("format")
+            .WithErrorMessage(FormatMessage)
             .Only();
     }
 
@@ -254,16 +288,19 @@ public abstract class TournamentRequestValidatorTests<TRequest>
         TestValidationResult<TRequest> result = Validate(new TournamentData(
             Title: "",
             Description: new string('d', Limits.Tournaments.DescriptionLengthMax + 1),
-            TournamentSize: 0,
+            Format: TournamentFormat.Fourteen,
             TopicsPerParticipantMax: 3,
             TopicsPerParticipantMin: -1));
 
         result.ShouldHaveValidationErrorFor("title");
         result.ShouldHaveValidationErrorFor("description");
-        result.ShouldHaveValidationErrorFor("tournamentSize");
+        result.ShouldHaveValidationErrorFor("format");
         result.ShouldHaveValidationErrorFor("topicsPerParticipantMin");
         Assert.Equal(4, result.Errors.Count);
     }
+
+    private static string FormatMessage =>
+        $"The format must be one of: {string.Join(", ", Limits.Tournaments.SelectableFormats)}.";
 
     private static string TitleLengthMessage =>
         $"The title must be between {Limits.Tournaments.TitleLengthMin} and {Limits.Tournaments.TitleLengthMax} characters.";

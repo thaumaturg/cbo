@@ -30,7 +30,7 @@ public class LimitValuesTests
     [Fact]
     public void Tournament_limits_have_their_agreed_values()
     {
-        Assert.Equal([14], Limits.Tournaments.SupportedSizes);
+        Assert.Equal([TournamentFormat.TwelveShort, TournamentFormat.TwelveLong], Limits.Tournaments.SelectableFormats);
         Assert.Equal(3, Limits.Tournaments.TitleLengthMin);
         Assert.Equal(100, Limits.Tournaments.TitleLengthMax);
         Assert.Equal(500, Limits.Tournaments.DescriptionLengthMax);
@@ -74,7 +74,7 @@ public class LimitValuesTests
     [Fact]
     public void Tournament_defaults_have_their_agreed_values()
     {
-        Assert.Equal(14, TournamentDefaults.TournamentSize);
+        Assert.Equal(TournamentFormat.TwelveShort, TournamentDefaults.Format);
         Assert.Equal(6, TournamentDefaults.TopicsPerParticipantMin);
         Assert.Equal(10, TournamentDefaults.TopicsPerParticipantMax);
     }

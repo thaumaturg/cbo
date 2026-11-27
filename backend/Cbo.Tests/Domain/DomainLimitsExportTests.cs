@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Cbo.Core.Domain;
 using Cbo.Core.Paging;
 
@@ -21,6 +22,8 @@ public class DomainLimitsExportTests
         WriteIndented = true,
         IndentSize = 2,
         NewLine = "\n",
+        // Enums by name, as the API sends them
+        Converters = { new JsonStringEnumConverter() },
     };
 
     [Fact]

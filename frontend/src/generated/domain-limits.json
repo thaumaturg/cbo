@@ -37,8 +37,9 @@
     },
     "tournaments": {
       "descriptionLengthMax": 500,
-      "supportedSizes": [
-        14
+      "selectableFormats": [
+        "TwelveShort",
+        "TwelveLong"
       ],
       "titleLengthMax": 100,
       "titleLengthMin": 3,
@@ -53,8 +54,8 @@
     "maxSearchLength": 200
   },
   "tournamentDefaults": {
+    "format": "TwelveShort",
     "topicsPerParticipantMax": 10,
-    "topicsPerParticipantMin": 6,
-    "tournamentSize": 14
+    "topicsPerParticipantMin": 6
   }
 }

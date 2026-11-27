@@ -2988,14 +2988,15 @@
               "string"
             ]
           },
-          "tournamentSize": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
-            "format": "int32"
+          "format": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TournamentFormat"
+              }
+            ]
           },
           "topicsPerParticipantMax": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
@@ -3845,6 +3846,13 @@
           }
         }
       },
+      "TournamentFormat": {
+        "enum": [
+          "Fourteen",
+          "TwelveShort",
+          "TwelveLong"
+        ]
+      },
       "TournamentParticipantRole": {
         "enum": [
           "Player",
@@ -3859,7 +3867,7 @@
           "title",
           "currentStage",
           "createdAt",
-          "tournamentSize",
+          "format",
           "topicsPerParticipantMax",
           "topicsPerParticipantMin"
         ],
@@ -3898,6 +3906,9 @@
               "string"
             ],
             "format": "date-time"
+          },
+          "format": {
+            "$ref": "#/components/schemas/TournamentFormat"
           },
           "tournamentSize": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
@@ -4197,14 +4208,15 @@
               "string"
             ]
           },
-          "tournamentSize": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
-            "format": "int32"
+          "format": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TournamentFormat"
+              }
+            ]
           },
           "topicsPerParticipantMax": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",

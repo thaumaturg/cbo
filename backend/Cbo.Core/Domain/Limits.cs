@@ -56,10 +56,11 @@ public static class Limits
     public static class Tournaments
     {
         /// <summary>
-        /// Tournament sizes a Creator may choose. Each size needs a qualification table in
-        /// <see cref="Cbo.Core.Matches.MatchGenerationService"/>.
+        /// Formats a Creator may choose. Only formats with a playoff bracket are selectable, see
+        /// docs/adr/0013-format-replaces-tournament-size-as-the-setting.md.
         /// </summary>
-        public static readonly ImmutableArray<int> SupportedSizes = [14];
+        public static readonly ImmutableArray<TournamentFormat> SelectableFormats =
+            [TournamentFormat.TwelveShort, TournamentFormat.TwelveLong];
 
         /// <summary>Fewest characters in a tournament title.</summary>
         public const int TitleLengthMin = 3;

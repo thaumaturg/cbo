@@ -18,7 +18,7 @@ public sealed class CreateTournamentCommandHandler(
     private Result<Guid> CreateTournament(CreateTournamentCommand command)
     {
         TournamentSettings settings = TournamentSettings.Resolve(
-            command.TournamentSize,
+            command.Format,
             command.TopicsPerParticipantMax,
             command.TopicsPerParticipantMin);
 
@@ -31,7 +31,7 @@ public sealed class CreateTournamentCommandHandler(
             Title = command.Title,
             Description = command.Description,
             CurrentStage = TournamentStage.Preparations,
-            TournamentSize = settings.TournamentSize,
+            Format = settings.Format,
             TopicsPerParticipantMax = settings.TopicsPerParticipantMax,
             TopicsPerParticipantMin = settings.TopicsPerParticipantMin,
         };

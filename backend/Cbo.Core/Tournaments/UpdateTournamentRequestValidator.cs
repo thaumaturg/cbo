@@ -9,7 +9,7 @@ public sealed class UpdateTournamentRequestValidator : RequestValidator<UpdateTo
     {
         RuleFor(t => t.Title).TournamentTitle();
         RuleFor(t => t.Description).TournamentDescription();
-        RuleFor(t => t.TournamentSize).TournamentSize();
+        RuleFor(t => t.Format).SelectableFormat();
         RuleFor(t => t.TopicsPerParticipantMin).TopicsPerParticipantMin();
         RuleFor(t => t.TopicsPerParticipantMax).TopicsPerParticipantMax(t => t.TopicsPerParticipantMin);
     }

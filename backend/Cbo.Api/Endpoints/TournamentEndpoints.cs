@@ -96,7 +96,7 @@ public static class TournamentEndpoints
         var command = new CreateTournamentCommand(
             createTournamentRequest.Title,
             createTournamentRequest.Description,
-            createTournamentRequest.TournamentSize,
+            createTournamentRequest.Format,
             createTournamentRequest.TopicsPerParticipantMax,
             createTournamentRequest.TopicsPerParticipantMin);
 
@@ -122,7 +122,7 @@ public static class TournamentEndpoints
             id,
             updateTournamentRequest.Title,
             updateTournamentRequest.Description,
-            updateTournamentRequest.TournamentSize,
+            updateTournamentRequest.Format,
             updateTournamentRequest.TopicsPerParticipantMax,
             updateTournamentRequest.TopicsPerParticipantMin);
 
