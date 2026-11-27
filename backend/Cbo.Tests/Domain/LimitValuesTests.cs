@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Cbo.Core.Domain;
 using Cbo.Core.Paging;
 
@@ -43,7 +44,14 @@ public class LimitValuesTests
     {
         Assert.Equal(2, Limits.Matches.ParticipantsMin);
         Assert.Equal(4, Limits.Matches.ParticipantsMax);
-        Assert.Equal(4, Limits.Matches.RoundsPerQualificationMatch);
+        Assert.Equal(
+            [
+                KeyValuePair.Create(MatchType.Qualification, 4),
+                KeyValuePair.Create(MatchType.Playoff, 4),
+                KeyValuePair.Create(MatchType.Shootout, 1),
+                KeyValuePair.Create(MatchType.Final, 6),
+            ],
+            Limits.Matches.RoundsPerMatch);
     }
 
     [Fact]

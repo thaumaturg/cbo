@@ -35,6 +35,10 @@ public sealed class DeleteRoundCommandHandler(
         if (round is null)
             return RoundFailures.RoundNotFound(command.RoundNumber);
 
+        Failure? lockFailure = RoundRules.CheckNotLocked(match, access.Value);
+        if (lockFailure is not null)
+            return lockFailure;
+
         // The round's answers are tracked, so EF deletes them with it
         match.Rounds.Remove(round);
         DbContext.Rounds.Remove(round);

@@ -25,8 +25,7 @@ public abstract class RoundRequestValidatorTests<TRequest>
 
     protected abstract TestValidationResult<TRequest> Validate(RoundData round);
 
-    private static readonly string RoundNumberOutOfRange =
-        $"Round number must be between 1 and {Limits.Matches.RoundsPerQualificationMatch}.";
+    private const string RoundNumberBelowFirst = "Round number must be at least 1.";
 
     private static readonly Guid Question1 = Guid.Parse("00000000-0000-0000-0000-0000000000a1");
     private static readonly Guid Question2 = Guid.Parse("00000000-0000-0000-0000-0000000000a2");
@@ -60,25 +59,18 @@ public abstract class RoundRequestValidatorTests<TRequest>
         Validate(StandardRound() with { NumberInMatch = 1 }).ShouldNotHaveAnyValidationErrors();
     }
 
+    // The last round depends on the match's kind, which the handler checks
     [Fact]
-    public void The_round_number_can_be_the_last_round_of_a_match()
+    public void Any_round_number_from_1_up_is_valid()
     {
-        Validate(StandardRound() with { NumberInMatch = Limits.Matches.RoundsPerQualificationMatch })
-            .ShouldNotHaveAnyValidationErrors();
+        Validate(StandardRound() with { NumberInMatch = 100 }).ShouldNotHaveAnyValidationErrors();
     }
 
     [Fact]
     public void Round_number_0_is_out_of_range()
     {
         Validate(StandardRound() with { NumberInMatch = 0 })
-            .ShouldHaveValidationErrorFor("numberInMatch").WithErrorMessage(RoundNumberOutOfRange).Only();
-    }
-
-    [Fact]
-    public void A_round_number_one_over_the_last_round_is_out_of_range()
-    {
-        Validate(StandardRound() with { NumberInMatch = Limits.Matches.RoundsPerQualificationMatch + 1 })
-            .ShouldHaveValidationErrorFor("numberInMatch").WithErrorMessage(RoundNumberOutOfRange).Only();
+            .ShouldHaveValidationErrorFor("numberInMatch").WithErrorMessage(RoundNumberBelowFirst).Only();
     }
 
     [Fact]
@@ -292,7 +284,7 @@ public abstract class RoundRequestValidatorTests<TRequest>
             new AnswerData(Question1, Participant2, true),
             new AnswerData(Question1, Participant2)) with { NumberInMatch = 0 });
 
-        result.ShouldHaveValidationErrorFor("numberInMatch").WithErrorMessage(RoundNumberOutOfRange);
+        result.ShouldHaveValidationErrorFor("numberInMatch").WithErrorMessage(RoundNumberBelowFirst);
         result.ShouldHaveValidationErrorFor("answers[2].isAnswerAccepted")
             .WithErrorMessage("In standard mode, IsAnswerAccepted must be provided for all answers.");
         result.ShouldHaveValidationErrorFor("answers[2]")

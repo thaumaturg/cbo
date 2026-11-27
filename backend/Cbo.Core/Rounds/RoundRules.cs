@@ -1,5 +1,6 @@
 using Cbo.Core.Data;
 using Cbo.Core.Domain;
+using Cbo.Core.Matches;
 using Cbo.Results;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,6 +11,25 @@ namespace Cbo.Core.Rounds;
 /// </summary>
 internal static class RoundRules
 {
+    /// <summary>
+    /// The round number is within the rounds of the match's kind. The request validators have already checked it is
+    /// at least 1. Null when it is.
+    /// </summary>
+    public static Failure? CheckRoundNumber(MatchType type, int numberInMatch)
+    {
+        int rounds = type.RoundsToPlay();
+        if (numberInMatch >= 1 && numberInMatch <= rounds)
+            return null;
+
+        return RoundFailures.InvalidField("numberInMatch", $"Round number must be between 1 and {rounds} for this match.");
+    }
+
+    /// <summary>The match's rounds can still be added, changed or deleted. Null when they can.</summary>
+    public static Failure? CheckNotLocked(Match match, Tournament tournament) =>
+        MatchLock.ReasonFor(match.Type, match.ConfirmedAt, tournament.CurrentStage) is MatchLockReason reason
+            ? RoundFailures.MatchLocked(reason)
+            : null;
+
     /// <summary>
     /// Checks the parts of the round that need the database: the topic, and whose questions and participants the
     /// answers are about. All of it is <see cref="FailureKind.Invalid"/>. The request validators have already checked

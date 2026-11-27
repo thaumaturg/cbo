@@ -8,6 +8,7 @@ public class Match : IAuditable
     public required TournamentStage CreatedOnStage { get; set; }
     public required MatchType Type { get; set; }
     public required Guid TournamentId { get; set; }
+    public DateTime? ConfirmedAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 

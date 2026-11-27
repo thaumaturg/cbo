@@ -33,10 +33,18 @@ public sealed class CreateRoundCommandHandler(
         if (match is null)
             return RoundFailures.MatchNotFound();
 
+        Failure? roundNumberFailure = RoundRules.CheckRoundNumber(match.Type, command.NumberInMatch);
+        if (roundNumberFailure is not null)
+            return roundNumberFailure;
+
         Result<Dictionary<Guid, Question>> validation = await RoundRules.ValidateAsync(
             DbContext, match, command.TopicId, command.Answers, cancellationToken);
         if (validation.IsFailure)
             return validation.Failure;
+
+        Failure? lockFailure = RoundRules.CheckNotLocked(match, access.Value);
+        if (lockFailure is not null)
+            return lockFailure;
 
         if (match.Rounds.Any(r => r.NumberInMatch == command.NumberInMatch))
             return RoundFailures.RoundAlreadyExists(command.NumberInMatch);

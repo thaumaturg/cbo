@@ -2326,6 +2326,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3178,6 +3188,7 @@
           "createdOnStage",
           "type",
           "tournamentId",
+          "isLocked",
           "matchParticipants",
           "rounds"
         ],
@@ -3212,6 +3223,16 @@
           "tournamentId": {
             "type": "string",
             "format": "uuid"
+          },
+          "confirmedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "isLocked": {
+            "type": "boolean"
           },
           "matchParticipants": {
             "type": "array",
@@ -3278,6 +3299,7 @@
           "createdOnStage",
           "type",
           "tournamentId",
+          "isLocked",
           "matchParticipants",
           "roundsCount"
         ],
@@ -3312,6 +3334,16 @@
           "tournamentId": {
             "type": "string",
             "format": "uuid"
+          },
+          "confirmedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "isLocked": {
+            "type": "boolean"
           },
           "matchParticipants": {
             "type": "array",

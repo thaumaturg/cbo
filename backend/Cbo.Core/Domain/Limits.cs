@@ -86,8 +86,15 @@ public static class Limits
         /// <summary>Most participants in a match.</summary>
         public const int ParticipantsMax = 4;
 
-        /// <summary>Rounds in a qualification match. A match with all of them played is finished.</summary>
-        public const int RoundsPerQualificationMatch = 4;
+        /// <summary>Rounds in a match of each kind. A match with all of them played is finished.</summary>
+        public static readonly ImmutableSortedDictionary<MatchType, int> RoundsPerMatch =
+            ImmutableSortedDictionary.CreateRange(
+            [
+                KeyValuePair.Create(MatchType.Qualification, 4),
+                KeyValuePair.Create(MatchType.Playoff, 4),
+                KeyValuePair.Create(MatchType.Shootout, 1),
+                KeyValuePair.Create(MatchType.Final, 6),
+            ]);
     }
 
     public static class Rounds

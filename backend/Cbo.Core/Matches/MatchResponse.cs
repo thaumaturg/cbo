@@ -10,6 +10,8 @@ public record MatchResponse
     public required TournamentStage CreatedOnStage { get; set; }
     public required MatchType Type { get; set; }
     public required Guid TournamentId { get; set; }
+    public DateTime? ConfirmedAt { get; set; }
+    public required bool IsLocked { get; set; }
     public required List<MatchParticipantResponse> MatchParticipants { get; set; }
     public required int RoundsCount { get; set; }
 }

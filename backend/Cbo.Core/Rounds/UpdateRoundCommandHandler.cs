@@ -46,6 +46,10 @@ public sealed class UpdateRoundCommandHandler(
         if (validation.IsFailure)
             return validation.Failure;
 
+        Failure? lockFailure = RoundRules.CheckNotLocked(match, access.Value);
+        if (lockFailure is not null)
+            return lockFailure;
+
         if (round.TopicId != command.TopicId || round.IsOverrideMode != command.IsOverrideMode)
             return Failure.Conflict("The topic, number and scoring mode of an existing round can't be changed. Delete the round and create a new one.");
 

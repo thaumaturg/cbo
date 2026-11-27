@@ -24,6 +24,8 @@ public sealed class GetMatchesQueryHandler(
         if (access.IsFailure)
             return access.Failure;
 
+        TournamentStage stage = access.Value.CurrentStage;
+
         Expression<Func<MatchParticipant, MatchParticipantResponse>> toParticipantResponse = MatchParticipantProjections.ToResponse();
 
         return await _dbContext.Matches
@@ -37,6 +39,8 @@ public sealed class GetMatchesQueryHandler(
                 CreatedOnStage = m.CreatedOnStage,
                 Type = m.Type,
                 TournamentId = m.TournamentId,
+                ConfirmedAt = m.ConfirmedAt,
+                IsLocked = MatchLock.IsLocked(m.Type, m.ConfirmedAt, stage),
                 MatchParticipants = m.MatchParticipants
                     .AsQueryable()
                     .OrderBy(mp => mp.Id)

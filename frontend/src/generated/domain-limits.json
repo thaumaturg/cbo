@@ -14,7 +14,12 @@
     "matches": {
       "participantsMax": 4,
       "participantsMin": 2,
-      "roundsPerQualificationMatch": 4
+      "roundsPerMatch": {
+        "Qualification": 4,
+        "Playoff": 4,
+        "Shootout": 1,
+        "Final": 6
+      }
     },
     "rounds": {
       "overrideCostMax": 9999,
