@@ -6,6 +6,24 @@
  */
 export const isPreparationsStage = (stage) => stage === "Preparations";
 
+/** The tournament stages in the order a tournament moves through them. */
+export const TOURNAMENT_STAGES = ["Preparations", "Qualifications", "Playoff", "Ended"];
+
+const ROLL_BACK_WIPES = {
+  Preparations:
+    "Every match, round and answer, all totals, and the start and end times will be deleted. Participants, seeding, topics and settings can be edited again.",
+  Qualifications:
+    "Every playoff match, shootout and the Final will be deleted with their rounds, the qualification places will no longer be fixed, and the end time will be cleared. Qualification matches can be edited again.",
+  Playoff: "The end time will be cleared. Confirmed matches stay confirmed; reopen a match to correct it.",
+};
+
+/**
+ * What rolling a tournament back to a stage wipes, for the confirm dialog.
+ * @param {string} stage - The earlier stage the tournament goes back to
+ * @returns {string}
+ */
+export const rollBackWipes = (stage) => ROLL_BACK_WIPES[stage] ?? "";
+
 const FORMAT_LABELS = {
   TwelveShort: "12 players · Short",
   TwelveLong: "12 players · Long",

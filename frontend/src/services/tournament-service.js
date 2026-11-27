@@ -119,4 +119,19 @@ export const tournamentService = {
       return apiFailure(error, "Failed to start Qualifications. Please try again.");
     }
   },
+
+  /**
+   * Roll back: move a tournament to an earlier stage, wiping everything played after it
+   * @param {string} tournamentId - Tournament ID (GUID)
+   * @param {string} stage - The earlier stage to go back to
+   * @returns {Promise} - API response with updated tournament
+   */
+  async rollBack(tournamentId, stage) {
+    try {
+      const response = await api.patch(`/Tournaments/${tournamentId}`, { stage });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return apiFailure(error, "Failed to roll the tournament back. Please try again.");
+    }
+  },
 };

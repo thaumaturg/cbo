@@ -2,6 +2,7 @@
 import MatchCard from "@/components/MatchCard.vue";
 import TournamentParticipantsPanel from "@/components/TournamentParticipantsPanel.vue";
 import TournamentSettingsPanel from "@/components/TournamentSettingsPanel.vue";
+import TournamentStagePanel from "@/components/TournamentStagePanel.vue";
 import TournamentStandingsCard from "@/components/TournamentStandingsCard.vue";
 import TournamentTopicsPanel from "@/components/TournamentTopicsPanel.vue";
 import { tournamentMatchesService } from "@/services/tournament-matches-service.js";
@@ -72,6 +73,12 @@ const handleTabChange = async (nextTab) => {
 
 const handleTournamentUpdated = (updatedTournament) => {
   tournament.value = updatedTournament;
+};
+
+// A roll back wipes matches and totals, so they are loaded again for the stage it went back to
+const handleRolledBack = async (rolledBackTournament) => {
+  tournament.value = rolledBackTournament;
+  await Promise.all([fetchMatches(), fetchParticipants()]);
 };
 
 const fetchTournament = async () => {
@@ -284,6 +291,7 @@ onMounted(async () => {
             <TournamentTopicsPanel :tournament="tournament" :read-only="topicsReadOnly" />
           </TabPanel>
           <TabPanel value="settings">
+            <TournamentStagePanel :tournament="tournament" @rolled-back="handleRolledBack" />
             <TournamentSettingsPanel
               ref="settingsPanel"
               v-model:dirty="settingsDirty"
