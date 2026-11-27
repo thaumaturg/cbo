@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Cbo.Core.Domain;
 using Cbo.Core.Paging;
+using Cbo.Core.Playoffs;
 
 namespace Cbo.Tests.Domain;
 
@@ -61,8 +64,58 @@ public class DomainLimitsExportTests
         {
             ["limits"] = limits,
             ["paging"] = ReadConstAndReadonlyFields(typeof(PagingDefaults)),
+            ["playoffBrackets"] = PlayoffBrackets(),
             ["tournamentDefaults"] = ReadConstAndReadonlyFields(typeof(TournamentDefaults)),
         };
+    }
+
+    /// <summary>
+    /// Each format's playoff bracket template: every playoff match's and the Final's seats, and where its winners and
+    /// losers go. Formats without a bracket are left out.
+    /// </summary>
+    private static SortedDictionary<string, object> PlayoffBrackets()
+    {
+        var brackets = new SortedDictionary<string, object>(StringComparer.Ordinal);
+        foreach (TournamentFormat format in Enum.GetValues<TournamentFormat>())
+        {
+            if (PlayoffBracket.For(format) is not PlayoffBracket bracket)
+            {
+                continue;
+            }
+
+            var matches = new SortedDictionary<string, object>(StringComparer.Ordinal);
+            foreach ((BracketPosition position, ImmutableArray<BracketSlot> slots) in bracket.Matches)
+            {
+                BracketDestinations destinations = bracket.Destinations(position);
+                matches[position.ToString()] = new SortedDictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["losersTo"] = destinations.Losers,
+                    ["slots"] = slots.Select(Slot).ToList(),
+                    ["winnersTo"] = destinations.Winners,
+                };
+            }
+
+            brackets[format.ToString()] = matches;
+        }
+
+        return brackets;
+    }
+
+    private static SortedDictionary<string, object> Slot(BracketSlot slot)
+    {
+        var values = new SortedDictionary<string, object>(StringComparer.Ordinal) { ["label"] = slot.Label };
+        switch (slot)
+        {
+            case QualificationPlaceSlot qualification:
+                values["qualificationPlace"] = qualification.Place;
+                break;
+            case OutcomeSlot outcome:
+                values["outcome"] = outcome.Outcome;
+                values["source"] = outcome.Source;
+                break;
+        }
+
+        return values;
     }
 
     private static SortedDictionary<string, object> ReadConstAndReadonlyFields(Type type)
