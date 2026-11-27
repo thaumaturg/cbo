@@ -1205,7 +1205,7 @@
         "tags": [
           "Tournaments"
         ],
-        "operationId": "StartTournament",
+        "operationId": "ChangeTournamentStage",
         "parameters": [
           {
             "name": "id",
@@ -1221,7 +1221,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/StartTournamentRequest"
+                "$ref": "#/components/schemas/ChangeStageRequest"
               }
             }
           },
@@ -2832,6 +2832,17 @@
           }
         }
       },
+      "ChangeStageRequest": {
+        "required": [
+          "stage"
+        ],
+        "type": "object",
+        "properties": {
+          "stage": {
+            "$ref": "#/components/schemas/TournamentStage"
+          }
+        }
+      },
       "CreateParticipantRequest": {
         "required": [
           "username",
@@ -3749,17 +3760,6 @@
             "items": {
               "$ref": "#/components/schemas/RoundAnswerResponse"
             }
-          }
-        }
-      },
-      "StartTournamentRequest": {
-        "required": [
-          "stage"
-        ],
-        "type": "object",
-        "properties": {
-          "stage": {
-            "$ref": "#/components/schemas/TournamentStage"
           }
         }
       },

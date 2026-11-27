@@ -11,10 +11,10 @@ namespace Cbo.Core.Tournaments;
 /// <summary>
 /// Moves a tournament from Preparations to Qualifications and generates its qualification matches.
 /// </summary>
-public sealed class StartTournamentCommandHandler(
+public sealed class StartQualificationsCommandHandler(
     CboDbContext dbContext,
     ITournamentAccessService tournamentAccessService,
-    IMatchGenerationService matchGenerationService) : CommandHandler<StartTournamentCommand>(dbContext)
+    IMatchGenerationService matchGenerationService) : CommandHandler<StartQualificationsCommand>(dbContext)
 {
     private const string StartForbiddenMessage = "You don't have permission to start this tournament.";
     private const string AlreadyStartedMessage = "The tournament has already started. Only a tournament in the Preparations stage can be started.";
@@ -22,10 +22,10 @@ public sealed class StartTournamentCommandHandler(
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
     private readonly IMatchGenerationService _matchGenerationService = matchGenerationService;
 
-    protected override async Task<Result> ExecuteAsync(StartTournamentCommand command, CancellationToken cancellationToken)
+    protected override async Task<Result> ExecuteAsync(StartQualificationsCommand command, CancellationToken cancellationToken)
     {
         Result<Tournament> access = await _tournamentAccessService.LoadTournamentWithAccessAsync(
-            command.TournamentId, TournamentOperations.Start, StartForbiddenMessage, cancellationToken);
+            command.TournamentId, TournamentOperations.ChangeStage, StartForbiddenMessage, cancellationToken);
         if (access.IsFailure)
             return access.Failure;
 
@@ -64,7 +64,7 @@ public sealed class StartTournamentCommandHandler(
         return Result.Success();
     }
 
-    protected override Failure? MapSaveFailure(StartTournamentCommand command, DbUpdateException exception)
+    protected override Failure? MapSaveFailure(StartQualificationsCommand command, DbUpdateException exception)
     {
         // Lost a race with a simultaneous start of the same tournament
         if (PostgresConstraint.IsUniqueViolation(exception, MatchConfiguration.TournamentIdNumberInTournamentIndexName))
@@ -75,7 +75,7 @@ public sealed class StartTournamentCommandHandler(
 
     /// <summary>
     /// No participant may have more than the maximum number of topics.
-    /// The minimum is informational (ADR-0007), so a player with fewer topics doesn't block Start.
+    /// The minimum is informational (ADR-0007), so a player with fewer topics doesn't block Start Qualifications.
     /// </summary>
     private static Result CheckTopicCounts(Tournament tournament, List<TournamentParticipant> participants)
     {

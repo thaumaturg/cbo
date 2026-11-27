@@ -49,8 +49,8 @@ public static class TournamentEndpoints
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
-        tournaments.MapPatch("{id:guid}", StartTournamentAsync)
-            .WithName("StartTournament")
+        tournaments.MapPatch("{id:guid}", ChangeTournamentStageAsync)
+            .WithName("ChangeTournamentStage")
             .Produces<TournamentResponse>()
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -149,20 +149,20 @@ public static class TournamentEndpoints
         return TypedResults.NoContent();
     }
 
-    private static async Task<IResult> StartTournamentAsync(
+    private static async Task<IResult> ChangeTournamentStageAsync(
         Guid id,
-        StartTournamentRequest startTournamentRequest,
-        [FromServices] ICommandHandler<StartTournamentCommand> startTournament,
+        ChangeStageRequest changeStageRequest,
+        [FromServices] ICommandHandler<StartQualificationsCommand> startQualifications,
         [FromServices] IQueryHandler<GetTournamentQuery, TournamentResponse> getTournament,
         CancellationToken cancellationToken)
     {
         // Keeps the PATCH { stage } shape: starting is the only supported stage change
-        if (startTournamentRequest.Stage != TournamentStage.Qualifications)
+        if (changeStageRequest.Stage != TournamentStage.Qualifications)
             return Failure.Invalid(
                 "Some of the stage data is invalid.",
                 new FieldError("stage", "The stage can only be set to Qualifications, which starts the tournament.")).ToProblem();
 
-        Result started = await startTournament.HandleAsync(new StartTournamentCommand(id), cancellationToken);
+        Result started = await startQualifications.HandleAsync(new StartQualificationsCommand(id), cancellationToken);
         if (started.IsFailure)
             return started.Failure.ToProblem();
 
