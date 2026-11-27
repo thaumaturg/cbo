@@ -17,7 +17,7 @@ public sealed class GetTournamentsRequestValidator : RequestValidator<GetTournam
         // Binding accepts numbers for enums, so an undefined value can still get here
         RuleFor(r => r.Stage)
             .IsInEnum()
-            .WithMessage(UnknownValueMessage<TournamentStageFilter>("stage"));
+            .WithMessage(UnknownValueMessage<TournamentStage>("stage"));
         RuleFor(r => r.Role)
             .Must(roles => roles is null || roles.All(Enum.IsDefined))
             .WithMessage(UnknownValueMessage<TournamentParticipantRole>("role"));

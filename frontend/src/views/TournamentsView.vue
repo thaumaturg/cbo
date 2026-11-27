@@ -24,7 +24,7 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 
 const SORT_KEYS = ["title", "stage", "createdAt"];
-const STAGES = ["Preparations", "Started"];
+const STAGES = ["Preparations", "Qualifications", "Playoff", "Ended"];
 const ROLES = ["Creator", "Organizer", "Player"];
 
 const defaults = {

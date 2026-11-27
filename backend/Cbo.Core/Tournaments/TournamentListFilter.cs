@@ -15,8 +15,12 @@ public static class TournamentListFilter
 
     public static readonly SortKeys<Tournament> SortKeys = new SortKeys<Tournament>(DefaultSort, t => t.Id)
         .Add("title", t => t.Title)
-        // current_stage is stored as a string, and alphabetical order matches stage order up to Stage9
-        .Add("stage", t => t.CurrentStage)
+        // current_stage is stored as a string, so sort by each stage's position instead of alphabetically
+        .Add("stage", t => t.CurrentStage == TournamentStage.Preparations ? 0
+            : t.CurrentStage == TournamentStage.Qualifications ? 1
+            : t.CurrentStage == TournamentStage.Playoff ? 2
+            : t.CurrentStage == TournamentStage.Ended ? 3
+            : 4)
         .Add("createdAt", t => t.CreatedAt);
 
     /// <summary>Limits the tournaments to those the current user takes part in, then applies the query's filters.</summary>
@@ -43,12 +47,10 @@ public static class TournamentListFilter
             filtered = filtered.Where(t => EF.Functions.ILike(t.Title, pattern, LikePattern.EscapeCharacter));
         }
 
-        filtered = query.Stage switch
+        if (query.Stage is TournamentStage stage)
         {
-            TournamentStageFilter.Preparations => filtered.Where(t => t.CurrentStage == TournamentStage.Preparations),
-            TournamentStageFilter.Started => filtered.Where(t => t.CurrentStage != TournamentStage.Preparations),
-            _ => filtered,
-        };
+            filtered = filtered.Where(t => t.CurrentStage == stage);
+        }
 
         return filtered;
     }

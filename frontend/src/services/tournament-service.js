@@ -9,7 +9,7 @@ export const tournamentService = {
    * @param {number} [params.pageSize] - Rows per page, from 1 to `PAGING.maxPageSize`
    * @param {string} [params.sort] - `title`, `stage` or `createdAt`, with an optional leading `-` for descending
    * @param {string} [params.search] - Text the title contains
-   * @param {"Preparations" | "Started"} [params.stage] - Stage filter
+   * @param {"Preparations" | "Qualifications" | "Playoff" | "Ended"} [params.stage] - Stage filter
    * @param {Array<"Creator" | "Organizer" | "Player">} [params.role] - The current user's role is one of these
    * @param {Object} [options] - Request options
    * @param {AbortSignal} [options.signal] - Cancels the request
@@ -105,18 +105,18 @@ export const tournamentService = {
   },
 
   /**
-   * Start a tournament: move it from Preparations to Qualifications
+   * Start Qualifications: move a tournament from Preparations to Qualifications
    * @param {string} tournamentId - Tournament ID (GUID)
    * @returns {Promise} - API response with updated tournament
    */
-  async startTournament(tournamentId) {
+  async startQualifications(tournamentId) {
     try {
       const response = await api.patch(`/Tournaments/${tournamentId}`, {
         stage: "Qualifications",
       });
       return { success: true, data: response.data };
     } catch (error) {
-      return apiFailure(error, "Failed to start the tournament. Please try again.");
+      return apiFailure(error, "Failed to start Qualifications. Please try again.");
     }
   },
 };

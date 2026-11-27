@@ -15,12 +15,12 @@ public class TournamentListFilterTests
     private static GetTournamentsQuery Query(
         string? sort = null,
         string? search = null,
-        TournamentStageFilter? stage = null,
+        TournamentStage? stage = null,
         TournamentParticipantRole[]? roles = null) =>
         new(PagingDefaults.FirstPage, PagingDefaults.DefaultPageSize, sort, search, stage, roles ?? []);
 
     private static GetTournamentsQuery EveryFilterSet(string? sort = null) =>
-        Query(sort, search: "50%_off\\", stage: TournamentStageFilter.Started,
+        Query(sort, search: "50%_off\\", stage: TournamentStage.Playoff,
             roles: [TournamentParticipantRole.Creator, TournamentParticipantRole.Organizer]);
 
     // Builds the SQL of the items query the way ToPageAsync runs it, without opening a connection
@@ -64,20 +64,25 @@ public class TournamentListFilterTests
         Assert.DoesNotContain("'Player'", sql);
     }
 
-    [Fact]
-    public void The_started_stage_filter_keeps_every_stage_after_preparations()
+    [Theory]
+    [InlineData(TournamentStage.Preparations, "'Preparations'")]
+    [InlineData(TournamentStage.Qualifications, "'Qualifications'")]
+    [InlineData(TournamentStage.Playoff, "'Playoff'")]
+    [InlineData(TournamentStage.Ended, "'Ended'")]
+    public void A_stage_filter_keeps_only_that_stage(TournamentStage stage, string storedStage)
     {
-        string sql = ItemsSql(Query(stage: TournamentStageFilter.Started));
+        string sql = ItemsSql(Query(stage: stage));
 
-        Assert.Contains("t.current_stage <> 'Preparations'", sql);
+        Assert.Contains("t.current_stage = @stage", sql);
+        Assert.Contains($"@stage={storedStage}", sql);
     }
 
     [Fact]
-    public void The_preparations_stage_filter_keeps_only_preparations()
+    public void No_stage_filter_keeps_every_stage()
     {
-        string sql = ItemsSql(Query(stage: TournamentStageFilter.Preparations));
+        string sql = ItemsSql(Query());
 
-        Assert.Contains("t.current_stage = 'Preparations'", sql);
+        Assert.DoesNotContain("current_stage =", sql);
     }
 
     [Theory]
@@ -94,8 +99,6 @@ public class TournamentListFilterTests
     [Theory]
     [InlineData("title", "ORDER BY t.title, t.id")]
     [InlineData("-title", "ORDER BY t.title DESC, t.id")]
-    [InlineData("stage", "ORDER BY t.current_stage, t.id")]
-    [InlineData("-stage", "ORDER BY t.current_stage DESC, t.id")]
     [InlineData("createdAt", "ORDER BY t.created_at, t.id")]
     [InlineData("-createdAt", "ORDER BY t.created_at DESC, t.id")]
     [InlineData(null, "ORDER BY t.created_at DESC, t.id")]
@@ -104,6 +107,28 @@ public class TournamentListFilterTests
         string sql = ItemsSql(EveryFilterSet(sort));
 
         Assert.Contains(expectedOrderBy, sql);
+    }
+
+    // current_stage is stored as a string, so sorting the column itself would put Ended first
+    [Theory]
+    [InlineData("stage", "END, t.id")]
+    [InlineData("-stage", "END DESC, t.id")]
+    public void The_stage_sort_follows_the_stage_order_then_id(string sort, string expectedOrderByEnd)
+    {
+        string sql = ItemsSql(EveryFilterSet(sort));
+        string orderBy = sql[sql.IndexOf("ORDER BY", StringComparison.Ordinal)..];
+
+        Assert.StartsWith("ORDER BY CASE", orderBy);
+        Assert.Contains(expectedOrderByEnd, orderBy);
+        int[] positions =
+        [
+            orderBy.IndexOf("'Preparations' THEN 0", StringComparison.Ordinal),
+            orderBy.IndexOf("'Qualifications' THEN 1", StringComparison.Ordinal),
+            orderBy.IndexOf("'Playoff' THEN 2", StringComparison.Ordinal),
+            orderBy.IndexOf("'Ended' THEN 3", StringComparison.Ordinal),
+        ];
+        Assert.DoesNotContain(-1, positions);
+        Assert.Equal(positions.Order(), positions);
     }
 
     [Fact]

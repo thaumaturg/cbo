@@ -34,12 +34,12 @@ const isLoadingMatches = ref(false);
 const isLoadingParticipants = ref(false);
 const loadError = ref(null);
 
-const isStarting = ref(false);
+const isStartingQualifications = ref(false);
 const activeTab = ref("participants");
 
 const isInPreparations = computed(() => isPreparationsStage(tournament.value?.currentStage));
 const isCreator = computed(() => tournament.value?.currentUserRole === "Creator");
-// Only the Creator can change the tournament, and only before Start
+// Only the Creator can change the tournament, and only before Start Qualifications
 const canManage = computed(() => isCreator.value && isInPreparations.value);
 
 const participantsReadOnly = computed(() => !canManage.value);
@@ -151,32 +151,32 @@ const refreshTournament = async () => {
   }
 };
 
-const handleStart = () => {
+const handleStartQualifications = () => {
   const { id, title } = tournament.value;
 
   confirm.require({
-    message: `Are you sure you want to start "${title}"? Its qualification matches will be generated.`,
-    header: "Start Tournament",
+    message: `Are you sure you want to start Qualifications in "${title}"? Its qualification matches will be generated.`,
+    header: "Start Qualifications",
     icon: "pi pi-exclamation-triangle",
     rejectProps: { label: "Cancel", severity: "secondary", outlined: true },
-    acceptProps: { label: "Start" },
+    acceptProps: { label: "Start Qualifications" },
     accept: async () => {
-      isStarting.value = true;
+      isStartingQualifications.value = true;
       try {
-        const result = await tournamentService.startTournament(id);
+        const result = await tournamentService.startQualifications(id);
 
         if (result.success) {
-          notify.success("Tournament started", `"${title}" has started.`);
+          notify.success("Qualifications started", `"${title}" is in Qualifications.`);
           await refreshTournament();
           await Promise.all([fetchMatches(), fetchParticipants()]);
         } else {
-          notify.error("Start Failed", result.message);
+          notify.error("Start Qualifications Failed", result.message);
         }
       } catch (error) {
-        console.error("Error starting tournament:", error);
-        notify.error("Start Failed", "An unexpected error occurred. Please try again.");
+        console.error("Error starting Qualifications:", error);
+        notify.error("Start Qualifications Failed", "An unexpected error occurred. Please try again.");
       } finally {
-        isStarting.value = false;
+        isStartingQualifications.value = false;
       }
     },
   });
@@ -219,11 +219,11 @@ onMounted(async () => {
           <Tag :value="tournament.currentStage" :severity="stageSeverity" class="text-sm" />
           <Button
             v-if="canManage"
-            label="Start"
+            label="Start Qualifications"
             icon="pi pi-play"
             severity="success"
-            :loading="isStarting"
-            @click="handleStart"
+            :loading="isStartingQualifications"
+            @click="handleStartQualifications"
           />
         </div>
         <p v-if="tournament.description" class="text-gray-600 dark:text-gray-400 ml-14">
@@ -236,7 +236,7 @@ onMounted(async () => {
         <div class="text-gray-500 dark:text-gray-400">
           <i class="pi pi-clock text-5xl mb-4 block"></i>
           <p class="text-xl mb-2">Tournament is in Preparations</p>
-          <p class="text-sm">Matches will be generated when the tournament starts.</p>
+          <p class="text-sm">Matches will be generated when Qualifications start.</p>
         </div>
       </div>
 

@@ -30,8 +30,12 @@ export const stageTagSeverity = (stage) => {
       return "secondary";
     case "Qualifications":
       return "info";
-    default:
+    case "Playoff":
+      return "warn";
+    case "Ended":
       return "success";
+    default:
+      return "secondary";
   }
 };
 

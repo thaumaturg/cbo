@@ -879,7 +879,7 @@
             "name": "stage",
             "in": "query",
             "schema": {
-              "$ref": "#/components/schemas/TournamentStageFilter"
+              "$ref": "#/components/schemas/TournamentStage"
             }
           },
           {
@@ -3949,13 +3949,9 @@
       "TournamentStage": {
         "enum": [
           "Preparations",
-          "Qualifications"
-        ]
-      },
-      "TournamentStageFilter": {
-        "enum": [
-          "Preparations",
-          "Started",
+          "Qualifications",
+          "Playoff",
+          "Ended",
           null
         ]
       },
