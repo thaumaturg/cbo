@@ -13,6 +13,13 @@ export const isPreparationsStage = (stage) => stage === "Preparations";
  */
 export const hasPlayoffStarted = (stage) => stage === "Playoff" || stage === "Ended";
 
+/**
+ * Whether a tournament is in the Playoff, the only stage its playoff matches are confirmed and reopened in.
+ * @param {string|null|undefined} stage - Tournament stage name
+ * @returns {boolean}
+ */
+export const isPlayoffStage = (stage) => stage === "Playoff";
+
 /** The tournament stages in the order a tournament moves through them. */
 export const TOURNAMENT_STAGES = ["Preparations", "Qualifications", "Playoff", "Ended"];
 

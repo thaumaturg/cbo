@@ -4,17 +4,34 @@ import { LIMITS } from "@/domain/limits.js";
 import { tournamentMatchesService } from "@/services/tournament-matches-service.js";
 import { tournamentRoundsService } from "@/services/tournament-rounds-service.js";
 import { tournamentService } from "@/services/tournament-service.js";
+import {
+  confirmationFollowUp,
+  isMatchFinished,
+  isQualificationMatch,
+  matchTitle,
+  outcomeLabel,
+  outcomeTagSeverity,
+  playersByOutcome,
+  reopenDeletionTitle,
+} from "@/utils/match.js";
 import { useNotify } from "@/utils/notify.js";
+import { isPlayoffStage } from "@/utils/tournament.js";
 import Accordion from "primevue/accordion";
 import AccordionContent from "primevue/accordioncontent";
 import AccordionHeader from "primevue/accordionheader";
 import AccordionPanel from "primevue/accordionpanel";
 import Button from "primevue/button";
-import { computed, onMounted, ref } from "vue";
+import ConfirmDialog from "primevue/confirmdialog";
+import Tag from "primevue/tag";
+import { useConfirm } from "primevue/useconfirm";
+import { computed, ref, watch } from "vue";
 import { RouterLink, useRoute } from "vue-router";
+
+const REOPEN_CONFIRM_GROUP = "reopen-match";
 
 const route = useRoute();
 const notify = useNotify();
+const confirm = useConfirm();
 
 const tournamentId = computed(() => route.params.tournamentId);
 const matchId = computed(() => route.params.matchId);
@@ -22,20 +39,21 @@ const isCreator = computed(() => currentUserRole.value === "Creator");
 const canEdit = computed(() => isCreator.value && match.value?.isLocked === false);
 
 const match = ref(null);
+const matches = ref([]);
 const currentUserRole = ref(null);
+const stage = ref(null);
 const availableTopics = ref([]);
 const isLoading = ref(true);
 const loadError = ref(null);
 const isProcessing = ref(false);
+const reopenDeletions = ref([]);
 
 const roundStates = ref([]);
 
-const matchTitle = computed(() => {
-  if (!match.value) return "Match";
-  const stage = match.value.createdOnStage || "Match";
-  const number = match.value.numberInStage || match.value.numberInTournament;
-  return `${stage} #${number}`;
-});
+// The playoff match or Final a shootout settles, for its title and links
+const settledMatch = computed(() => matches.value.find((other) => other.id === match.value?.settledMatchId));
+
+const title = computed(() => (match.value ? matchTitle(match.value, settledMatch.value) : "Match"));
 
 const participants = computed(() => match.value?.matchParticipants || []);
 
@@ -45,17 +63,53 @@ const canAddRound = computed(() => {
   return canEdit.value && roundStates.value.length < roundsPerMatch.value;
 });
 
+const isFinished = computed(
+  () => match.value != null && isMatchFinished({ type: match.value.type, roundsCount: match.value.rounds.length }),
+);
+const hasUnsavedRounds = computed(() => roundStates.value.some((round) => round.hasChanges));
+
+const showConfirm = computed(
+  () =>
+    isCreator.value &&
+    isPlayoffStage(stage.value) &&
+    match.value != null &&
+    !isQualificationMatch(match.value) &&
+    !match.value.confirmedAt,
+);
+const canConfirm = computed(() => isFinished.value && !hasUnsavedRounds.value);
+const confirmHint = computed(() => {
+  if (!isFinished.value) return `Play all ${roundsPerMatch.value} rounds before confirming.`;
+  if (hasUnsavedRounds.value) return "Save the changed rounds before confirming.";
+  return "";
+});
+
+const showReopen = computed(() => isCreator.value && isPlayoffStage(stage.value) && !!match.value?.confirmedAt);
+
+const followUp = computed(() => (match.value ? confirmationFollowUp(match.value, matches.value) : null));
+const matchRoute = (other) => ({
+  name: "match-view",
+  params: { tournamentId: tournamentId.value, matchId: other.id },
+});
+
+const roundsCountLabel = (count) => `${count} ${count === 1 ? "round" : "rounds"}`;
+
 const expandedPanels = ref([]);
 
+// Following a link to another match reloads this page; a slower earlier load mustn't overwrite the newer one
+let latestLoad = 0;
+
 const fetchData = async () => {
+  const load = ++latestLoad;
   isLoading.value = true;
   loadError.value = null;
 
   try {
-    const [tournamentResult, matchResult] = await Promise.all([
+    const [tournamentResult, matchResult, matchesResult] = await Promise.all([
       tournamentService.getTournamentById(tournamentId.value),
       tournamentMatchesService.getMatchWithRounds(tournamentId.value, matchId.value),
+      tournamentMatchesService.getMatches(tournamentId.value),
     ]);
+    if (load !== latestLoad) return;
 
     if (!tournamentResult.success) {
       loadError.value = tournamentResult.message;
@@ -63,20 +117,23 @@ const fetchData = async () => {
       return;
     }
     currentUserRole.value = tournamentResult.data.currentUserRole;
+    stage.value = tournamentResult.data.currentStage;
 
     if (!matchResult.success) {
       loadError.value = matchResult.message;
       notify.error("Match Load Failed", matchResult.message);
       return;
     }
-    match.value = matchResult.data;
-
-    if (canEdit.value) {
-      const topicsResult = await tournamentMatchesService.getAvailableTopics(tournamentId.value, matchId.value);
-      if (topicsResult.success) {
-        availableTopics.value = topicsResult.data;
-      }
+    if (!matchesResult.success) {
+      loadError.value = matchesResult.message;
+      notify.error("Match Load Failed", matchesResult.message);
+      return;
     }
+    match.value = matchResult.data;
+    matches.value = matchesResult.data;
+
+    await loadAvailableTopics();
+    if (load !== latestLoad) return;
 
     initializeRoundStates();
     expandedPanels.value = roundStates.value.map((r) => String(r.numberInMatch));
@@ -85,7 +142,20 @@ const fetchData = async () => {
     loadError.value = "Failed to load data. Please try again.";
     notify.error("Load Failed", "Could not load the match. Please try again.");
   } finally {
-    isLoading.value = false;
+    if (load === latestLoad) isLoading.value = false;
+  }
+};
+
+// Only a match that can be edited offers topics; reopening a match makes it editable again
+const loadAvailableTopics = async () => {
+  if (!canEdit.value) {
+    availableTopics.value = [];
+    return;
+  }
+
+  const topicsResult = await tournamentMatchesService.getAvailableTopics(tournamentId.value, matchId.value);
+  if (topicsResult.success) {
+    availableTopics.value = topicsResult.data;
   }
 };
 
@@ -163,17 +233,23 @@ const updateRoundState = (index, updatedState) => {
 };
 
 const refreshMatchData = async () => {
-  const [matchResult, topicsResult] = await Promise.all([
+  const [matchResult, matchesResult] = await Promise.all([
     tournamentMatchesService.getMatchWithRounds(tournamentId.value, matchId.value),
-    tournamentMatchesService.getAvailableTopics(tournamentId.value, matchId.value),
+    tournamentMatchesService.getMatches(tournamentId.value),
   ]);
 
   if (matchResult.success) {
     match.value = matchResult.data;
+  } else {
+    notify.error("Match Load Failed", matchResult.message);
   }
-  if (topicsResult.success) {
-    availableTopics.value = topicsResult.data;
+  if (matchesResult.success) {
+    matches.value = matchesResult.data;
+  } else {
+    notify.error("Match Load Failed", matchesResult.message);
   }
+
+  await loadAvailableTopics();
 
   initializeRoundStates();
 };
@@ -308,14 +384,96 @@ const deleteRound = async (roundIndex) => {
   }
 };
 
+const handleConfirm = () => {
+  confirm.require({
+    message: `Are you sure you want to confirm ${title.value}? Its rounds will be locked, and the shootout or next matches its result calls for will be created. Reopen it to correct it later.`,
+    header: `Confirm ${title.value}`,
+    icon: "pi pi-exclamation-triangle",
+    rejectProps: { label: "Cancel", severity: "secondary", outlined: true },
+    acceptProps: { label: "Confirm" },
+    accept: async () => {
+      isProcessing.value = true;
+      try {
+        const confirmResult = await tournamentMatchesService.confirmMatch(tournamentId.value, matchId.value);
+        if (confirmResult.success) {
+          notify.success("Match confirmed", `${title.value} was confirmed.`);
+          await refreshMatchData();
+        } else {
+          notify.error("Confirm Failed", confirmResult.message);
+        }
+      } catch (error) {
+        console.error("Error confirming the match:", error);
+        notify.error("Confirm Failed", "Could not confirm the match. Please try again.");
+      } finally {
+        isProcessing.value = false;
+      }
+    },
+  });
+};
+
+const reopen = async () => {
+  isProcessing.value = true;
+  try {
+    const reopenResult = await tournamentMatchesService.reopenMatch(tournamentId.value, matchId.value);
+    if (reopenResult.success) {
+      notify.success("Match reopened", `${title.value} can be edited again.`);
+      await refreshMatchData();
+    } else {
+      notify.error("Reopen Failed", reopenResult.message);
+    }
+  } catch (error) {
+    console.error("Error reopening the match:", error);
+    notify.error("Reopen Failed", "Could not reopen the match. Please try again.");
+  } finally {
+    isProcessing.value = false;
+  }
+};
+
+const handleReopen = async () => {
+  isProcessing.value = true;
+  try {
+    const deletionsResult = await tournamentMatchesService.getReopenDeletions(tournamentId.value, matchId.value);
+    if (!deletionsResult.success) {
+      notify.error("Reopen Failed", deletionsResult.message);
+      return;
+    }
+    reopenDeletions.value = deletionsResult.data;
+  } catch (error) {
+    console.error("Error fetching what reopening deletes:", error);
+    notify.error("Reopen Failed", "Could not check what reopening deletes. Please try again.");
+    return;
+  } finally {
+    isProcessing.value = false;
+  }
+
+  const deletesMatches = reopenDeletions.value.length > 0;
+  confirm.require({
+    group: REOPEN_CONFIRM_GROUP,
+    message: deletesMatches
+      ? `Are you sure you want to reopen ${title.value}? These matches were created from its result and will be deleted with their rounds:`
+      : `Are you sure you want to reopen ${title.value}? Its rounds can be edited again; no other match is deleted.`,
+    header: `Reopen ${title.value}`,
+    icon: "pi pi-exclamation-triangle",
+    rejectProps: { label: "Cancel", severity: "secondary", outlined: true },
+    acceptProps: { label: "Reopen", severity: deletesMatches ? "danger" : undefined },
+    accept: reopen,
+  });
+};
+
 const backRoute = computed(() => ({
   name: "tournament-view",
   params: { tournamentId: tournamentId.value },
 }));
 
-onMounted(() => {
-  fetchData();
-});
+// Links to a shootout or the match it settles stay on this page, so a new match id loads afresh. Leaving the page
+// clears the id before the view unmounts, which mustn't load anything.
+watch(
+  matchId,
+  (id) => {
+    if (id) fetchData();
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -326,10 +484,36 @@ onMounted(() => {
         <RouterLink :to="backRoute" custom v-slot="{ navigate }">
           <Button icon="pi pi-arrow-left" severity="secondary" text rounded @click="navigate" />
         </RouterLink>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ matchTitle }}</h1>
-        <span v-if="match?.isLocked" class="text-sm text-gray-500 dark:text-gray-400">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ title }}</h1>
+        <span v-if="match?.confirmedAt" class="text-sm text-gray-500 dark:text-gray-400">
+          <i class="pi pi-lock mr-1"></i>Confirmed
+        </span>
+        <span v-else-if="match?.isLocked" class="text-sm text-gray-500 dark:text-gray-400">
           <i class="pi pi-lock mr-1"></i>Locked
         </span>
+        <!-- The span shows the tooltip, since a disabled button gets no mouse events -->
+        <span
+          v-if="!isLoading && showConfirm"
+          v-tooltip.top="{ value: confirmHint, disabled: canConfirm }"
+          class="inline-flex"
+        >
+          <Button
+            label="Confirm"
+            icon="pi pi-check"
+            severity="success"
+            :disabled="!canConfirm || isProcessing"
+            @click="handleConfirm"
+          />
+        </span>
+        <Button
+          v-if="!isLoading && showReopen"
+          label="Reopen"
+          icon="pi pi-lock-open"
+          severity="secondary"
+          outlined
+          :disabled="isProcessing"
+          @click="handleReopen"
+        />
       </div>
     </div>
 
@@ -368,6 +552,42 @@ onMounted(() => {
             <span class="font-medium text-gray-800 dark:text-gray-200">{{ participant.username }}</span>
           </div>
         </div>
+      </div>
+
+      <!-- After confirming: the shootout it created, or the Outcomes of the match it decided -->
+      <div
+        v-if="followUp && (followUp.shootout || followUp.decidedMatch)"
+        class="mb-6 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-md"
+      >
+        <h2 class="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
+          <i class="pi pi-flag mr-2 text-green-500"></i>Outcome
+        </h2>
+
+        <p v-if="followUp.shootout" class="mb-3 text-gray-700 dark:text-gray-300">
+          The tied players play
+          <RouterLink :to="matchRoute(followUp.shootout)" class="font-medium text-blue-600 hover:underline">
+            {{ matchTitle(followUp.shootout, followUp.settledMatch) }}
+          </RouterLink>
+        </p>
+
+        <template v-if="followUp.decidedMatch">
+          <p v-if="followUp.decidedMatch.id !== match.id" class="mb-3 text-gray-700 dark:text-gray-300">
+            This decided
+            <RouterLink :to="matchRoute(followUp.decidedMatch)" class="font-medium text-blue-600 hover:underline">
+              {{ matchTitle(followUp.decidedMatch) }}
+            </RouterLink>
+          </p>
+          <ul class="flex flex-col gap-2">
+            <li
+              v-for="player in playersByOutcome(followUp.decidedMatch)"
+              :key="player.id"
+              class="flex items-center gap-3"
+            >
+              <Tag :value="outcomeLabel(player)" :severity="outcomeTagSeverity(player)" class="text-xs min-w-24" />
+              <span class="font-medium text-gray-800 dark:text-gray-200">{{ player.username }}</span>
+            </li>
+          </ul>
+        </template>
       </div>
 
       <!-- No Rounds Message -->
@@ -437,6 +657,20 @@ onMounted(() => {
         </p>
       </div>
     </div>
+
+    <!-- Reopen confirmation, listing the matches it deletes -->
+    <ConfirmDialog :group="REOPEN_CONFIRM_GROUP">
+      <template #message="{ message }">
+        <div class="flex flex-col gap-3">
+          <p>{{ message.message }}</p>
+          <ul v-if="reopenDeletions.length > 0" class="list-disc pl-6 text-sm">
+            <li v-for="deletion in reopenDeletions" :key="deletion.matchId">
+              {{ reopenDeletionTitle(deletion) }}: {{ roundsCountLabel(deletion.roundsCount) }}
+            </li>
+          </ul>
+        </div>
+      </template>
+    </ConfirmDialog>
   </main>
 </template>
 
