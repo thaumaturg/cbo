@@ -1,6 +1,7 @@
 using Cbo.Api.ErrorHandling;
 using Cbo.Core.Cqrs;
 using Cbo.Core.Matches;
+using Cbo.Core.Playoffs;
 using Cbo.Results;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,6 +34,30 @@ public static class TournamentMatchEndpoints
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
+        matches.MapPost("{matchId:guid}/confirm", ConfirmTournamentMatchAsync)
+            .WithName("ConfirmTournamentMatch")
+            .Produces<MatchDetailResponse>()
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
+        matches.MapGet("{matchId:guid}/reopen-deletions", GetReopenDeletionsAsync)
+            .WithName("GetReopenDeletions")
+            .Produces<List<ReopenDeletionResponse>>()
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
+        matches.MapPost("{matchId:guid}/reopen", ReopenTournamentMatchAsync)
+            .WithName("ReopenTournamentMatch")
+            .Produces<MatchDetailResponse>()
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
         return api;
     }
 
@@ -64,5 +89,46 @@ public static class TournamentMatchEndpoints
         Result<List<AvailableTopicResponse>> result = await getAvailableTopics.HandleAsync(
             new GetAvailableTopicsQuery(tournamentId, matchId), cancellationToken);
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
+    }
+
+    private static async Task<IResult> ConfirmTournamentMatchAsync(
+        Guid tournamentId,
+        Guid matchId,
+        [FromServices] ICommandHandler<ConfirmMatchCommand> confirmMatch,
+        [FromServices] IQueryHandler<GetMatchQuery, MatchDetailResponse> getMatch,
+        CancellationToken cancellationToken)
+    {
+        Result confirmed = await confirmMatch.HandleAsync(new ConfirmMatchCommand(tournamentId, matchId), cancellationToken);
+        if (confirmed.IsFailure)
+            return confirmed.Failure.ToProblem();
+
+        Result<MatchDetailResponse> match = await getMatch.HandleAsync(new GetMatchQuery(tournamentId, matchId), cancellationToken);
+        return match.IsSuccess ? TypedResults.Ok(match.Value) : match.Failure.ToProblem();
+    }
+
+    private static async Task<IResult> GetReopenDeletionsAsync(
+        Guid tournamentId,
+        Guid matchId,
+        [FromServices] IQueryHandler<GetReopenDeletionsQuery, List<ReopenDeletionResponse>> getReopenDeletions,
+        CancellationToken cancellationToken)
+    {
+        Result<List<ReopenDeletionResponse>> result = await getReopenDeletions.HandleAsync(
+            new GetReopenDeletionsQuery(tournamentId, matchId), cancellationToken);
+        return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Failure.ToProblem();
+    }
+
+    private static async Task<IResult> ReopenTournamentMatchAsync(
+        Guid tournamentId,
+        Guid matchId,
+        [FromServices] ICommandHandler<ReopenMatchCommand> reopenMatch,
+        [FromServices] IQueryHandler<GetMatchQuery, MatchDetailResponse> getMatch,
+        CancellationToken cancellationToken)
+    {
+        Result reopened = await reopenMatch.HandleAsync(new ReopenMatchCommand(tournamentId, matchId), cancellationToken);
+        if (reopened.IsFailure)
+            return reopened.Failure.ToProblem();
+
+        Result<MatchDetailResponse> match = await getMatch.HandleAsync(new GetMatchQuery(tournamentId, matchId), cancellationToken);
+        return match.IsSuccess ? TypedResults.Ok(match.Value) : match.Failure.ToProblem();
     }
 }

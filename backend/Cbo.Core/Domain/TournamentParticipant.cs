@@ -6,7 +6,12 @@ public class TournamentParticipant : IAuditable
     public required TournamentParticipantRole Role { get; set; }
     public int? Seed { get; set; }
     public int? ScoreSum { get; set; }
+    public int? PositiveScoreSum { get; set; }
     public decimal? PointsSum { get; set; }
+
+    /// <summary>A player's Qualification place, fixed when the Playoff starts. Null before then.</summary>
+    public int? QualificationPlace { get; set; }
+
     public Guid TournamentId { get; set; }
     public required Guid ApplicationUserId { get; set; }
     public DateTime CreatedAt { get; set; }

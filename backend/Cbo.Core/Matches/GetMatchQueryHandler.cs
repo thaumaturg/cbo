@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
 using Cbo.Core.Domain;
+using Cbo.Core.Playoffs;
 using Cbo.Core.Rounds;
 using Cbo.Core.Tournaments;
 using Cbo.Results;
@@ -14,7 +15,6 @@ public sealed class GetMatchQueryHandler(
     ITournamentAccessService tournamentAccessService) : IQueryHandler<GetMatchQuery, MatchDetailResponse>
 {
     private const string ReadForbiddenMessage = "You don't have permission to view this tournament.";
-    private const string NotFoundMessage = "Match not found in this tournament.";
 
     private readonly CboDbContext _dbContext = dbContext;
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
@@ -25,6 +25,8 @@ public sealed class GetMatchQueryHandler(
             query.TournamentId, TournamentOperations.Read, ReadForbiddenMessage, cancellationToken);
         if (access.IsFailure)
             return access.Failure;
+
+        TournamentStage stage = access.Value.CurrentStage;
 
         Expression<Func<MatchParticipant, MatchParticipantResponse>> toParticipantResponse = MatchParticipantProjections.ToResponse();
         Expression<Func<Round, RoundResponse>> toRoundResponse = RoundProjections.ToResponse();
@@ -39,6 +41,11 @@ public sealed class GetMatchQueryHandler(
                 CreatedOnStage = m.CreatedOnStage,
                 Type = m.Type,
                 TournamentId = m.TournamentId,
+                ConfirmedAt = m.ConfirmedAt,
+                IsLocked = MatchLock.IsLocked(m.Type, m.ConfirmedAt, stage),
+                BracketPosition = m.BracketPosition,
+                SettledMatchId = m.SettledMatchId,
+                ShootoutNumber = m.ShootoutNumber,
                 MatchParticipants = m.MatchParticipants
                     .AsQueryable()
                     .OrderBy(mp => mp.Id)
@@ -52,7 +59,10 @@ public sealed class GetMatchQueryHandler(
             })
             .FirstOrDefaultAsync(cancellationToken);
         if (match is null)
-            return Failure.NotFound(NotFoundMessage);
+            return MatchFailures.MatchNotFound();
+
+        PlayoffSeating seating = await PlayoffSeating.LoadAsync(_dbContext, access.Value, cancellationToken);
+        seating.Describe(match.Id, match.SettledMatchId, match.MatchParticipants);
 
         return match;
     }

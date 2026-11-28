@@ -10,7 +10,7 @@ public class Tournament : IAuditable
     public DateTime? UpdatedAt { get; set; }
     public DateTime? StartedAt { get; set; }
     public DateTime? EndedAt { get; set; }
-    public required int TournamentSize { get; set; }
+    public required TournamentFormat Format { get; set; }
     public required int TopicsPerParticipantMax { get; set; }
     public required int TopicsPerParticipantMin { get; set; }
 

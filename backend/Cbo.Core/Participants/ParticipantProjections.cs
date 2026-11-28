@@ -15,6 +15,7 @@ public static class ParticipantProjections
             Role = tp.Role,
             Seed = tp.Seed,
             ScoreSum = tp.ScoreSum,
+            PositiveScoreSum = tp.PositiveScoreSum,
             PointsSum = tp.PointsSum,
             TopicsCount = tp.TournamentTopics.Count,
             TournamentId = tp.TournamentId,

@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
 using Cbo.Core.Domain;
+using Cbo.Core.Playoffs;
 using Cbo.Core.Tournaments;
 using Cbo.Results;
 using Microsoft.EntityFrameworkCore;
@@ -24,9 +25,11 @@ public sealed class GetMatchesQueryHandler(
         if (access.IsFailure)
             return access.Failure;
 
+        TournamentStage stage = access.Value.CurrentStage;
+
         Expression<Func<MatchParticipant, MatchParticipantResponse>> toParticipantResponse = MatchParticipantProjections.ToResponse();
 
-        return await _dbContext.Matches
+        List<MatchResponse> matches = await _dbContext.Matches
             .Where(m => m.TournamentId == query.TournamentId)
             .OrderBy(m => m.NumberInTournament)
             .Select(m => new MatchResponse
@@ -37,6 +40,11 @@ public sealed class GetMatchesQueryHandler(
                 CreatedOnStage = m.CreatedOnStage,
                 Type = m.Type,
                 TournamentId = m.TournamentId,
+                ConfirmedAt = m.ConfirmedAt,
+                IsLocked = MatchLock.IsLocked(m.Type, m.ConfirmedAt, stage),
+                BracketPosition = m.BracketPosition,
+                SettledMatchId = m.SettledMatchId,
+                ShootoutNumber = m.ShootoutNumber,
                 MatchParticipants = m.MatchParticipants
                     .AsQueryable()
                     .OrderBy(mp => mp.Id)
@@ -45,5 +53,11 @@ public sealed class GetMatchesQueryHandler(
                 RoundsCount = m.Rounds.Count,
             })
             .ToListAsync(cancellationToken);
+
+        PlayoffSeating seating = await PlayoffSeating.LoadAsync(_dbContext, access.Value, cancellationToken);
+        foreach (MatchResponse match in matches)
+            seating.Describe(match.Id, match.SettledMatchId, match.MatchParticipants);
+
+        return matches;
     }
 }

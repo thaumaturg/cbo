@@ -11,8 +11,11 @@ public static class MatchParticipantProjections
         mp => new MatchParticipantResponse
         {
             Id = mp.Id,
+            TournamentParticipantId = mp.TournamentParticipantId,
             Username = mp.TournamentParticipant!.ApplicationUser!.UserName ?? string.Empty,
             ScoreSum = mp.ScoreSum,
+            PositiveScoreSum = mp.PositiveScoreSum,
             PointsSum = mp.PointsSum,
+            Outcome = mp.Outcome,
         };
 }

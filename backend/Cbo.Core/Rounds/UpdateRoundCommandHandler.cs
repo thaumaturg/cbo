@@ -25,14 +25,14 @@ public sealed class UpdateRoundCommandHandler(
 
     protected override async Task<Result> ExecuteAsync(UpdateRoundCommand command, CancellationToken cancellationToken)
     {
-        Result<Tournament> access = await _tournamentAccessService.LoadTournamentWithAccessAsync(
+        Result<Tournament> access = await _tournamentAccessService.LockTournamentWithAccessAsync(
             command.TournamentId, TournamentOperations.ManageRounds, ManageRoundsForbiddenMessage, cancellationToken);
         if (access.IsFailure)
             return access.Failure;
 
         Match? match = await _matchScoringService.LoadMatchAsync(command.TournamentId, command.MatchId, cancellationToken);
         if (match is null)
-            return RoundFailures.MatchNotFound();
+            return MatchFailures.MatchNotFound();
 
         Round? round = match.Rounds.FirstOrDefault(r => r.NumberInMatch == command.RoundNumber);
         if (round is null)
@@ -45,6 +45,10 @@ public sealed class UpdateRoundCommandHandler(
             DbContext, match, command.TopicId, command.Answers, cancellationToken);
         if (validation.IsFailure)
             return validation.Failure;
+
+        Failure? lockFailure = RoundRules.CheckNotLocked(match, access.Value);
+        if (lockFailure is not null)
+            return lockFailure;
 
         if (round.TopicId != command.TopicId || round.IsOverrideMode != command.IsOverrideMode)
             return Failure.Conflict("The topic, number and scoring mode of an existing round can't be changed. Delete the round and create a new one.");

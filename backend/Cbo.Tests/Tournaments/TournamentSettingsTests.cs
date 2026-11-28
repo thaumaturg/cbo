@@ -12,7 +12,7 @@ public class TournamentSettingsTests
 
         Assert.Equal(
             new TournamentSettings(
-                TournamentDefaults.TournamentSize,
+                TournamentDefaults.Format,
                 TournamentDefaults.TopicsPerParticipantMax,
                 TournamentDefaults.TopicsPerParticipantMin),
             settings);
@@ -21,8 +21,8 @@ public class TournamentSettingsTests
     [Fact]
     public void Settings_given_are_kept()
     {
-        TournamentSettings settings = TournamentSettings.Resolve(14, 30, 0);
+        TournamentSettings settings = TournamentSettings.Resolve(TournamentFormat.TwelveLong, 30, 0);
 
-        Assert.Equal(new TournamentSettings(14, 30, 0), settings);
+        Assert.Equal(new TournamentSettings(TournamentFormat.TwelveLong, 30, 0), settings);
     }
 }

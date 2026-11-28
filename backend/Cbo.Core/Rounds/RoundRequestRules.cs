@@ -1,4 +1,3 @@
-using Cbo.Core.Domain;
 using FluentValidation;
 using FluentValidation.Results;
 
@@ -9,10 +8,14 @@ namespace Cbo.Core.Rounds;
 /// </summary>
 internal static class RoundRequestRules
 {
+    /// <summary>
+    /// The round number is at least 1. Where it ends depends on the match's kind, which
+    /// <see cref="RoundRules.CheckRoundNumber"/> checks once the match is loaded.
+    /// </summary>
     public static IRuleBuilderOptions<T, int> RoundNumber<T>(this IRuleBuilder<T, int> rule) =>
         rule
-            .InclusiveBetween(1, Limits.Matches.RoundsPerQualificationMatch)
-            .WithMessage($"Round number must be between 1 and {Limits.Matches.RoundsPerQualificationMatch}.");
+            .GreaterThanOrEqualTo(1)
+            .WithMessage("Round number must be at least 1.");
 
     /// <summary>
     /// Checks every answer with the rules of the round's scoring mode. A null in the list is a missing answer.

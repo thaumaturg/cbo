@@ -14,7 +14,12 @@
     "matches": {
       "participantsMax": 4,
       "participantsMin": 2,
-      "roundsPerQualificationMatch": 4
+      "roundsPerMatch": {
+        "Qualification": 4,
+        "Playoff": 4,
+        "Shootout": 1,
+        "Final": 6
+      }
     },
     "rounds": {
       "overrideCostMax": 9999,
@@ -37,8 +42,9 @@
     },
     "tournaments": {
       "descriptionLengthMax": 500,
-      "supportedSizes": [
-        14
+      "selectableFormats": [
+        "TwelveShort",
+        "TwelveLong"
       ],
       "titleLengthMax": 100,
       "titleLengthMin": 3,
@@ -52,9 +58,551 @@
     "maxPageSize": 100,
     "maxSearchLength": 200
   },
+  "playoffBrackets": {
+    "TwelveLong": {
+      "Final": {
+        "losersTo": null,
+        "slots": [
+          {
+            "label": "1st of #8",
+            "outcome": "FirstWinner",
+            "source": "Playoff8"
+          },
+          {
+            "label": "2nd of #8",
+            "outcome": "SecondWinner",
+            "source": "Playoff8"
+          },
+          {
+            "label": "1st of #9",
+            "outcome": "FirstWinner",
+            "source": "Playoff9"
+          },
+          {
+            "label": "2nd of #9",
+            "outcome": "SecondWinner",
+            "source": "Playoff9"
+          }
+        ],
+        "winnersTo": []
+      },
+      "Playoff1": {
+        "losersTo": "Playoff5",
+        "slots": [
+          {
+            "label": "Q5",
+            "qualificationPlace": 5
+          },
+          {
+            "label": "Q7",
+            "qualificationPlace": 7
+          },
+          {
+            "label": "Q10",
+            "qualificationPlace": 10
+          },
+          {
+            "label": "Q12",
+            "qualificationPlace": 12
+          }
+        ],
+        "winnersTo": [
+          "Playoff3",
+          "Playoff4"
+        ]
+      },
+      "Playoff2": {
+        "losersTo": "Playoff5",
+        "slots": [
+          {
+            "label": "Q6",
+            "qualificationPlace": 6
+          },
+          {
+            "label": "Q8",
+            "qualificationPlace": 8
+          },
+          {
+            "label": "Q9",
+            "qualificationPlace": 9
+          },
+          {
+            "label": "Q11",
+            "qualificationPlace": 11
+          }
+        ],
+        "winnersTo": [
+          "Playoff3",
+          "Playoff4"
+        ]
+      },
+      "Playoff3": {
+        "losersTo": "Playoff6",
+        "slots": [
+          {
+            "label": "Q1",
+            "qualificationPlace": 1
+          },
+          {
+            "label": "Q4",
+            "qualificationPlace": 4
+          },
+          {
+            "label": "1st of #1",
+            "outcome": "FirstWinner",
+            "source": "Playoff1"
+          },
+          {
+            "label": "1st of #2",
+            "outcome": "FirstWinner",
+            "source": "Playoff2"
+          }
+        ],
+        "winnersTo": [
+          "Playoff8"
+        ]
+      },
+      "Playoff4": {
+        "losersTo": "Playoff6",
+        "slots": [
+          {
+            "label": "Q2",
+            "qualificationPlace": 2
+          },
+          {
+            "label": "Q3",
+            "qualificationPlace": 3
+          },
+          {
+            "label": "2nd of #1",
+            "outcome": "SecondWinner",
+            "source": "Playoff1"
+          },
+          {
+            "label": "2nd of #2",
+            "outcome": "SecondWinner",
+            "source": "Playoff2"
+          }
+        ],
+        "winnersTo": [
+          "Playoff8"
+        ]
+      },
+      "Playoff5": {
+        "losersTo": null,
+        "slots": [
+          {
+            "label": "dropped from #1",
+            "outcome": "Loser",
+            "source": "Playoff1"
+          },
+          {
+            "label": "dropped from #1",
+            "outcome": "Loser",
+            "source": "Playoff1"
+          },
+          {
+            "label": "dropped from #2",
+            "outcome": "Loser",
+            "source": "Playoff2"
+          },
+          {
+            "label": "dropped from #2",
+            "outcome": "Loser",
+            "source": "Playoff2"
+          }
+        ],
+        "winnersTo": [
+          "Playoff7"
+        ]
+      },
+      "Playoff6": {
+        "losersTo": null,
+        "slots": [
+          {
+            "label": "dropped from #3",
+            "outcome": "Loser",
+            "source": "Playoff3"
+          },
+          {
+            "label": "dropped from #3",
+            "outcome": "Loser",
+            "source": "Playoff3"
+          },
+          {
+            "label": "dropped from #4",
+            "outcome": "Loser",
+            "source": "Playoff4"
+          },
+          {
+            "label": "dropped from #4",
+            "outcome": "Loser",
+            "source": "Playoff4"
+          }
+        ],
+        "winnersTo": [
+          "Playoff7"
+        ]
+      },
+      "Playoff7": {
+        "losersTo": null,
+        "slots": [
+          {
+            "label": "1st of #5",
+            "outcome": "FirstWinner",
+            "source": "Playoff5"
+          },
+          {
+            "label": "2nd of #5",
+            "outcome": "SecondWinner",
+            "source": "Playoff5"
+          },
+          {
+            "label": "1st of #6",
+            "outcome": "FirstWinner",
+            "source": "Playoff6"
+          },
+          {
+            "label": "2nd of #6",
+            "outcome": "SecondWinner",
+            "source": "Playoff6"
+          }
+        ],
+        "winnersTo": [
+          "Playoff9"
+        ]
+      },
+      "Playoff8": {
+        "losersTo": "Playoff9",
+        "slots": [
+          {
+            "label": "1st of #3",
+            "outcome": "FirstWinner",
+            "source": "Playoff3"
+          },
+          {
+            "label": "2nd of #3",
+            "outcome": "SecondWinner",
+            "source": "Playoff3"
+          },
+          {
+            "label": "1st of #4",
+            "outcome": "FirstWinner",
+            "source": "Playoff4"
+          },
+          {
+            "label": "2nd of #4",
+            "outcome": "SecondWinner",
+            "source": "Playoff4"
+          }
+        ],
+        "winnersTo": [
+          "Final"
+        ]
+      },
+      "Playoff9": {
+        "losersTo": null,
+        "slots": [
+          {
+            "label": "dropped from #8",
+            "outcome": "Loser",
+            "source": "Playoff8"
+          },
+          {
+            "label": "dropped from #8",
+            "outcome": "Loser",
+            "source": "Playoff8"
+          },
+          {
+            "label": "1st of #7",
+            "outcome": "FirstWinner",
+            "source": "Playoff7"
+          },
+          {
+            "label": "2nd of #7",
+            "outcome": "SecondWinner",
+            "source": "Playoff7"
+          }
+        ],
+        "winnersTo": [
+          "Final"
+        ]
+      }
+    },
+    "TwelveShort": {
+      "Final": {
+        "losersTo": null,
+        "slots": [
+          {
+            "label": "1st of #8",
+            "outcome": "FirstWinner",
+            "source": "Playoff8"
+          },
+          {
+            "label": "2nd of #8",
+            "outcome": "SecondWinner",
+            "source": "Playoff8"
+          },
+          {
+            "label": "1st of #9",
+            "outcome": "FirstWinner",
+            "source": "Playoff9"
+          },
+          {
+            "label": "2nd of #9",
+            "outcome": "SecondWinner",
+            "source": "Playoff9"
+          }
+        ],
+        "winnersTo": []
+      },
+      "Playoff1": {
+        "losersTo": "Playoff5",
+        "slots": [
+          {
+            "label": "Q5",
+            "qualificationPlace": 5
+          },
+          {
+            "label": "Q7",
+            "qualificationPlace": 7
+          },
+          {
+            "label": "Q10",
+            "qualificationPlace": 10
+          },
+          {
+            "label": "Q12",
+            "qualificationPlace": 12
+          }
+        ],
+        "winnersTo": [
+          "Playoff3",
+          "Playoff4"
+        ]
+      },
+      "Playoff2": {
+        "losersTo": "Playoff5",
+        "slots": [
+          {
+            "label": "Q6",
+            "qualificationPlace": 6
+          },
+          {
+            "label": "Q8",
+            "qualificationPlace": 8
+          },
+          {
+            "label": "Q9",
+            "qualificationPlace": 9
+          },
+          {
+            "label": "Q11",
+            "qualificationPlace": 11
+          }
+        ],
+        "winnersTo": [
+          "Playoff3",
+          "Playoff4"
+        ]
+      },
+      "Playoff3": {
+        "losersTo": "Playoff6",
+        "slots": [
+          {
+            "label": "Q1",
+            "qualificationPlace": 1
+          },
+          {
+            "label": "Q4",
+            "qualificationPlace": 4
+          },
+          {
+            "label": "1st of #1",
+            "outcome": "FirstWinner",
+            "source": "Playoff1"
+          },
+          {
+            "label": "1st of #2",
+            "outcome": "FirstWinner",
+            "source": "Playoff2"
+          }
+        ],
+        "winnersTo": [
+          "Playoff8"
+        ]
+      },
+      "Playoff4": {
+        "losersTo": "Playoff6",
+        "slots": [
+          {
+            "label": "Q2",
+            "qualificationPlace": 2
+          },
+          {
+            "label": "Q3",
+            "qualificationPlace": 3
+          },
+          {
+            "label": "2nd of #1",
+            "outcome": "SecondWinner",
+            "source": "Playoff1"
+          },
+          {
+            "label": "2nd of #2",
+            "outcome": "SecondWinner",
+            "source": "Playoff2"
+          }
+        ],
+        "winnersTo": [
+          "Playoff8"
+        ]
+      },
+      "Playoff5": {
+        "losersTo": null,
+        "slots": [
+          {
+            "label": "dropped from #1",
+            "outcome": "Loser",
+            "source": "Playoff1"
+          },
+          {
+            "label": "dropped from #1",
+            "outcome": "Loser",
+            "source": "Playoff1"
+          },
+          {
+            "label": "dropped from #2",
+            "outcome": "Loser",
+            "source": "Playoff2"
+          },
+          {
+            "label": "dropped from #2",
+            "outcome": "Loser",
+            "source": "Playoff2"
+          }
+        ],
+        "winnersTo": [
+          "Playoff7"
+        ]
+      },
+      "Playoff6": {
+        "losersTo": null,
+        "slots": [
+          {
+            "label": "dropped from #3",
+            "outcome": "Loser",
+            "source": "Playoff3"
+          },
+          {
+            "label": "dropped from #3",
+            "outcome": "Loser",
+            "source": "Playoff3"
+          },
+          {
+            "label": "dropped from #4",
+            "outcome": "Loser",
+            "source": "Playoff4"
+          },
+          {
+            "label": "dropped from #4",
+            "outcome": "Loser",
+            "source": "Playoff4"
+          }
+        ],
+        "winnersTo": [
+          "Playoff7"
+        ]
+      },
+      "Playoff7": {
+        "losersTo": null,
+        "slots": [
+          {
+            "label": "1st of #5",
+            "outcome": "FirstWinner",
+            "source": "Playoff5"
+          },
+          {
+            "label": "2nd of #5",
+            "outcome": "SecondWinner",
+            "source": "Playoff5"
+          },
+          {
+            "label": "1st of #6",
+            "outcome": "FirstWinner",
+            "source": "Playoff6"
+          },
+          {
+            "label": "2nd of #6",
+            "outcome": "SecondWinner",
+            "source": "Playoff6"
+          }
+        ],
+        "winnersTo": [
+          "Playoff9"
+        ]
+      },
+      "Playoff8": {
+        "losersTo": "Playoff9",
+        "slots": [
+          {
+            "label": "1st of #3",
+            "outcome": "FirstWinner",
+            "source": "Playoff3"
+          },
+          {
+            "label": "2nd of #3",
+            "outcome": "SecondWinner",
+            "source": "Playoff3"
+          },
+          {
+            "label": "1st of #4",
+            "outcome": "FirstWinner",
+            "source": "Playoff4"
+          },
+          {
+            "label": "2nd of #4",
+            "outcome": "SecondWinner",
+            "source": "Playoff4"
+          }
+        ],
+        "winnersTo": [
+          "Final"
+        ]
+      },
+      "Playoff9": {
+        "losersTo": null,
+        "slots": [
+          {
+            "label": "dropped from #8",
+            "outcome": "Loser",
+            "source": "Playoff8"
+          },
+          {
+            "label": "dropped from #8",
+            "outcome": "Loser",
+            "source": "Playoff8"
+          },
+          {
+            "label": "1st of #7",
+            "outcome": "FirstWinner",
+            "source": "Playoff7"
+          },
+          {
+            "label": "2nd of #7",
+            "outcome": "SecondWinner",
+            "source": "Playoff7"
+          }
+        ],
+        "winnersTo": [
+          "Final"
+        ]
+      }
+    }
+  },
   "tournamentDefaults": {
+    "format": "TwelveShort",
     "topicsPerParticipantMax": 10,
-    "topicsPerParticipantMin": 6,
-    "tournamentSize": 14
+    "topicsPerParticipantMin": 6
   }
 }

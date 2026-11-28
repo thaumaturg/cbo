@@ -29,11 +29,19 @@ public sealed class GetParticipantsQueryHandler(
         if (query.Role.HasValue)
             participants = participants.Where(tp => tp.Role == query.Role.Value);
 
-        // Postgres sorts null seeds (non-players) last
-        return await participants
-            .OrderBy(tp => tp.Seed)
-            .ThenBy(tp => tp.Id)
+        // Staff come after the players, in the order the query gives them
+        List<ParticipantResponse> responses = await participants
+            .OrderBy(tp => tp.Id)
             .Select(ParticipantProjections.ToResponse())
             .ToListAsync(cancellationToken);
+
+        // Before any match is scored every player ties on zero, so players stay in seed order
+        IEnumerable<ParticipantResponse> playersInPlaceOrder = QualificationPlaces.InPlaceOrder(
+            responses.Where(p => p.Role == TournamentParticipantRole.Player),
+            p => new QualificationResult(p.PointsSum ?? 0m, p.ScoreSum ?? 0, p.PositiveScoreSum ?? 0, p.Seed!.Value));
+
+        return playersInPlaceOrder
+            .Concat(responses.Where(p => p.Role != TournamentParticipantRole.Player))
+            .ToList();
     }
 }

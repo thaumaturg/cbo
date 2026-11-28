@@ -20,6 +20,9 @@ namespace Cbo.Api;
 
 public class Program
 {
+    /// <summary>The environment the integration tests run the API in.</summary>
+    public const string TestingEnvironmentName = "Testing";
+
     public static void Main(string[] args)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -181,7 +184,8 @@ public class Program
             app.MapFallbackToFile("index.html");
         }
 
-        if (!isGeneratingOpenApiDocument)
+        // Integration tests create their throwaway database from the model instead
+        if (!isGeneratingOpenApiDocument && !app.Environment.IsEnvironment(TestingEnvironmentName))
         {
             using IServiceScope scope = app.Services.CreateScope();
             scope.ServiceProvider.GetRequiredService<CboDbContext>().Database.Migrate();

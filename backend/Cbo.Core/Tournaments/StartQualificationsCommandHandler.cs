@@ -11,21 +11,21 @@ namespace Cbo.Core.Tournaments;
 /// <summary>
 /// Moves a tournament from Preparations to Qualifications and generates its qualification matches.
 /// </summary>
-public sealed class StartTournamentCommandHandler(
+public sealed class StartQualificationsCommandHandler(
     CboDbContext dbContext,
     ITournamentAccessService tournamentAccessService,
-    IMatchGenerationService matchGenerationService) : CommandHandler<StartTournamentCommand>(dbContext)
+    IMatchGenerationService matchGenerationService) : CommandHandler<StartQualificationsCommand>(dbContext)
 {
-    private const string StartForbiddenMessage = "You don't have permission to start this tournament.";
-    private const string AlreadyStartedMessage = "The tournament has already started. Only a tournament in the Preparations stage can be started.";
+    private const string StartForbiddenMessage = "You don't have permission to start the qualifications of this tournament.";
+    private const string AlreadyStartedMessage = "The tournament has already started. Only a tournament in the Preparations stage can start the qualifications.";
 
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
     private readonly IMatchGenerationService _matchGenerationService = matchGenerationService;
 
-    protected override async Task<Result> ExecuteAsync(StartTournamentCommand command, CancellationToken cancellationToken)
+    protected override async Task<Result> ExecuteAsync(StartQualificationsCommand command, CancellationToken cancellationToken)
     {
-        Result<Tournament> access = await _tournamentAccessService.LoadTournamentWithAccessAsync(
-            command.TournamentId, TournamentOperations.Start, StartForbiddenMessage, cancellationToken);
+        Result<Tournament> access = await _tournamentAccessService.LockTournamentWithAccessAsync(
+            command.TournamentId, TournamentOperations.ChangeStage, StartForbiddenMessage, cancellationToken);
         if (access.IsFailure)
             return access.Failure;
 
@@ -47,8 +47,9 @@ public sealed class StartTournamentCommandHandler(
             .ThenBy(p => p.Id)
             .ToList();
 
-        if (players.Count != tournament.TournamentSize)
-            return Failure.Conflict($"The tournament needs exactly {tournament.TournamentSize} players to start. It has {players.Count}.");
+        int tournamentSize = tournament.Format.TournamentSize();
+        if (players.Count != tournamentSize)
+            return Failure.Conflict($"The tournament needs exactly {tournamentSize} players to start the qualifications. It has {players.Count}.");
 
         Result topicCountCheck = CheckTopicCounts(tournament, participants);
         if (topicCountCheck.IsFailure)
@@ -63,9 +64,9 @@ public sealed class StartTournamentCommandHandler(
         return Result.Success();
     }
 
-    protected override Failure? MapSaveFailure(StartTournamentCommand command, DbUpdateException exception)
+    protected override Failure? MapSaveFailure(StartQualificationsCommand command, DbUpdateException exception)
     {
-        // Lost a race with a simultaneous start of the same tournament
+        // Lost a race with a simultaneous Start Qualifications of the same tournament
         if (PostgresConstraint.IsUniqueViolation(exception, MatchConfiguration.TournamentIdNumberInTournamentIndexName))
             return Failure.Conflict(AlreadyStartedMessage);
 
@@ -74,7 +75,7 @@ public sealed class StartTournamentCommandHandler(
 
     /// <summary>
     /// No participant may have more than the maximum number of topics.
-    /// The minimum is informational (ADR-0007), so a player with fewer topics doesn't block Start.
+    /// The minimum is informational (ADR-0007), so a player with fewer topics doesn't block Start Qualifications.
     /// </summary>
     private static Result CheckTopicCounts(Tournament tournament, List<TournamentParticipant> participants)
     {

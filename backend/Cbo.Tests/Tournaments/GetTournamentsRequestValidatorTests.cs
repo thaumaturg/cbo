@@ -28,20 +28,22 @@ public class GetTournamentsRequestValidatorTests : PagingRequestRulesTests<GetTo
     }
 
     [Theory]
-    [InlineData(TournamentStageFilter.Preparations)]
-    [InlineData(TournamentStageFilter.Started)]
-    public void A_defined_stage_is_valid(TournamentStageFilter stage)
+    [InlineData(TournamentStage.Preparations)]
+    [InlineData(TournamentStage.Qualifications)]
+    [InlineData(TournamentStage.Playoff)]
+    [InlineData(TournamentStage.Ended)]
+    public void Every_stage_is_a_valid_filter(TournamentStage stage)
     {
         Validator.TestValidate(new GetTournamentsRequest { Stage = stage }).ShouldNotHaveAnyValidationErrors();
     }
 
     // Binding accepts numbers for enums, so an undefined value can reach the validator
     [Fact]
-    public void An_undefined_stage_is_unknown()
+    public void An_undefined_stage_is_unknown_and_lists_every_stage()
     {
-        Validator.TestValidate(new GetTournamentsRequest { Stage = (TournamentStageFilter)2 })
+        Validator.TestValidate(new GetTournamentsRequest { Stage = (TournamentStage)4 })
             .ShouldHaveValidationErrorFor("stage")
-            .WithErrorMessage("Unknown stage. Allowed: Preparations, Started.")
+            .WithErrorMessage("Unknown stage. Allowed: Preparations, Qualifications, Playoff, Ended.")
             .Only();
     }
 
@@ -83,7 +85,7 @@ public class GetTournamentsRequestValidatorTests : PagingRequestRulesTests<GetTo
         {
             Page = 0,
             Search = new string('a', PagingDefaults.MaxSearchLength + 1),
-            Stage = (TournamentStageFilter)2,
+            Stage = (TournamentStage)4,
             Role = [(TournamentParticipantRole)99],
         });
 

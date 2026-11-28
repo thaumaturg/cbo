@@ -37,7 +37,7 @@ public record GetTournamentsRequest
     public string? Search { get; set => field = RequestText.TrimToNull(value); }
 
     [FromQuery(Name = "stage")]
-    public TournamentStageFilter? Stage { get; set; }
+    public TournamentStage? Stage { get; set; }
 
     [FromQuery(Name = "role")]
     public TournamentParticipantRole[]? Role { get; set; }

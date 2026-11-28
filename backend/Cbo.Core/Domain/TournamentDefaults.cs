@@ -5,8 +5,8 @@ namespace Cbo.Core.Domain;
 /// </summary>
 public static class TournamentDefaults
 {
-    /// <summary>Tournament size of a new tournament.</summary>
-    public const int TournamentSize = 14;
+    /// <summary>Format of a new tournament.</summary>
+    public const TournamentFormat Format = TournamentFormat.TwelveShort;
 
     /// <summary>Fewest topics each participant brings to a new tournament.</summary>
     public const int TopicsPerParticipantMin = 6;

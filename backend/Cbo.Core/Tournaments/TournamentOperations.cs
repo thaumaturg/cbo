@@ -14,8 +14,12 @@ public static class TournamentOperations
         new() { Name = nameof(ManageParticipants) };
     public static readonly OperationAuthorizationRequirement ViewAllTopics =
         new() { Name = nameof(ViewAllTopics) };
-    public static readonly OperationAuthorizationRequirement Start =
-        new() { Name = nameof(Start) };
+    public static readonly OperationAuthorizationRequirement ChangeStage =
+        new() { Name = nameof(ChangeStage) };
     public static readonly OperationAuthorizationRequirement ManageRounds =
         new() { Name = nameof(ManageRounds) };
+    public static readonly OperationAuthorizationRequirement ConfirmMatches =
+        new() { Name = nameof(ConfirmMatches) };
+    public static readonly OperationAuthorizationRequirement ReopenMatches =
+        new() { Name = nameof(ReopenMatches) };
 }

@@ -9,6 +9,7 @@ public record ParticipantResponse
     public required TournamentParticipantRole Role { get; set; }
     public int? Seed { get; set; }
     public int? ScoreSum { get; set; }
+    public int? PositiveScoreSum { get; set; }
     public decimal? PointsSum { get; set; }
     public required int TopicsCount { get; set; }
     public required Guid TournamentId { get; set; }

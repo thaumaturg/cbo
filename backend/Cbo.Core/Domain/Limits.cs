@@ -56,10 +56,11 @@ public static class Limits
     public static class Tournaments
     {
         /// <summary>
-        /// Tournament sizes a Creator may choose. Each size needs a qualification table in
-        /// <see cref="Cbo.Core.Matches.MatchGenerationService"/>.
+        /// Formats a Creator may choose. Only formats with a playoff bracket are selectable, see
+        /// docs/adr/0013-format-replaces-tournament-size-as-the-setting.md.
         /// </summary>
-        public static readonly ImmutableArray<int> SupportedSizes = [14];
+        public static readonly ImmutableArray<TournamentFormat> SelectableFormats =
+            [TournamentFormat.TwelveShort, TournamentFormat.TwelveLong];
 
         /// <summary>Fewest characters in a tournament title.</summary>
         public const int TitleLengthMin = 3;
@@ -85,8 +86,15 @@ public static class Limits
         /// <summary>Most participants in a match.</summary>
         public const int ParticipantsMax = 4;
 
-        /// <summary>Rounds in a qualification match. A match with all of them played is finished.</summary>
-        public const int RoundsPerQualificationMatch = 4;
+        /// <summary>Rounds in a match of each kind. A match with all of them played is finished.</summary>
+        public static readonly ImmutableSortedDictionary<MatchType, int> RoundsPerMatch =
+            ImmutableSortedDictionary.CreateRange(
+            [
+                KeyValuePair.Create(MatchType.Qualification, 4),
+                KeyValuePair.Create(MatchType.Playoff, 4),
+                KeyValuePair.Create(MatchType.Shootout, 1),
+                KeyValuePair.Create(MatchType.Final, 6),
+            ]);
     }
 
     public static class Rounds

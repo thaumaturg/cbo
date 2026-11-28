@@ -26,13 +26,13 @@ public sealed class UpdateTournamentCommandHandler(
             return Failure.Conflict("A tournament can only be edited during the Preparations stage.");
 
         TournamentSettings settings = TournamentSettings.Resolve(
-            command.TournamentSize,
+            command.Format,
             command.TopicsPerParticipantMax,
             command.TopicsPerParticipantMin);
 
         tournament.Title = command.Title;
         tournament.Description = command.Description;
-        tournament.TournamentSize = settings.TournamentSize;
+        tournament.Format = settings.Format;
         tournament.TopicsPerParticipantMax = settings.TopicsPerParticipantMax;
         tournament.TopicsPerParticipantMin = settings.TopicsPerParticipantMin;
 

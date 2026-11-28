@@ -2,7 +2,6 @@
 import Card from "primevue/card";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
-import { ref } from "vue";
 
 defineProps({
   participants: {
@@ -10,11 +9,6 @@ defineProps({
     required: true,
   },
 });
-
-const multiSortMeta = ref([
-  { field: "pointsSum", order: -1 },
-  { field: "scoreSum", order: -1 },
-]);
 </script>
 
 <template>
@@ -38,7 +32,6 @@ const multiSortMeta = ref([
           stripedRows
           size="small"
           sortMode="multiple"
-          :multiSortMeta="multiSortMeta"
           removableSort
         >
           <Column field="username" header="Player" sortable style="min-width: 150px">
@@ -59,6 +52,14 @@ const multiSortMeta = ref([
             <template #body="{ data }">
               <span class="text-gray-600 dark:text-gray-400">
                 {{ data.scoreSum ?? 0 }}
+              </span>
+            </template>
+          </Column>
+
+          <Column field="positiveScoreSum" header="Positive score" sortable style="width: 140px" class="text-center">
+            <template #body="{ data }">
+              <span class="text-gray-600 dark:text-gray-400">
+                {{ data.positiveScoreSum ?? 0 }}
               </span>
             </template>
           </Column>

@@ -19,7 +19,7 @@ public static class TournamentProjections
             CreatedAt = t.CreatedAt,
             StartedAt = t.StartedAt,
             EndedAt = t.EndedAt,
-            TournamentSize = t.TournamentSize,
+            Format = t.Format,
             TopicsPerParticipantMax = t.TopicsPerParticipantMax,
             TopicsPerParticipantMin = t.TopicsPerParticipantMin,
             CurrentUserRole = t.TournamentParticipants

@@ -22,18 +22,22 @@ public sealed class DeleteRoundCommandHandler(
 
     protected override async Task<Result> ExecuteAsync(DeleteRoundCommand command, CancellationToken cancellationToken)
     {
-        Result<Tournament> access = await _tournamentAccessService.LoadTournamentWithAccessAsync(
+        Result<Tournament> access = await _tournamentAccessService.LockTournamentWithAccessAsync(
             command.TournamentId, TournamentOperations.ManageRounds, ManageRoundsForbiddenMessage, cancellationToken);
         if (access.IsFailure)
             return access.Failure;
 
         Match? match = await _matchScoringService.LoadMatchAsync(command.TournamentId, command.MatchId, cancellationToken);
         if (match is null)
-            return RoundFailures.MatchNotFound();
+            return MatchFailures.MatchNotFound();
 
         Round? round = match.Rounds.FirstOrDefault(r => r.NumberInMatch == command.RoundNumber);
         if (round is null)
             return RoundFailures.RoundNotFound(command.RoundNumber);
+
+        Failure? lockFailure = RoundRules.CheckNotLocked(match, access.Value);
+        if (lockFailure is not null)
+            return lockFailure;
 
         // The round's answers are tracked, so EF deletes them with it
         match.Rounds.Remove(round);

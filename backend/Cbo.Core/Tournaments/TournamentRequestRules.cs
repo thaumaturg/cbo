@@ -21,10 +21,14 @@ internal static class TournamentRequestRules
             .MaximumLength(Limits.Tournaments.DescriptionLengthMax)
             .WithMessage($"The description can be at most {Limits.Tournaments.DescriptionLengthMax} characters.");
 
-    public static IRuleBuilderOptions<T, int?> TournamentSize<T>(this IRuleBuilder<T, int?> rule) =>
+    /// <summary>
+    /// Also rejects formats that exist but can't be chosen, and unknown names, which the request reads as undefined
+    /// values.
+    /// </summary>
+    public static IRuleBuilderOptions<T, TournamentFormat?> SelectableFormat<T>(this IRuleBuilder<T, TournamentFormat?> rule) =>
         rule
-            .Must(size => Limits.Tournaments.SupportedSizes.Contains(size ?? TournamentDefaults.TournamentSize))
-            .WithMessage($"Tournament size must be one of: {string.Join(", ", Limits.Tournaments.SupportedSizes)}.");
+            .Must(format => Limits.Tournaments.SelectableFormats.Contains(format ?? TournamentDefaults.Format))
+            .WithMessage($"The format must be one of: {string.Join(", ", Limits.Tournaments.SelectableFormats)}.");
 
     /// <summary>
     /// The minimum is only a recommendation (ADR 0007), so it has no ceiling of its own. The maximum bounds it.

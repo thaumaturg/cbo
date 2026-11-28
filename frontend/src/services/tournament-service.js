@@ -9,7 +9,7 @@ export const tournamentService = {
    * @param {number} [params.pageSize] - Rows per page, from 1 to `PAGING.maxPageSize`
    * @param {string} [params.sort] - `title`, `stage` or `createdAt`, with an optional leading `-` for descending
    * @param {string} [params.search] - Text the title contains
-   * @param {"Preparations" | "Started"} [params.stage] - Stage filter
+   * @param {"Preparations" | "Qualifications" | "Playoff" | "Ended"} [params.stage] - Stage filter
    * @param {Array<"Creator" | "Organizer" | "Player">} [params.role] - The current user's role is one of these
    * @param {Object} [options] - Request options
    * @param {AbortSignal} [options.signal] - Cancels the request
@@ -44,7 +44,7 @@ export const tournamentService = {
    * @param {Object} tournamentData - Tournament data
    * @param {string} tournamentData.title - Tournament title
    * @param {string} [tournamentData.description] - Tournament description (optional)
-   * @param {number} [tournamentData.tournamentSize] - Tournament size (optional)
+   * @param {string} [tournamentData.format] - Tournament format, one of `LIMITS.tournaments.selectableFormats` (optional)
    * @param {number} [tournamentData.topicsPerParticipantMax] - Maximum topics per participant (optional)
    * @param {number} [tournamentData.topicsPerParticipantMin] - Minimum topics per participant (optional)
    * @returns {Promise} - API response with created tournament
@@ -54,7 +54,7 @@ export const tournamentService = {
       const response = await api.post("/Tournaments", {
         title: tournamentData.title,
         description: tournamentData.description,
-        tournamentSize: tournamentData.tournamentSize,
+        format: tournamentData.format,
         topicsPerParticipantMax: tournamentData.topicsPerParticipantMax,
         topicsPerParticipantMin: tournamentData.topicsPerParticipantMin,
       });
@@ -70,7 +70,7 @@ export const tournamentService = {
    * @param {Object} tournamentData - Updated tournament data
    * @param {string} tournamentData.title - Tournament title
    * @param {string} [tournamentData.description] - Tournament description (optional)
-   * @param {number} [tournamentData.tournamentSize] - Tournament size (optional)
+   * @param {string} [tournamentData.format] - Tournament format, one of `LIMITS.tournaments.selectableFormats` (optional)
    * @param {number} [tournamentData.topicsPerParticipantMax] - Maximum topics per participant (optional)
    * @param {number} [tournamentData.topicsPerParticipantMin] - Minimum topics per participant (optional)
    * @returns {Promise} - API response with updated tournament
@@ -80,7 +80,7 @@ export const tournamentService = {
       const response = await api.put(`/Tournaments/${tournamentId}`, {
         title: tournamentData.title,
         description: tournamentData.description,
-        tournamentSize: tournamentData.tournamentSize,
+        format: tournamentData.format,
         topicsPerParticipantMax: tournamentData.topicsPerParticipantMax,
         topicsPerParticipantMin: tournamentData.topicsPerParticipantMin,
       });
@@ -105,18 +105,61 @@ export const tournamentService = {
   },
 
   /**
-   * Start a tournament: move it from Preparations to Qualifications
+   * Start Qualifications: move a tournament from Preparations to Qualifications
    * @param {string} tournamentId - Tournament ID (GUID)
    * @returns {Promise} - API response with updated tournament
    */
-  async startTournament(tournamentId) {
+  async startQualifications(tournamentId) {
     try {
       const response = await api.patch(`/Tournaments/${tournamentId}`, {
         stage: "Qualifications",
       });
       return { success: true, data: response.data };
     } catch (error) {
-      return apiFailure(error, "Failed to start the tournament. Please try again.");
+      return apiFailure(error, "Failed to start Qualifications. Please try again.");
+    }
+  },
+
+  /**
+   * Start Playoff: move a tournament from Qualifications to the Playoff, fixing the qualification places
+   * @param {string} tournamentId - Tournament ID (GUID)
+   * @returns {Promise} - API response with updated tournament
+   */
+  async startPlayoff(tournamentId) {
+    try {
+      const response = await api.patch(`/Tournaments/${tournamentId}`, { stage: "Playoff" });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return apiFailure(error, "Failed to start the Playoff. Please try again.");
+    }
+  },
+
+  /**
+   * End Tournament: move a tournament from the Playoff to Ended, once its Final is decided
+   * @param {string} tournamentId - Tournament ID (GUID)
+   * @returns {Promise} - API response with updated tournament
+   */
+  async endTournament(tournamentId) {
+    try {
+      const response = await api.patch(`/Tournaments/${tournamentId}`, { stage: "Ended" });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return apiFailure(error, "Failed to end the tournament. Please try again.");
+    }
+  },
+
+  /**
+   * Roll back: move a tournament to an earlier stage, wiping everything played after it
+   * @param {string} tournamentId - Tournament ID (GUID)
+   * @param {string} stage - The earlier stage to go back to
+   * @returns {Promise} - API response with updated tournament
+   */
+  async rollBack(tournamentId, stage) {
+    try {
+      const response = await api.patch(`/Tournaments/${tournamentId}`, { stage });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return apiFailure(error, "Failed to roll the tournament back. Please try again.");
     }
   },
 };

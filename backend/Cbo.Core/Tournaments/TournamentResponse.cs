@@ -11,7 +11,11 @@ public record TournamentResponse
     public required DateTime CreatedAt { get; set; }
     public DateTime? StartedAt { get; set; }
     public DateTime? EndedAt { get; set; }
-    public required int TournamentSize { get; set; }
+    public required TournamentFormat Format { get; set; }
+
+    /// <summary>How many players the tournament has, given by its <see cref="Format"/>.</summary>
+    public int TournamentSize => Format.TournamentSize();
+
     public required int TopicsPerParticipantMax { get; set; }
     public required int TopicsPerParticipantMin { get; set; }
     public TournamentParticipantRole? CurrentUserRole { get; set; }

@@ -13,5 +13,5 @@ public sealed record GetTournamentsQuery(
     int PageSize,
     string? Sort,
     string? Search,
-    TournamentStageFilter? Stage,
+    TournamentStage? Stage,
     IReadOnlyList<TournamentParticipantRole> Roles) : IQuery<PageResponse<TournamentResponse>>;

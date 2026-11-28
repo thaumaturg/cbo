@@ -49,8 +49,8 @@ public static class TournamentEndpoints
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
-        tournaments.MapPatch("{id:guid}", StartTournamentAsync)
-            .WithName("StartTournament")
+        tournaments.MapPatch("{id:guid}", ChangeTournamentStageAsync)
+            .WithName("ChangeTournamentStage")
             .Produces<TournamentResponse>()
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -96,7 +96,7 @@ public static class TournamentEndpoints
         var command = new CreateTournamentCommand(
             createTournamentRequest.Title,
             createTournamentRequest.Description,
-            createTournamentRequest.TournamentSize,
+            createTournamentRequest.Format,
             createTournamentRequest.TopicsPerParticipantMax,
             createTournamentRequest.TopicsPerParticipantMin);
 
@@ -122,7 +122,7 @@ public static class TournamentEndpoints
             id,
             updateTournamentRequest.Title,
             updateTournamentRequest.Description,
-            updateTournamentRequest.TournamentSize,
+            updateTournamentRequest.Format,
             updateTournamentRequest.TopicsPerParticipantMax,
             updateTournamentRequest.TopicsPerParticipantMin);
 
@@ -149,22 +149,38 @@ public static class TournamentEndpoints
         return TypedResults.NoContent();
     }
 
-    private static async Task<IResult> StartTournamentAsync(
+    private static async Task<IResult> ChangeTournamentStageAsync(
         Guid id,
-        StartTournamentRequest startTournamentRequest,
-        [FromServices] ICommandHandler<StartTournamentCommand> startTournament,
+        ChangeStageRequest changeStageRequest,
+        [FromServices] ICommandHandler<StartQualificationsCommand> startQualifications,
+        [FromServices] ICommandHandler<StartPlayoffCommand> startPlayoff,
+        [FromServices] ICommandHandler<EndTournamentCommand> endTournament,
+        [FromServices] ICommandHandler<RollBackCommand> rollBack,
         [FromServices] IQueryHandler<GetTournamentQuery, TournamentResponse> getTournament,
         CancellationToken cancellationToken)
     {
-        // Keeps the PATCH { stage } shape: starting is the only supported stage change
-        if (startTournamentRequest.Stage != TournamentStage.Qualifications)
-            return Failure.Invalid(
-                "Some of the stage data is invalid.",
-                new FieldError("stage", "The stage can only be set to Qualifications, which starts the tournament.")).ToProblem();
+        Result<TournamentResponse> current = await getTournament.HandleAsync(new GetTournamentQuery(id), cancellationToken);
+        if (current.IsFailure)
+            return current.Failure.ToProblem();
 
-        Result started = await startTournament.HandleAsync(new StartTournamentCommand(id), cancellationToken);
-        if (started.IsFailure)
-            return started.Failure.ToProblem();
+        // One stage-move endpoint: Preparations, or any stage before the current one, is a roll back; any other stage
+        // picks its forward move. Each handler checks the stage again under the tournament's lock, so a move that
+        // raced this read is rejected
+        TournamentStage stage = changeStageRequest.Stage;
+        bool rollsBack = stage == TournamentStage.Preparations || stage < Enum.Parse<TournamentStage>(current.Value.CurrentStage);
+        Task<Result> move = rollsBack
+            ? rollBack.HandleAsync(new RollBackCommand(id, stage), cancellationToken)
+            : stage switch
+            {
+                TournamentStage.Qualifications => startQualifications.HandleAsync(new StartQualificationsCommand(id), cancellationToken),
+                TournamentStage.Playoff => startPlayoff.HandleAsync(new StartPlayoffCommand(id), cancellationToken),
+                TournamentStage.Ended => endTournament.HandleAsync(new EndTournamentCommand(id), cancellationToken),
+                _ => throw new ArgumentOutOfRangeException(nameof(changeStageRequest), stage, "No move to this stage."),
+            };
+
+        Result moved = await move;
+        if (moved.IsFailure)
+            return moved.Failure.ToProblem();
 
         Result<TournamentResponse> tournament = await getTournament.HandleAsync(new GetTournamentQuery(id), cancellationToken);
         if (tournament.IsFailure)
