@@ -57,6 +57,11 @@ public sealed class PlayoffBracket
         _ => throw new ArgumentOutOfRangeException(nameof(format), format, "Unknown tournament format."),
     };
 
+    /// <summary>The bracket of a tournament whose Playoff has started, which Start Playoff ensures its format has.</summary>
+    public static PlayoffBracket Of(Tournament tournament) =>
+        For(tournament.Format)
+            ?? throw new InvalidOperationException($"Format {tournament.Format} has no playoff bracket.");
+
     /// <summary>Where the match sends its winners and its losers.</summary>
     public BracketDestinations Destinations(BracketPosition position) =>
         new(

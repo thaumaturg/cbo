@@ -67,7 +67,7 @@ public class PlayoffProgressionService(CboDbContext dbContext) : IPlayoffProgres
 
     public async Task CreateNextMatchesAsync(Tournament tournament, CancellationToken cancellationToken)
     {
-        PlayoffBracket bracket = BracketOf(tournament);
+        PlayoffBracket bracket = PlayoffBracket.Of(tournament);
 
         Dictionary<Guid, int> places = await QualificationPlacesAsync(tournament, cancellationToken);
         List<Guid> playersInPlaceOrder = [.. places.OrderBy(entry => entry.Value).Select(entry => entry.Key)];
@@ -110,7 +110,7 @@ public class PlayoffProgressionService(CboDbContext dbContext) : IPlayoffProgres
         int lastNumberInStage = await _dbContext.Matches
             .Where(m => m.TournamentId == tournament.Id && m.CreatedOnStage == TournamentStage.Playoff)
             .MaxAsync(m => (int?)m.NumberInStage, cancellationToken) ?? 0;
-        int numberInStage = Math.Max(lastNumberInStage, BracketOf(tournament).Matches.Count) + 1;
+        int numberInStage = Math.Max(lastNumberInStage, PlayoffBracket.Of(tournament).Matches.Count) + 1;
 
         Match shootout = NewMatch(
             tournament,
@@ -141,10 +141,6 @@ public class PlayoffProgressionService(CboDbContext dbContext) : IPlayoffProgres
         match.MatchParticipants.ToDictionary(
             mp => mp.TournamentParticipantId,
             mp => new AnswerScores(mp.ScoreSum ?? 0, mp.PositiveScoreSum ?? 0));
-
-    private static PlayoffBracket BracketOf(Tournament tournament) =>
-        PlayoffBracket.For(tournament.Format)
-            ?? throw new InvalidOperationException($"Format {tournament.Format} has no playoff bracket.");
 
     private static Match NewMatch(
         Tournament tournament, MatchType type, int numberInTournament, int numberInStage, IEnumerable<Guid> players)

@@ -38,14 +38,9 @@ public sealed class ConfirmMatchCommandHandler(
         if (match is null)
             return MatchFailures.MatchNotFound();
 
-        if (tournament.CurrentStage != TournamentStage.Playoff)
-            return PlayoffFailures.NotInPlayoff("confirmed");
-
-        if (match.Type == MatchType.Qualification)
-            return PlayoffFailures.QualificationMatch("confirmed");
-
-        if (match.ConfirmedAt is not null)
-            return Failure.Conflict("This match is already confirmed.");
+        Failure? failure = Check(tournament, match);
+        if (failure is not null)
+            return failure;
 
         int roundsPlayed = await DbContext.Rounds.CountAsync(r => r.MatchId == match.Id, cancellationToken);
         if (!match.Type.IsFinished(roundsPlayed))
@@ -69,6 +64,21 @@ public sealed class ConfirmMatchCommandHandler(
         {
             return Failure.Conflict("Another confirmation changed the Playoff at the same time. Reload the tournament and try again.");
         }
+
+        return null;
+    }
+
+    /// <summary>Why the match can't be confirmed, whether finished or not, or null when it can.</summary>
+    private static Failure? Check(Tournament tournament, Match match)
+    {
+        if (tournament.CurrentStage != TournamentStage.Playoff)
+            return PlayoffFailures.NotInPlayoff("confirmed");
+
+        if (match.Type == MatchType.Qualification)
+            return PlayoffFailures.QualificationMatch("confirmed");
+
+        if (match.ConfirmedAt is not null)
+            return Failure.Conflict("This match is already confirmed.");
 
         return null;
     }

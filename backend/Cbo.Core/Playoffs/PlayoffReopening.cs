@@ -34,8 +34,7 @@ internal sealed record PlayoffReopening(Guid SettledMatchId, IReadOnlySet<Guid> 
     public static async Task<PlayoffReopening> PlanAsync(
         CboDbContext dbContext, Tournament tournament, Match match, CancellationToken cancellationToken)
     {
-        PlayoffBracket bracket = PlayoffBracket.For(tournament.Format)
-            ?? throw new InvalidOperationException($"Format {tournament.Format} has no playoff bracket.");
+        PlayoffBracket bracket = PlayoffBracket.Of(tournament);
 
         Guid settledMatchId = match.SettledMatchId ?? match.Id;
 
