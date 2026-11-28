@@ -1,6 +1,7 @@
 using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
 using Cbo.Core.Domain;
+using Cbo.Core.Matches;
 using Cbo.Core.Tournaments;
 using Cbo.Results;
 using Microsoft.EntityFrameworkCore;
@@ -16,14 +17,12 @@ public sealed class ReopenMatchCommandHandler(
     CboDbContext dbContext,
     ITournamentAccessService tournamentAccessService) : CommandHandler<ReopenMatchCommand>(dbContext)
 {
-    private const string ForbiddenMessage = "You don't have permission to reopen matches in this tournament.";
-
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
 
     protected override async Task<Result> ExecuteAsync(ReopenMatchCommand command, CancellationToken cancellationToken)
     {
         Result<Tournament> access = await _tournamentAccessService.LockTournamentWithAccessAsync(
-            command.TournamentId, TournamentOperations.ReopenMatches, ForbiddenMessage, cancellationToken);
+            command.TournamentId, TournamentOperations.ReopenMatches, PlayoffFailures.ReopenForbiddenMessage, cancellationToken);
         if (access.IsFailure)
             return access.Failure;
 
@@ -32,7 +31,7 @@ public sealed class ReopenMatchCommandHandler(
         Match? match = await DbContext.Matches
             .FirstOrDefaultAsync(m => m.Id == command.MatchId && m.TournamentId == command.TournamentId, cancellationToken);
         if (match is null)
-            return Failure.NotFound("Match not found in this tournament.");
+            return MatchFailures.MatchNotFound();
 
         Failure? failure = PlayoffReopening.Check(tournament, match);
         if (failure is not null)

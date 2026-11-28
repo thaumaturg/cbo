@@ -31,7 +31,7 @@ public sealed class CreateRoundCommandHandler(
 
         Match? match = await _matchScoringService.LoadMatchAsync(command.TournamentId, command.MatchId, cancellationToken);
         if (match is null)
-            return RoundFailures.MatchNotFound();
+            return MatchFailures.MatchNotFound();
 
         Failure? roundNumberFailure = RoundRules.CheckRoundNumber(match.Type, command.NumberInMatch);
         if (roundNumberFailure is not null)

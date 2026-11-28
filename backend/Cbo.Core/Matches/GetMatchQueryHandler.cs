@@ -15,7 +15,6 @@ public sealed class GetMatchQueryHandler(
     ITournamentAccessService tournamentAccessService) : IQueryHandler<GetMatchQuery, MatchDetailResponse>
 {
     private const string ReadForbiddenMessage = "You don't have permission to view this tournament.";
-    private const string NotFoundMessage = "Match not found in this tournament.";
 
     private readonly CboDbContext _dbContext = dbContext;
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
@@ -60,7 +59,7 @@ public sealed class GetMatchQueryHandler(
             })
             .FirstOrDefaultAsync(cancellationToken);
         if (match is null)
-            return Failure.NotFound(NotFoundMessage);
+            return MatchFailures.MatchNotFound();
 
         PlayoffSeating seating = await PlayoffSeating.LoadAsync(_dbContext, access.Value, cancellationToken);
         seating.Describe(match.Id, match.SettledMatchId, match.MatchParticipants);

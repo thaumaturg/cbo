@@ -12,7 +12,6 @@ public sealed class GetAvailableTopicsQueryHandler(
     ITournamentAccessService tournamentAccessService) : IQueryHandler<GetAvailableTopicsQuery, List<AvailableTopicResponse>>
 {
     private const string ViewAllTopicsForbiddenMessage = "You don't have permission to view all topics of this tournament.";
-    private const string NotFoundMessage = "Match not found in this tournament.";
 
     private readonly CboDbContext _dbContext = dbContext;
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
@@ -27,7 +26,7 @@ public sealed class GetAvailableTopicsQueryHandler(
         bool matchExists = await _dbContext.Matches
             .AnyAsync(m => m.Id == query.MatchId && m.TournamentId == query.TournamentId, cancellationToken);
         if (!matchExists)
-            return Failure.NotFound(NotFoundMessage);
+            return MatchFailures.MatchNotFound();
 
         IQueryable<Guid> matchPlayerUserIds = _dbContext.MatchParticipants
             .Where(mp => mp.MatchId == query.MatchId)

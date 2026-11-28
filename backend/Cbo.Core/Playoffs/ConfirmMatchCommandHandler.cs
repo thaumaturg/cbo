@@ -36,13 +36,13 @@ public sealed class ConfirmMatchCommandHandler(
             .Include(m => m.MatchParticipants)
             .FirstOrDefaultAsync(m => m.Id == command.MatchId && m.TournamentId == command.TournamentId, cancellationToken);
         if (match is null)
-            return Failure.NotFound("Match not found in this tournament.");
+            return MatchFailures.MatchNotFound();
 
         if (tournament.CurrentStage != TournamentStage.Playoff)
-            return Failure.Conflict("Matches can only be confirmed while the tournament is in the Playoff stage.");
+            return PlayoffFailures.NotInPlayoff("confirmed");
 
         if (match.Type == MatchType.Qualification)
-            return Failure.Conflict("Only playoff matches, shootouts and the Final are confirmed.");
+            return PlayoffFailures.QualificationMatch("confirmed");
 
         if (match.ConfirmedAt is not null)
             return Failure.Conflict("This match is already confirmed.");

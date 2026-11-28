@@ -13,9 +13,6 @@ internal static class RoundFailures
     public static Failure InvalidField(string field, string message) =>
         Failure.Invalid(InvalidMessage, new FieldError(field, message));
 
-    public static Failure MatchNotFound() =>
-        Failure.NotFound("Match not found in this tournament.");
-
     public static Failure RoundNotFound(int roundNumber) =>
         Failure.NotFound($"Round {roundNumber} not found for this match.");
 

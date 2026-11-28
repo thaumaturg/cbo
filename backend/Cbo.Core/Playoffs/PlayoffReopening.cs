@@ -18,10 +18,10 @@ internal sealed record PlayoffReopening(Guid SettledMatchId, IReadOnlySet<Guid> 
     public static Failure? Check(Tournament tournament, Match match)
     {
         if (tournament.CurrentStage != TournamentStage.Playoff)
-            return Failure.Conflict("Matches can only be reopened while the tournament is in the Playoff stage.");
+            return PlayoffFailures.NotInPlayoff("reopened");
 
         if (match.Type == MatchType.Qualification)
-            return Failure.Conflict("Only playoff matches, shootouts and the Final are reopened.");
+            return PlayoffFailures.QualificationMatch("reopened");
 
         if (match.ConfirmedAt is null)
             return Failure.Conflict("Only a confirmed match can be reopened.");

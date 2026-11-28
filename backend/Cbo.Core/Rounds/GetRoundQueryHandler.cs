@@ -1,6 +1,7 @@
 using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
 using Cbo.Core.Domain;
+using Cbo.Core.Matches;
 using Cbo.Core.Tournaments;
 using Cbo.Results;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +13,6 @@ public sealed class GetRoundQueryHandler(
     ITournamentAccessService tournamentAccessService) : IQueryHandler<GetRoundQuery, RoundResponse>
 {
     private const string ReadForbiddenMessage = "You don't have permission to view this tournament.";
-    private const string MatchNotFoundMessage = "Match not found in this tournament.";
 
     private readonly CboDbContext _dbContext = dbContext;
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
@@ -27,7 +27,7 @@ public sealed class GetRoundQueryHandler(
         bool matchExists = await _dbContext.Matches
             .AnyAsync(m => m.Id == query.MatchId && m.TournamentId == query.TournamentId, cancellationToken);
         if (!matchExists)
-            return Failure.NotFound(MatchNotFoundMessage);
+            return MatchFailures.MatchNotFound();
 
         RoundResponse? round = await _dbContext.Rounds
             .Where(r => r.MatchId == query.MatchId && r.NumberInMatch == query.RoundNumber)

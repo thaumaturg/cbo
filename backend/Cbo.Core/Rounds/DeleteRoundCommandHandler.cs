@@ -29,7 +29,7 @@ public sealed class DeleteRoundCommandHandler(
 
         Match? match = await _matchScoringService.LoadMatchAsync(command.TournamentId, command.MatchId, cancellationToken);
         if (match is null)
-            return RoundFailures.MatchNotFound();
+            return MatchFailures.MatchNotFound();
 
         Round? round = match.Rounds.FirstOrDefault(r => r.NumberInMatch == command.RoundNumber);
         if (round is null)

@@ -1,6 +1,7 @@
 using Cbo.Core.Cqrs;
 using Cbo.Core.Data;
 using Cbo.Core.Domain;
+using Cbo.Core.Matches;
 using Cbo.Core.Tournaments;
 using Cbo.Results;
 using Microsoft.EntityFrameworkCore;
@@ -15,15 +16,13 @@ public sealed class GetReopenDeletionsQueryHandler(
     CboDbContext dbContext,
     ITournamentAccessService tournamentAccessService) : IQueryHandler<GetReopenDeletionsQuery, List<ReopenDeletionResponse>>
 {
-    private const string ForbiddenMessage = "You don't have permission to reopen matches in this tournament.";
-
     private readonly CboDbContext _dbContext = dbContext;
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
 
     public async Task<Result<List<ReopenDeletionResponse>>> HandleAsync(GetReopenDeletionsQuery query, CancellationToken cancellationToken)
     {
         Result<Tournament> access = await _tournamentAccessService.LoadTournamentWithAccessAsync(
-            query.TournamentId, TournamentOperations.ReopenMatches, ForbiddenMessage, cancellationToken);
+            query.TournamentId, TournamentOperations.ReopenMatches, PlayoffFailures.ReopenForbiddenMessage, cancellationToken);
         if (access.IsFailure)
             return access.Failure;
 
@@ -31,7 +30,7 @@ public sealed class GetReopenDeletionsQueryHandler(
             .AsNoTracking()
             .FirstOrDefaultAsync(m => m.Id == query.MatchId && m.TournamentId == query.TournamentId, cancellationToken);
         if (match is null)
-            return Failure.NotFound("Match not found in this tournament.");
+            return MatchFailures.MatchNotFound();
 
         Failure? failure = PlayoffReopening.Check(access.Value, match);
         if (failure is not null)
