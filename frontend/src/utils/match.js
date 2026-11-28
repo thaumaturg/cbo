@@ -22,9 +22,13 @@ export const isQualificationMatch = (match) => match.type === "Qualification";
 export const isFinalDecided = (matches) =>
   matches.some((match) => match.type === "Final" && match.matchParticipants.every((player) => player.outcome != null));
 
-// "Playoff3" -> 3, "Final" -> 10, as the API numbers bracket positions
-const bracketNumber = (bracketPosition) =>
-  bracketPosition === "Final" ? 10 : Number(bracketPosition?.replace("Playoff", ""));
+/**
+ * The name of a bracket position: "Playoff #3" or "Final".
+ * @param {string} bracketPosition - A bracket position as the API names it, such as "Playoff3" or "Final"
+ * @returns {string}
+ */
+export const bracketPositionTitle = (bracketPosition) =>
+  bracketPosition === "Final" ? "Final" : bracketPosition.replace("Playoff", "Playoff #");
 
 /**
  * A match's name: "Qualifications #4", "Playoff #3", "Final", "Playoff #3 · Shootout 1" or "Final · Shootout 2".
@@ -35,9 +39,8 @@ const bracketNumber = (bracketPosition) =>
 export const matchTitle = (match, settledMatch) => {
   switch (match.type) {
     case "Playoff":
-      return `Playoff #${bracketNumber(match.bracketPosition)}`;
     case "Final":
-      return "Final";
+      return bracketPositionTitle(match.bracketPosition);
     case "Shootout":
       return `${matchTitle(settledMatch)} · Shootout ${match.shootoutNumber}`;
     default:
@@ -45,21 +48,36 @@ export const matchTitle = (match, settledMatch) => {
   }
 };
 
-/**
- * Playoff matches, shootouts and the Final in bracket order, each match's shootouts right after it.
- * @param {Array<Object>} matches - The tournament's matches from the API
- * @returns {Array<{ match: Object, title: string }>}
- */
-export const playoffMatchesInBracketOrder = (matches) => {
-  const byId = new Map(matches.map((match) => [match.id, match]));
-
-  return matches
-    .filter((match) => !isQualificationMatch(match))
-    .map((match) => {
-      const settledMatch = byId.get(match.settledMatchId);
-      const position = bracketNumber((settledMatch ?? match).bracketPosition);
-      return { match, title: matchTitle(match, settledMatch), position, shootout: match.shootoutNumber ?? 0 };
-    })
-    .sort((a, b) => a.position - b.position || a.shootout - b.shootout)
-    .map(({ match, title }) => ({ match, title }));
+const OUTCOME_LABELS = {
+  FirstWinner: "1st winner",
+  SecondWinner: "2nd winner",
+  Loser: "Loser",
+  FirstPlace: "1st place",
+  SecondPlace: "2nd place",
+  ThirdPlace: "3rd place",
+  FourthPlace: "4th place",
 };
+
+/**
+ * What a player got from a decided playoff match or Final: "1st winner", "Loser", "Eliminated", "2nd place" and so on.
+ * @param {Object} player - A match participant from the API, with `outcome` and `isEliminated`
+ * @returns {string|null} Null until the match is decided
+ */
+export const outcomeLabel = (player) => (player.isEliminated ? "Eliminated" : (OUTCOME_LABELS[player.outcome] ?? null));
+
+const OUTCOME_TAG_SEVERITIES = {
+  FirstWinner: "success",
+  SecondWinner: "success",
+  Loser: "warn",
+  FirstPlace: "success",
+  SecondPlace: "info",
+  ThirdPlace: "info",
+  FourthPlace: "secondary",
+};
+
+/**
+ * PrimeVue Tag severity for a player's outcome, matching {@link outcomeLabel}.
+ * @param {Object} player - A match participant from the API, with `outcome` and `isEliminated`
+ * @returns {string|undefined}
+ */
+export const outcomeTagSeverity = (player) => (player.isEliminated ? "danger" : OUTCOME_TAG_SEVERITIES[player.outcome]);

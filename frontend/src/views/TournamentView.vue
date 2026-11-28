@@ -1,5 +1,6 @@
 <script setup>
 import MatchCard from "@/components/MatchCard.vue";
+import PlayoffBracketCharts from "@/components/PlayoffBracketCharts.vue";
 import TournamentParticipantsPanel from "@/components/TournamentParticipantsPanel.vue";
 import TournamentSettingsPanel from "@/components/TournamentSettingsPanel.vue";
 import TournamentStagePanel from "@/components/TournamentStagePanel.vue";
@@ -8,13 +9,7 @@ import TournamentTopicsPanel from "@/components/TournamentTopicsPanel.vue";
 import { tournamentMatchesService } from "@/services/tournament-matches-service.js";
 import { tournamentParticipantsService } from "@/services/tournament-participants-service.js";
 import { tournamentService } from "@/services/tournament-service.js";
-import {
-  isFinalDecided,
-  isMatchFinished,
-  isQualificationMatch,
-  matchTitle,
-  playoffMatchesInBracketOrder,
-} from "@/utils/match.js";
+import { isFinalDecided, isMatchFinished, isQualificationMatch, matchTitle } from "@/utils/match.js";
 import { useNotify } from "@/utils/notify.js";
 import { hasPlayoffStarted, isPreparationsStage, stageTagSeverity } from "@/utils/tournament.js";
 import { useUnsavedChangesGuard } from "@/utils/unsaved-changes.js";
@@ -69,7 +64,6 @@ const stageSeverity = computed(() => stageTagSeverity(stage.value));
 
 const isLoadingStageData = computed(() => isLoadingMatches.value || isLoadingParticipants.value);
 const qualificationMatches = computed(() => matches.value.filter(isQualificationMatch));
-const playoffMatches = computed(() => playoffMatchesInBracketOrder(matches.value));
 
 const canStartPlayoff = computed(
   () =>
@@ -426,23 +420,8 @@ onMounted(async () => {
               </div>
             </div>
 
-            <!-- Playoff Matches Grid -->
-            <div v-else-if="playoffMatches.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <MatchCard
-                v-for="{ match, title } in playoffMatches"
-                :key="match.id"
-                :match="match"
-                :title="title"
-                :tournamentId="tournamentId"
-              />
-            </div>
-
-            <div v-else class="text-center py-12">
-              <div class="text-gray-500 dark:text-gray-400">
-                <i class="pi pi-inbox text-4xl mb-4 block"></i>
-                <p class="text-lg">No playoff matches found</p>
-              </div>
-            </div>
+            <!-- Bracket Charts -->
+            <PlayoffBracketCharts v-else :tournamentId="tournamentId" :format="tournament.format" :matches="matches" />
           </TabPanel>
         </TabPanels>
       </Tabs>
