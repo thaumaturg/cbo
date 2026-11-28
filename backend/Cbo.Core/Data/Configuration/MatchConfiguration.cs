@@ -33,9 +33,9 @@ public class MatchConfiguration : IEntityTypeConfiguration<Match>
         entity.Property(m => m.BracketPosition)
             .HasConversion<string>();
 
-        // A tournament has each match number at most once; also stops two simultaneous Starts from generating the
-        // matches twice. A playoff match's number is fixed by its bracket position, so it also stops the same playoff
-        // match from being created twice
+        // A tournament has each match number at most once; also stops two simultaneous Start Qualifications from
+        // generating the matches twice. A playoff match's number is fixed by its bracket position, so it also stops the
+        // same playoff match from being created twice
         entity.HasIndex(m => new { m.TournamentId, m.NumberInTournament })
             .IsUnique()
             .HasDatabaseName(TournamentIdNumberInTournamentIndexName);

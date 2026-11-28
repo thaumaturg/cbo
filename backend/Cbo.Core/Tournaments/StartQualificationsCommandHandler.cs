@@ -16,8 +16,8 @@ public sealed class StartQualificationsCommandHandler(
     ITournamentAccessService tournamentAccessService,
     IMatchGenerationService matchGenerationService) : CommandHandler<StartQualificationsCommand>(dbContext)
 {
-    private const string StartForbiddenMessage = "You don't have permission to start this tournament.";
-    private const string AlreadyStartedMessage = "The tournament has already started. Only a tournament in the Preparations stage can be started.";
+    private const string StartForbiddenMessage = "You don't have permission to start the qualifications of this tournament.";
+    private const string AlreadyStartedMessage = "The tournament has already started. Only a tournament in the Preparations stage can start the qualifications.";
 
     private readonly ITournamentAccessService _tournamentAccessService = tournamentAccessService;
     private readonly IMatchGenerationService _matchGenerationService = matchGenerationService;
@@ -49,7 +49,7 @@ public sealed class StartQualificationsCommandHandler(
 
         int tournamentSize = tournament.Format.TournamentSize();
         if (players.Count != tournamentSize)
-            return Failure.Conflict($"The tournament needs exactly {tournamentSize} players to start. It has {players.Count}.");
+            return Failure.Conflict($"The tournament needs exactly {tournamentSize} players to start the qualifications. It has {players.Count}.");
 
         Result topicCountCheck = CheckTopicCounts(tournament, participants);
         if (topicCountCheck.IsFailure)
@@ -66,7 +66,7 @@ public sealed class StartQualificationsCommandHandler(
 
     protected override Failure? MapSaveFailure(StartQualificationsCommand command, DbUpdateException exception)
     {
-        // Lost a race with a simultaneous start of the same tournament
+        // Lost a race with a simultaneous Start Qualifications of the same tournament
         if (PostgresConstraint.IsUniqueViolation(exception, MatchConfiguration.TournamentIdNumberInTournamentIndexName))
             return Failure.Conflict(AlreadyStartedMessage);
 
