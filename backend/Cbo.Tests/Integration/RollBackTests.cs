@@ -40,7 +40,7 @@ public class RollBackTests(ApiFactory api)
         TestTournament tournament = await EndedAsync();
         List<MatchResponse> qualificationsBefore = [.. (await tournament.MatchesAsync()).Where(m => m.Type == MatchType.Qualification)];
         Assert.All(qualificationsBefore, m => Assert.True(m.IsLocked));
-        List<ParticipantResponse> playersBefore = await PlayersAsync(tournament);
+        List<ParticipantResponse> playersBefore = await tournament.PlayersAsync();
 
         TournamentResponse rolledBack = await tournament.RolledBackAsync(TournamentStage.Qualifications);
 
@@ -52,7 +52,7 @@ public class RollBackTests(ApiFactory api)
         Assert.All(matches, m => Assert.False(m.IsLocked));
         Assert.Equal(
             playersBefore.Select(p => (p.Id, p.PointsSum, p.ScoreSum, p.PositiveScoreSum)),
-            (await PlayersAsync(tournament)).Select(p => (p.Id, p.PointsSum, p.ScoreSum, p.PositiveScoreSum)));
+            (await tournament.PlayersAsync()).Select(p => (p.Id, p.PointsSum, p.ScoreSum, p.PositiveScoreSum)));
         await TestTournament.Succeeded(await tournament.RescoreAsync(matches[0].Id, new Dictionary<string, int>()));
     }
 
@@ -105,7 +105,7 @@ public class RollBackTests(ApiFactory api)
         Assert.Null(rolledBack.StartedAt);
         Assert.Null(rolledBack.EndedAt);
         Assert.Empty(await tournament.MatchesAsync());
-        List<ParticipantResponse> players = await PlayersAsync(tournament);
+        List<ParticipantResponse> players = await tournament.PlayersAsync();
         Assert.Equal(s_playersBySeed, players.OrderBy(p => p.Seed).Select(p => p.Username[..p.Username.LastIndexOf('_')]));
         Assert.All(players, p => Assert.Equal((null, null, null), (p.PointsSum, p.ScoreSum, p.PositiveScoreSum)));
     }
@@ -191,10 +191,6 @@ public class RollBackTests(ApiFactory api)
         await TestTournament.Succeeded(await tournament.ChangeStageAsync(TournamentStage.Ended));
         return tournament;
     }
-
-    private static async Task<List<ParticipantResponse>> PlayersAsync(TestTournament tournament) =>
-        (await tournament.Creator.GetFromJsonAsync<List<ParticipantResponse>>(
-            $"/api/Tournaments/{tournament.Id}/participants?role=Player", TestTournament.JsonOptions))!;
 
     private static async Task<List<Guid>> AvailableTopicsAsync(TestTournament tournament, Guid matchId) =>
         [.. (await tournament.Creator.GetFromJsonAsync<List<AvailableTopicResponse>>(

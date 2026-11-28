@@ -12,6 +12,7 @@ using Cbo.Core.Accounts;
 using Cbo.Core.Data;
 using Cbo.Core.Domain;
 using Cbo.Core.Matches;
+using Cbo.Core.Participants;
 using Cbo.Core.Rounds;
 using Cbo.Core.Tournaments;
 using Microsoft.Extensions.DependencyInjection;
@@ -207,6 +208,20 @@ internal sealed class TestTournament
 
         return await Creator.PutAsJsonAsync($"/api/Tournaments/{Id}/matches/{matchId}/rounds/1", request, JsonOptions);
     }
+
+    /// <summary>Adds a round with an unplayed topic and no answers.</summary>
+    public Task<HttpResponseMessage> AddRoundAsync(Guid matchId, int numberInMatch)
+    {
+        (Guid topicId, _) = _unplayedTopics.Dequeue();
+        var request = new CreateRoundRequest { NumberInMatch = numberInMatch, TopicId = topicId, IsOverrideMode = false, Answers = [] };
+        return Creator.PostAsJsonAsync($"/api/Tournaments/{Id}/matches/{matchId}/rounds", request, JsonOptions);
+    }
+
+    public Task<HttpResponseMessage> DeleteRoundAsync(Guid matchId, int roundNumber) =>
+        Creator.DeleteAsync($"/api/Tournaments/{Id}/matches/{matchId}/rounds/{roundNumber}");
+
+    public async Task<List<ParticipantResponse>> PlayersAsync() =>
+        (await Creator.GetFromJsonAsync<List<ParticipantResponse>>($"/api/Tournaments/{Id}/participants?role=Player", JsonOptions))!;
 
     public Task<HttpResponseMessage> ConfirmAsync(Guid matchId, HttpClient? client = null) =>
         (client ?? Creator).PostAsync($"/api/Tournaments/{Id}/matches/{matchId}/confirm", content: null);
